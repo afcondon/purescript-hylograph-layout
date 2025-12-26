@@ -1,0 +1,21 @@
+# Dependencies
+.spago/
+node_modules/
+bower_components/
+
+# Build output
+output/
+.psci_modules/
+generated-docs/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Spago lock (generated)
+spago.lock
