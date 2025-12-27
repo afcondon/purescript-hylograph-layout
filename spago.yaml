@@ -1,3 +1,10 @@
+workspace:
+  packageSet:
+    registry: 67.0.1
+  extraPackages:
+    psd3-tree:
+      path: ../purescript-psd3-tree
+
 package:
   name: psd3-layout
   description: Pure PureScript implementations of D3-style layout algorithms (tree, pack, sankey, edge-bundle, etc.)
