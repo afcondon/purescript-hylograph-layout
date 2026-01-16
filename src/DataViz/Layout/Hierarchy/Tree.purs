@@ -12,6 +12,9 @@ module DataViz.Layout.Hierarchy.Tree
   , Contours(..)
   , tree
   , treeWithSorting
+  -- * Size-aware layout
+  , NodeSize
+  , treeSized
   ) where
 
 import Prelude
@@ -24,6 +27,8 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Tuple (Tuple(..))
 import Data.Array as Array
 import Data.Int (toNumber)
+import Data.Map as Map
+import Data.Map (Map)
 
 -- | Configuration for tree layout
 -- |
@@ -576,3 +581,257 @@ sortByHeight t =
   where
   compareByHeight :: forall s. Tree { height :: Int | s } -> Tree { height :: Int | s } -> Ordering
   compareByHeight t1 t2 = compare (head t2).height (head t1).height -- Descending
+
+-- =============================================================================
+-- Size-Aware Tree Layout
+-- =============================================================================
+
+-- | Node size for layout calculations
+-- | Width affects horizontal spacing (contours track edges, not centers)
+-- | Height affects vertical layer spacing (each layer uses max height at that depth)
+type NodeSize = { width :: Number, height :: Number }
+
+-- | Size-aware tree layout for heterogeneous nodes
+-- |
+-- | Unlike the standard `tree` function which assumes uniform node sizes,
+-- | this variant uses a sizing function to query each node's dimensions.
+-- |
+-- | Key differences from standard layout:
+-- | - Contours track node edges (center ± width/2), not centers
+-- | - Layer y-positions based on accumulated max heights, not uniform spacing
+-- | - minSeparation becomes pure gap between node edges
+-- |
+-- | Example for a tree with circles and tables:
+-- | ```purescript
+-- | treeSized config nodeSize myTree
+-- |   where
+-- |   nodeSize node = case node.shape of
+-- |     Circle { radius } -> { width: radius * 2.0, height: radius * 2.0 }
+-- |     Table { rows } -> { width: 50.0 * numCols, height: 20.0 * numRows }
+-- | ```
+treeSized
+  :: forall r
+   . TreeConfig { x :: Number, y :: Number, depth :: Int | r }
+  -> ({ x :: Number, y :: Number, depth :: Int | r } -> NodeSize)
+  -> Tree { x :: Number, y :: Number, depth :: Int | r }
+  -> Tree { x :: Number, y :: Number, depth :: Int | r }
+treeSized config getSize inputTree =
+  let
+    -- Step 1: Add depth field
+    withDepth = addDepth 0 inputTree
+
+    -- Step 2: Compute relative positions with size-aware contours (bottom-up)
+    rendered = renderSized config.minSeparation getSize withDepth
+
+    -- Step 3: Convert offsets to absolute x coordinates (top-down)
+    withCoords = petrify 0.0 rendered
+
+    -- Step 4: Compute max height at each depth level
+    maxHeights = computeMaxHeights getSize withCoords
+
+    -- Step 5: Scale to final pixel coordinates with variable layer heights
+    scaled = scaleToPixelsSized config getSize maxHeights withCoords
+  in
+    scaled
+
+-- | Bottom-up pass with size-aware contours
+-- | Contours now track edges (center ± width/2) instead of centers
+renderSized
+  :: forall r
+   . Number
+  -> ({ x :: Number, y :: Number, depth :: Int | r } -> NodeSize)
+  -> Tree { x :: Number, y :: Number, depth :: Int | r }
+  -> Tree (Tuple { offset :: Number } { x :: Number, y :: Number, depth :: Int | r })
+renderSized minSep getSize inputTree =
+  case renderWithContours inputTree of
+    Tuple t _ -> t
+  where
+  renderWithContours :: Tree { x :: Number, y :: Number, depth :: Int | r } -> Tuple (Tree (Tuple { offset :: Number } { x :: Number, y :: Number, depth :: Int | r })) Contours
+  renderWithContours t =
+    let
+      val = head t
+      children = tail t
+      childCount = length children
+      size = getSize val
+    in
+      case childCount of
+        -- Leaf node: contours are edges based on width
+        0 -> Tuple
+          (mkTree (Tuple { offset: 0.0 } val) Nil)
+          (sizedContours size.width)
+
+        -- Internal node: process children, position them, compute contours
+        _ ->
+          let
+            -- Recursively process all children
+            childResults = map renderWithContours children
+            childTrees = map (\(Tuple tr _) -> tr) childResults
+            childContours = map (\(Tuple _ c) -> c) childResults
+
+            -- For size-aware layout, separation is just the gap (edges already in contours)
+            -- Scan adjacent pairs to find needed separations
+            separations = computeSeparationsSized minSep childContours
+
+            -- Position children: first at 0, rest offset by cumulative separations
+            childAbsoluteOffsets = Cons 0.0 (scanl (+) 0.0 separations)
+
+            -- Parent is centered at midpoint of leftmost and rightmost child
+            leftmostOffset = fromMaybe 0.0 $ Array.head $ Array.fromFoldable childAbsoluteOffsets
+            rightmostOffset = fromMaybe 0.0 $ Array.last $ Array.fromFoldable childAbsoluteOffsets
+            parentOffset = (leftmostOffset + rightmostOffset) / 2.0
+
+            -- Convert child offsets to be relative to parent's centered position
+            childRelativeOffsets = map (\absOffset -> absOffset - parentOffset) childAbsoluteOffsets
+
+            -- Update each child tree with its relative offset
+            childrenWithOffsets = zipWith updateOffsetSized childTrees childRelativeOffsets
+
+            -- Combine child contours into parent contours (adding parent's own width)
+            parentContours = spliceContoursSized size.width childRelativeOffsets childContours
+
+            resultTree = mkTree (Tuple { offset: parentOffset } val) childrenWithOffsets
+          in
+            Tuple resultTree parentContours
+
+  updateOffsetSized :: Tree (Tuple { offset :: Number } { x :: Number, y :: Number, depth :: Int | r }) -> Number -> Tree (Tuple { offset :: Number } { x :: Number, y :: Number, depth :: Int | r })
+  updateOffsetSized tr newOffset =
+    let Tuple offsetRec original = head tr
+        cs = tail tr
+    in mkTree (Tuple (offsetRec { offset = newOffset }) original) cs
+
+-- | Contours for a single node with given width
+-- | Edges are at ±width/2 from center
+sizedContours :: Number -> Contours
+sizedContours width = Contours
+  { left: Cons (-(width / 2.0)) Nil
+  , right: Cons (width / 2.0) Nil
+  }
+
+-- | Compute separations between adjacent subtrees using edge-based contours
+-- | Since contours already include node widths, minSep is pure gap
+computeSeparationsSized :: Number -> List Contours -> List Number
+computeSeparationsSized minSep contours =
+  case contours of
+    Nil -> Nil
+    Cons _ Nil -> Nil
+    _ ->
+      let contourPairs = zipWith Tuple contours (tailList contours)
+      in map (scanContoursSized minSep) contourPairs
+  where
+  tailList :: forall a. List a -> List a
+  tailList Nil = Nil
+  tailList (Cons _ xs) = xs
+
+  scanContoursSized :: Number -> Tuple Contours Contours -> Number
+  scanContoursSized gap (Tuple (Contours left) (Contours right)) =
+    go gap 0.0 0.0 left.right right.left
+    where
+    go :: Number -> Number -> Number -> Contour -> Contour -> Number
+    go currentSep _ _ Nil Nil = currentSep
+    go currentSep lastLr _ Nil (Cons rl rest2) =
+      let actualSep = currentSep + rl - lastLr
+          neededSep = if actualSep < gap then currentSep + (gap - actualSep) else currentSep
+      in go neededSep lastLr rl Nil rest2
+    go currentSep _ lastRl (Cons lr rest1) Nil =
+      let actualSep = currentSep + lastRl - lr
+          neededSep = if actualSep < gap then currentSep + (gap - actualSep) else currentSep
+      in go neededSep lr lastRl rest1 Nil
+    go currentSep _ _ (Cons lr rest1) (Cons rl rest2) =
+      let actualSep = currentSep + rl - lr
+          neededSep = if actualSep < gap then currentSep + (gap - actualSep) else currentSep
+      in go neededSep lr rl rest1 rest2
+
+-- | Splice child contours with parent's own width at root level
+spliceContoursSized :: Number -> List Number -> List Contours -> Contours
+spliceContoursSized parentWidth offsets contours =
+  case Array.fromFoldable $ zipWith Tuple offsets contours of
+    [] -> sizedContours parentWidth
+    [ Tuple offset (Contours c) ] ->
+      Contours
+        { left: Cons (-(parentWidth / 2.0)) (map (\x -> x + offset) c.left)
+        , right: Cons (parentWidth / 2.0) (map (\x -> x + offset) c.right)
+        }
+    pairs ->
+      let
+        shiftedContours = map
+          (\(Tuple offset (Contours c)) ->
+            Contours
+              { left: map (\x -> x + offset) c.left
+              , right: map (\x -> x + offset) c.right
+              }
+          )
+          pairs
+        mergedLeft = mergeContoursLeft (map (\(Contours c) -> c.left) shiftedContours)
+        mergedRight = mergeContoursRight (map (\(Contours c) -> c.right) shiftedContours)
+      in
+        Contours
+          { left: Cons (-(parentWidth / 2.0)) mergedLeft
+          , right: Cons (parentWidth / 2.0) mergedRight
+          }
+
+-- | Compute maximum node height at each depth level
+computeMaxHeights
+  :: forall r
+   . ({ x :: Number, y :: Number, depth :: Int | r } -> NodeSize)
+  -> Tree { x :: Number, y :: Number, depth :: Int | r }
+  -> Map Int Number
+computeMaxHeights getSize t = go Map.empty t
+  where
+  go :: Map Int Number -> Tree { x :: Number, y :: Number, depth :: Int | r } -> Map Int Number
+  go acc subtree =
+    let
+      val = head subtree
+      children = tail subtree
+      size = getSize val
+      depth = val.depth
+      currentMax = fromMaybe 0.0 $ Map.lookup depth acc
+      newMax = max currentMax size.height
+      updatedAcc = Map.insert depth newMax acc
+    in
+      Array.foldl go updatedAcc (Array.fromFoldable children)
+
+-- | Scale to pixels with variable layer heights
+scaleToPixelsSized
+  :: forall r
+   . TreeConfig { depth :: Int, x :: Number, y :: Number | r }
+  -> ({ x :: Number, y :: Number, depth :: Int | r } -> NodeSize)
+  -> Map Int Number
+  -> Tree { depth :: Int, x :: Number, y :: Number | r }
+  -> Tree { depth :: Int, x :: Number, y :: Number | r }
+scaleToPixelsSized config _getSize maxHeights inputTree =
+  let
+    -- Find x range
+    allNodes = Array.fromFoldable inputTree
+    allX = map (\n -> n.x) allNodes
+    minX = fromMaybe 0.0 $ minimum allX
+    maxX = fromMaybe 1.0 $ maximum allX
+    xRange = if maxX - minX == 0.0 then 1.0 else maxX - minX
+
+    -- Compute cumulative y offsets per depth
+    -- Each layer starts after the previous layer's max height + gap
+    layerGap = fromMaybe 20.0 config.layerSeparation
+    maxDepth = fromMaybe 0 $ maximum $ map _.depth allNodes
+
+    -- Build cumulative heights: depth 0 at y=0, depth 1 at y=maxHeight[0]+gap, etc.
+    cumulativeY = Array.foldl
+      (\acc d ->
+        let prevY = fromMaybe 0.0 $ Map.lookup (d - 1) acc
+            prevHeight = fromMaybe 0.0 $ Map.lookup (d - 1) maxHeights
+            thisY = if d == 0 then 0.0 else prevY + prevHeight + layerGap
+        in Map.insert d thisY acc
+      )
+      Map.empty
+      (Array.range 0 maxDepth)
+
+    -- Scale functions
+    -- Center horizontally: map to [-width/2, +width/2] instead of [0, width]
+    scaleX x = ((x - minX) / xRange - 0.5) * config.size.width
+    getY depth = fromMaybe 0.0 $ Map.lookup depth cumulativeY
+
+    -- Apply scaling
+    go tr =
+      let val = head tr
+          cs = tail tr
+      in mkTree (val { x = scaleX val.x, y = getY val.depth }) (map go cs)
+  in
+    go inputTree
