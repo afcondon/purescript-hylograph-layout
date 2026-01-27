@@ -1,0 +1,184 @@
+= Sankey Quickstart
+:description: Create flow diagrams with PSD3 Layout
+
+Sankey diagrams visualize flow between nodes, with link width proportional to flow quantity.
+
+== Basic Sankey
+
+[source,purescript]
+----
+import DataViz.Layout.Sankey.Types (SankeyNode, SankeyLink, SankeyConfig)
+import DataViz.Layout.Sankey.Compute (sankey)
+
+-- Define nodes
+nodes :: Array SankeyNode
+nodes =
+  [ { id: "source1", label: "Source 1" }
+  , { id: "source2", label: "Source 2" }
+  , { id: "target", label: "Target" }
+  ]
+
+-- Define flows
+links :: Array { source :: String, target :: String, value :: Number }
+links =
+  [ { source: "source1", target: "target", value: 100.0 }
+  , { source: "source2", target: "target", value: 50.0 }
+  ]
+
+-- Compute layout
+config :: SankeyConfig
+config =
+  { width: 800.0
+  , height: 400.0
+  , nodeWidth: 20.0
+  , nodePadding: 10.0
+  , iterations: 32
+  }
+
+result = sankey config nodes links
+-- result.nodes: positioned nodes with x0, x1, y0, y1
+-- result.links: links with source/target coords and width
+----
+
+== Sankey Data Model
+
+=== Input Nodes
+
+[source,purescript]
+----
+type SankeyNode =
+  { id :: String
+  , label :: String
+  }
+----
+
+=== Input Links
+
+[source,purescript]
+----
+type SankeyInputLink =
+  { source :: String   -- Node ID
+  , target :: String   -- Node ID
+  , value :: Number    -- Flow quantity
+  }
+----
+
+=== Output (Positioned)
+
+After layout, nodes have positions:
+
+[source,purescript]
+----
+type PositionedNode =
+  { id :: String
+  , label :: String
+  , x0 :: Number       -- Left edge
+  , x1 :: Number       -- Right edge
+  , y0 :: Number       -- Top edge
+  , y1 :: Number       -- Bottom edge
+  , value :: Number    -- Total flow through node
+  }
+----
+
+Links have path data:
+
+[source,purescript]
+----
+type PositionedLink =
+  { source :: PositionedNode
+  , target :: PositionedNode
+  , value :: Number
+  , width :: Number    -- Visual width
+  , y0 :: Number       -- Source y
+  , y1 :: Number       -- Target y
+  }
+----
+
+== Configuration Options
+
+[cols="1,1,3"]
+|===
+| Option | Default | Description
+
+| `width` | 800 | Layout width in pixels
+| `height` | 400 | Layout height in pixels
+| `nodeWidth` | 20 | Width of node rectangles
+| `nodePadding` | 10 | Vertical spacing between nodes
+| `iterations` | 32 | Layout relaxation iterations
+|===
+
+== Loading from CSV
+
+PSD3 Layout can parse Sankey data from CSV:
+
+[source,purescript]
+----
+import DataViz.Layout.Sankey.CSV (parseCSV)
+
+csvData = """
+source,target,value
+Coal,Electricity,100
+Gas,Electricity,50
+Electricity,Residential,80
+Electricity,Commercial,70
+"""
+
+case parseCSV csvData of
+  Right { nodes, links } -> sankey config nodes links
+  Left err -> -- handle parse error
+----
+
+== Rendering with PSD3 Selection
+
+[source,purescript]
+----
+import PSD3.Selection as S
+
+renderSankey result = do
+  -- Render nodes as rectangles
+  S.selectAll "rect.node"
+    # S.data_ result.nodes
+    # S.join "rect"
+    # S.attr "x" (_.x0 >>> show)
+    # S.attr "y" (_.y0 >>> show)
+    # S.attr "width" (\n -> show (n.x1 - n.x0))
+    # S.attr "height" (\n -> show (n.y1 - n.y0))
+
+  -- Render links as paths
+  S.selectAll "path.link"
+    # S.data_ result.links
+    # S.join "path"
+    # S.attr "d" sankeyLinkPath
+    # S.attr "stroke-width" (_.width >>> show)
+----
+
+== Multi-Column Sankey
+
+For energy flow or process diagrams with multiple stages:
+
+[source,purescript]
+----
+nodes =
+  [ { id: "coal", label: "Coal" }
+  , { id: "gas", label: "Gas" }
+  , { id: "power", label: "Power Plant" }
+  , { id: "grid", label: "Grid" }
+  , { id: "homes", label: "Homes" }
+  , { id: "industry", label: "Industry" }
+  ]
+
+links =
+  [ { source: "coal", target: "power", value: 100.0 }
+  , { source: "gas", target: "power", value: 50.0 }
+  , { source: "power", target: "grid", value: 140.0 }
+  , { source: "grid", target: "homes", value: 80.0 }
+  , { source: "grid", target: "industry", value: 55.0 }
+  ]
+----
+
+The algorithm automatically arranges nodes in columns based on dependencies.
+
+== Next Steps
+
+* xref:how-to/sankey-diagrams.adoc[Sankey Diagrams] - Advanced Sankey techniques
+* xref:reference/sankey-api.adoc[Sankey API] - Complete API reference

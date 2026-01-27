@@ -1,0 +1,79 @@
+= PSD3 Layout
+:description: Pure PureScript layout algorithms for data visualization
+
+Pure PureScript implementations of D3's layout algorithms for hierarchical data, flow diagrams, and relationship visualizations.
+
+== What is PSD3 Layout?
+
+PSD3 Layout provides layout algorithms that compute positions and dimensions for visualization elements. These are pure functions that transform your data into renderable coordinates.
+
+[source,purescript]
+----
+import DataViz.Layout.Hierarchy.Tree as Tree
+import DataViz.Layout.Hierarchy.Core as H
+
+-- Build hierarchy from your data
+let root = H.hierarchy myData getChildren
+
+-- Apply tree layout
+let laid = Tree.tree (Tree.defaultConfig { size = { width: 800.0, height: 600.0 } }) root
+
+-- Now each node has x, y coordinates
+----
+
+== Available Layouts
+
+=== Hierarchy Layouts
+
+For tree-structured data:
+
+* *Tree* - Classic dendrogram/tree layout
+* *Cluster* - Tree with leaves aligned
+* *Treemap* - Space-filling rectangles
+* *Partition* - Sunburst/icicle diagrams
+* *Pack* - Circle packing
+
+=== Flow Layouts
+
+For flow and relationship data:
+
+* *Sankey* - Flow diagrams showing quantities between nodes
+* *Chord* - Circular relationship diagrams
+
+=== Specialized Layouts
+
+* *Edge Bundling* - Hierarchical edge bundling for dense graphs
+* *State Machine* - Layout for state machine diagrams
+* *Adjacency* - Matrix-based adjacency layouts
+
+== Key Concepts
+
+*Pure Functions*::
+All layouts are pure - they take data and return positioned data. No side effects.
+
+*D3 Compatibility*::
+Algorithms match D3's implementations for familiar results.
+
+*Composable*::
+Layout results work naturally with psd3-selection for rendering.
+
+== Getting Started
+
+* xref:getting-started/hierarchy-basics.adoc[Hierarchy Basics] - Working with tree data
+* xref:getting-started/sankey-quickstart.adoc[Sankey Quickstart] - Create flow diagrams
+* xref:getting-started/treemap-quickstart.adoc[Treemap Quickstart] - Space-filling layouts
+
+== Installation
+
+[source,bash]
+----
+spago install psd3-layout
+----
+
+== Part of the PSD3 Ecosystem
+
+* *psd3-tree* - Tree data structures (dependency)
+* *psd3-selection* - D3 selection and rendering library
+* *psd3-simulation* - Force simulation engine
+* *psd3-layout* - Layout algorithms (this package)
+* *psd3-graph* - Graph algorithms and pathfinding

@@ -1,0 +1,266 @@
+= Module Overview
+:description: Reference for all PSD3 Layout modules
+
+== Hierarchy Core
+
+`DataViz.Layout.Hierarchy.Core`
+
+Foundation for all hierarchy-based layouts.
+
+[source,purescript]
+----
+-- Build hierarchy from data
+hierarchy :: forall a. a -> (a -> Maybe (Array a)) -> HierarchyNode a
+
+-- Compute values
+sum :: forall a. HierarchyNode a -> (a -> Number) -> ValuedNode a
+count :: forall a. HierarchyNode a -> ValuedNode a
+
+-- Traversal
+descendants :: forall a. HierarchyNode a -> Array (HierarchyNode a)
+leaves :: forall a. HierarchyNode a -> Array (HierarchyNode a)
+eachBefore :: forall a b. (HierarchyNode a -> b) -> HierarchyNode a -> Array b
+eachAfter :: forall a b. (HierarchyNode a -> b) -> HierarchyNode a -> Array b
+
+-- Sorting
+sortHierarchy :: forall a. (HierarchyNode a -> HierarchyNode a -> Ordering) -> HierarchyNode a -> HierarchyNode a
+----
+
+== Hierarchy Types
+
+`DataViz.Layout.Hierarchy.Types`
+
+[source,purescript]
+----
+newtype HierarchyNode a = HNode
+  { data_ :: a
+  , depth :: Int
+  , height :: Int
+  , parent :: Maybe (HierarchyNode a)
+  , children :: Array (HierarchyNode a)
+  }
+
+newtype ValuedNode a = VNode
+  { data_ :: a
+  , depth :: Int
+  , height :: Int
+  , parent :: Maybe (ValuedNode a)
+  , children :: Array (ValuedNode a)
+  , value :: Number
+  }
+----
+
+== Tree Layout
+
+`DataViz.Layout.Hierarchy.Tree`
+
+Classic dendrogram layout.
+
+[source,purescript]
+----
+tree :: forall a. TreeConfig -> HierarchyNode a -> PositionedNode a
+
+type TreeConfig =
+  { size :: { width :: Number, height :: Number }
+  , nodeSize :: Maybe { width :: Number, height :: Number }
+  , separation :: Maybe (PositionedNode a -> PositionedNode a -> Number)
+  }
+
+defaultConfig :: TreeConfig
+----
+
+== Cluster Layout
+
+`DataViz.Layout.Hierarchy.Cluster`
+
+Tree layout with leaves aligned.
+
+[source,purescript]
+----
+cluster :: forall a. ClusterConfig -> HierarchyNode a -> PositionedNode a
+----
+
+== Treemap Layout
+
+`DataViz.Layout.Hierarchy.Treemap`
+
+Space-filling rectangular layout.
+
+[source,purescript]
+----
+treemap :: forall a. TreemapConfig -> ValuedNode a -> TreemapNode a
+
+type TreemapConfig =
+  { size :: { width :: Number, height :: Number }
+  , padding :: Number
+  , paddingTop :: Number
+  , paddingRight :: Number
+  , paddingBottom :: Number
+  , paddingLeft :: Number
+  , paddingInner :: Number
+  , round :: Boolean
+  , tile :: TilingFunction
+  }
+
+-- Tiling algorithms
+treemapSquarify :: TilingFunction
+treemapBinary :: TilingFunction
+treemapSlice :: TilingFunction
+treemapDice :: TilingFunction
+treemapSliceDice :: TilingFunction
+----
+
+== Partition Layout
+
+`DataViz.Layout.Hierarchy.Partition`
+
+Sunburst and icicle diagrams.
+
+[source,purescript]
+----
+partition :: forall a. PartitionConfig -> ValuedNode a -> PartitionNode a
+
+type PartitionConfig =
+  { size :: { width :: Number, height :: Number }
+  , padding :: Number
+  , round :: Boolean
+  }
+----
+
+== Pack Layout
+
+`DataViz.Layout.Hierarchy.Pack`
+
+Circle packing layout.
+
+[source,purescript]
+----
+pack :: forall a. PackConfig -> ValuedNode a -> PackedNode a
+
+type PackConfig =
+  { size :: { width :: Number, height :: Number }
+  , padding :: Number
+  }
+----
+
+== Sankey Layout
+
+`DataViz.Layout.Sankey.Compute`
+
+Flow diagram layout.
+
+[source,purescript]
+----
+sankey :: SankeyConfig
+       -> Array SankeyNode
+       -> Array SankeyInputLink
+       -> SankeyResult
+
+type SankeyConfig =
+  { width :: Number
+  , height :: Number
+  , nodeWidth :: Number
+  , nodePadding :: Number
+  , iterations :: Int
+  }
+
+type SankeyResult =
+  { nodes :: Array PositionedSankeyNode
+  , links :: Array PositionedSankeyLink
+  }
+----
+
+`DataViz.Layout.Sankey.Path`
+
+[source,purescript]
+----
+-- Generate SVG path for a link
+sankeyLinkPath :: PositionedSankeyLink -> String
+----
+
+`DataViz.Layout.Sankey.CSV`
+
+[source,purescript]
+----
+parseCSV :: String -> Either String { nodes :: Array SankeyNode, links :: Array SankeyInputLink }
+----
+
+== Chord Layout
+
+`DataViz.Layout.Chord`
+
+Circular relationship diagram.
+
+[source,purescript]
+----
+chord :: ChordConfig -> Array (Array Number) -> ChordResult
+
+type ChordConfig =
+  { padAngle :: Number
+  , sortGroups :: Maybe (ChordGroup -> ChordGroup -> Ordering)
+  , sortSubgroups :: Maybe (Number -> Number -> Ordering)
+  , sortChords :: Maybe (Chord -> Chord -> Ordering)
+  }
+
+type ChordResult =
+  { groups :: Array ChordGroup
+  , chords :: Array Chord
+  }
+
+type ChordGroup =
+  { index :: Int
+  , startAngle :: Number
+  , endAngle :: Number
+  , value :: Number
+  }
+
+type Chord =
+  { source :: ChordGroup
+  , target :: ChordGroup
+  }
+----
+
+== Edge Bundling
+
+`DataViz.Layout.Hierarchy.EdgeBundle`
+
+Hierarchical edge bundling for dense graphs.
+
+[source,purescript]
+----
+bundle :: forall a. Number -> Array (Bilink a) -> Array BundledPath
+
+type Bilink a =
+  { source :: HierarchyNode a
+  , target :: HierarchyNode a
+  }
+----
+
+`DataViz.Layout.Hierarchy.EdgeBundle.RadialCluster`
+
+[source,purescript]
+----
+radialCluster :: forall a. RadialConfig -> HierarchyNode a -> RadialNode a
+----
+
+== State Machine Layout
+
+`DataViz.Layout.StateMachine`
+
+Layout for state machine diagrams.
+
+[source,purescript]
+----
+layout :: StateMachineConfig -> StateMachine -> PositionedStateMachine
+----
+
+== Adjacency Layout
+
+`DataViz.Layout.Adjacency`
+
+Matrix-based adjacency visualization.
+
+[source,purescript]
+----
+layout :: AdjacencyConfig -> Array Node -> Array Edge -> AdjacencyMatrix
+----

@@ -1,9 +1,6 @@
 workspace:
   packageSet:
     registry: 67.0.1
-  extraPackages:
-    psd3-tree:
-      path: ../purescript-psd3-tree
 
 package:
   name: psd3-layout
@@ -28,7 +25,7 @@ package:
     - numbers
     - ordered-collections
     - prelude
-    - psd3-tree
+    - tree-rose
     - random
     - strings
     - transformers

@@ -1,0 +1,24 @@
+.Getting Started
+* xref:getting-started/hierarchy-basics.adoc[Hierarchy Basics]
+* xref:getting-started/sankey-quickstart.adoc[Sankey Quickstart]
+* xref:getting-started/treemap-quickstart.adoc[Treemap Quickstart]
+
+.How-To Guides
+* xref:how-to/tree-layouts.adoc[Tree and Cluster Layouts]
+* xref:how-to/partition-layouts.adoc[Partition and Sunburst]
+* xref:how-to/circle-packing.adoc[Circle Packing]
+* xref:how-to/sankey-diagrams.adoc[Sankey Diagrams]
+* xref:how-to/chord-diagrams.adoc[Chord Diagrams]
+* xref:how-to/edge-bundling.adoc[Hierarchical Edge Bundling]
+* xref:how-to/csv-import.adoc[Importing from CSV]
+
+.Understanding
+* xref:understanding/hierarchy-model.adoc[Hierarchy Data Model]
+* xref:understanding/layout-algorithms.adoc[Layout Algorithms]
+* xref:understanding/design-decisions.adoc[Design Decisions]
+
+.Reference
+* xref:reference/module-overview.adoc[Module Overview]
+* xref:reference/hierarchy-api.adoc[Hierarchy API]
+* xref:reference/sankey-api.adoc[Sankey API]
+* xref:reference/chord-api.adoc[Chord API]

@@ -1,0 +1,155 @@
+= Hierarchy Basics
+:description: Working with hierarchical data in PSD3 Layout
+
+Hierarchical layouts work with tree-structured data. This guide covers the fundamentals.
+
+== The Hierarchy Model
+
+All hierarchy layouts start with converting your data into a `HierarchyNode`:
+
+[source,purescript]
+----
+import DataViz.Layout.Hierarchy.Core as H
+
+type MyData = { name :: String, children :: Maybe (Array MyData) }
+
+myData :: MyData
+myData =
+  { name: "root"
+  , children: Just
+      [ { name: "child1", children: Nothing }
+      , { name: "child2", children: Just
+          [ { name: "grandchild", children: Nothing }
+          ]
+        }
+      ]
+  }
+
+-- Convert to hierarchy
+root :: HierarchyNode MyData
+root = H.hierarchy myData _.children
+----
+
+== HierarchyNode Structure
+
+After calling `hierarchy`, each node has:
+
+[source,purescript]
+----
+HierarchyNode
+  { data_ :: a         -- Your original data
+  , depth :: Int       -- Distance from root (root = 0)
+  , height :: Int      -- Max distance to any leaf
+  , parent :: Maybe (HierarchyNode a)
+  , children :: Array (HierarchyNode a)
+  }
+----
+
+== Computing Values
+
+For layouts that need numeric values (treemap, pack), use `sum` or `count`:
+
+[source,purescript]
+----
+-- Sum values from leaf to root
+valued :: ValuedNode MyData
+valued = H.sum root _.size
+
+-- Or count descendants
+counted :: ValuedNode MyData
+counted = H.count root
+----
+
+== Traversal
+
+Several traversal functions are available:
+
+[source,purescript]
+----
+-- All descendants (pre-order)
+allNodes :: Array (HierarchyNode MyData)
+allNodes = H.descendants root
+
+-- Just leaves
+leafNodes :: Array (HierarchyNode MyData)
+leafNodes = H.leaves root
+
+-- Pre-order traversal with callback
+names :: Array String
+names = H.eachBefore (\node -> node.data_.name) root
+
+-- Post-order traversal
+reversed :: Array String
+reversed = H.eachAfter (\node -> node.data_.name) root
+----
+
+== Sorting
+
+Sort children at each level:
+
+[source,purescript]
+----
+-- Sort by height (taller subtrees first)
+sorted :: HierarchyNode MyData
+sorted = H.sortHierarchy compareByHeight root
+  where
+  compareByHeight (HNode a) (HNode b) = compare b.height a.height
+----
+
+== Applying Layouts
+
+Once you have a hierarchy, apply a layout:
+
+[source,purescript]
+----
+import DataViz.Layout.Hierarchy.Tree as Tree
+
+-- Apply tree layout
+positioned :: PositionedNode MyData
+positioned = Tree.tree config root
+  where
+  config = Tree.defaultConfig
+    { size = { width: 800.0, height: 600.0 }
+    }
+
+-- Each node now has x, y coordinates
+----
+
+== Example: Simple Tree
+
+[source,purescript]
+----
+module Main where
+
+import Prelude
+import DataViz.Layout.Hierarchy.Core as H
+import DataViz.Layout.Hierarchy.Tree as Tree
+
+type Person = { name :: String, reports :: Maybe (Array Person) }
+
+orgChart :: Person
+orgChart =
+  { name: "CEO"
+  , reports: Just
+      [ { name: "CTO", reports: Just
+          [ { name: "Dev 1", reports: Nothing }
+          , { name: "Dev 2", reports: Nothing }
+          ]
+        }
+      , { name: "CFO", reports: Nothing }
+      ]
+  }
+
+main = do
+  let root = H.hierarchy orgChart _.reports
+      laid = Tree.tree (Tree.defaultConfig { size = { width: 600.0, height: 400.0 } }) root
+
+  -- laid now contains nodes with x, y positions
+  -- Use psd3-selection to render
+----
+
+== Next Steps
+
+* xref:how-to/tree-layouts.adoc[Tree and Cluster Layouts] - Detailed tree layout options
+* xref:getting-started/treemap-quickstart.adoc[Treemap Quickstart] - Space-filling layouts
+* xref:understanding/hierarchy-model.adoc[Hierarchy Data Model] - Deep dive into the model

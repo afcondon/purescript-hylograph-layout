@@ -1,0 +1,5 @@
+name: psd3-layout
+title: PSD3 Layout
+version: ~
+nav:
+  - modules/ROOT/nav.adoc

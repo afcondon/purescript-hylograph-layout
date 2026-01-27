@@ -1,0 +1,160 @@
+= Treemap Quickstart
+:description: Create space-filling treemap layouts
+
+Treemaps display hierarchical data as nested rectangles, where area represents value.
+
+== Basic Treemap
+
+[source,purescript]
+----
+import DataViz.Layout.Hierarchy.Core as H
+import DataViz.Layout.Hierarchy.Treemap as Treemap
+
+type FileData = { name :: String, size :: Number, children :: Maybe (Array FileData) }
+
+fileSystem :: FileData
+fileSystem =
+  { name: "root"
+  , size: 0.0
+  , children: Just
+      [ { name: "src", size: 0.0, children: Just
+          [ { name: "Main.purs", size: 1200.0, children: Nothing }
+          , { name: "Utils.purs", size: 800.0, children: Nothing }
+          ]
+        }
+      , { name: "test", size: 0.0, children: Just
+          [ { name: "Test.purs", size: 500.0, children: Nothing }
+          ]
+        }
+      ]
+  }
+
+main = do
+  -- Build hierarchy
+  let root = H.hierarchy fileSystem _.children
+
+  -- Compute values (sum of file sizes)
+  let valued = H.sum root _.size
+
+  -- Apply treemap layout
+  let config = Treemap.defaultConfig
+        { size = { width: 800.0, height: 600.0 }
+        , padding = 2.0
+        }
+  let laid = Treemap.treemap config valued
+
+  -- Each node now has x0, y0, x1, y1 bounds
+----
+
+== Treemap Configuration
+
+[cols="1,1,3"]
+|===
+| Option | Default | Description
+
+| `size.width` | 800 | Layout width
+| `size.height` | 600 | Layout height
+| `padding` | 0 | Padding between siblings
+| `paddingTop` | 0 | Extra top padding (for labels)
+| `paddingInner` | 0 | Padding between parent and children
+| `round` | false | Round coordinates to pixels
+|===
+
+== Tiling Algorithms
+
+Different algorithms for dividing rectangles:
+
+[source,purescript]
+----
+-- Squarified (default) - optimizes for square-ish rectangles
+Treemap.treemapSquarify
+
+-- Binary - alternates horizontal/vertical splits
+Treemap.treemapBinary
+
+-- Slice - horizontal slices
+Treemap.treemapSlice
+
+-- Dice - vertical slices
+Treemap.treemapDice
+
+-- SliceDice - alternates by depth
+Treemap.treemapSliceDice
+----
+
+Use with:
+
+[source,purescript]
+----
+let config = Treemap.defaultConfig
+      { tile = Treemap.treemapBinary
+      }
+----
+
+== Output Structure
+
+After layout, each node has bounds:
+
+[source,purescript]
+----
+type TreemapNode a =
+  { data_ :: a
+  , x0 :: Number    -- Left edge
+  , y0 :: Number    -- Top edge
+  , x1 :: Number    -- Right edge
+  , y1 :: Number    -- Bottom edge
+  , value :: Number -- Computed value
+  , depth :: Int
+  , height :: Int
+  }
+----
+
+== Rendering
+
+[source,purescript]
+----
+import PSD3.Selection as S
+
+renderTreemap laid = do
+  let nodes = H.descendants laid
+
+  S.selectAll "rect"
+    # S.data_ nodes
+    # S.join "rect"
+    # S.attr "x" (_.x0 >>> show)
+    # S.attr "y" (_.y0 >>> show)
+    # S.attr "width" (\n -> show (n.x1 - n.x0))
+    # S.attr "height" (\n -> show (n.y1 - n.y0))
+    # S.attr "fill" (depthColor <<< _.depth)
+----
+
+== Nested Labels
+
+For hierarchical treemaps with labels:
+
+[source,purescript]
+----
+let config = Treemap.defaultConfig
+      { paddingTop = 20.0  -- Space for parent labels
+      , paddingInner = 2.0
+      }
+----
+
+== Interactive Zoomable Treemap
+
+Treemaps work well with zoom interactions:
+
+[source,purescript]
+----
+-- On click, zoom to show children of clicked node
+onClick node = do
+  let subtree = H.hierarchy node.data_ _.children
+  let zoomed = Treemap.treemap config (H.sum subtree _.size)
+  renderTreemap zoomed
+----
+
+== Next Steps
+
+* xref:how-to/partition-layouts.adoc[Partition and Sunburst] - Alternative space-filling layouts
+* xref:how-to/circle-packing.adoc[Circle Packing] - Circular space-filling
+* xref:understanding/layout-algorithms.adoc[Layout Algorithms] - How treemap tiling works

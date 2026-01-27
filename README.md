@@ -1,10 +1,12 @@
 # purescript-psd3-layout
 
-Pure PureScript implementations of D3-style layout algorithms.
+[![Layout Gallery Demo](../../site/lib-layout/public/demo.jpeg)](/layouts/)
+
+Pure PureScript implementations of layout algorithms for hierarchies and flow diagrams. 
 
 ## Overview
 
-Layout algorithms for hierarchical and graph data, implemented in pure PureScript without FFI dependencies on D3.js. These work with the psd3-tree data structures.
+Layout algorithms for hierarchical and graph data, implemented in pure PureScript. Many of these layouts are familiar to users of D3 but here they are implemented without FFI dependencies using FP implementations in 100% PureScript. These work with the rose-tree data structure from `purescript-tree-rose`.
 
 ## Installation
 
@@ -19,7 +21,7 @@ spago install psd3-layout
 - **Tree** - Tidy tree layout (Reingold-Tilford algorithm)
 - **Pack** - Circle packing for hierarchical data
 - **Partition** - Sunburst/icicle partition layout
-- **Treemap** - Squarified treemap algorithm
+- **Treemap** - Multiple tiling algorithms: squarify (default), slice, dice, sliceDice, binary
 
 ### Graph Layouts
 
@@ -49,10 +51,12 @@ positioned = tree config myTree
 
 ## Part of PSD3
 
-- **psd3-tree** - Tree data structures (dependency)
 - **psd3-layout** - Layout algorithms (this package)
+- **psd3-graph** - Graph algorithms and DAG support
 - **psd3-selection** - D3 selection library
 - **psd3-simulation** - Force simulation
+
+Uses `tree-rose` for rose tree data structures.
 
 ## License
 
