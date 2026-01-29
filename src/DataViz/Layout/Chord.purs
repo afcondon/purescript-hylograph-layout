@@ -6,7 +6,7 @@
 -- | with ribbons (curved bands) connecting related nodes.
 -- |
 -- | This module provides pure layout computation that can be used with
--- | any rendering backend (PSD3 Tree API, D3, Canvas, SVG, etc.)
+-- | any rendering backend (Hylograph HATS, D3, Canvas, SVG, etc.)
 -- |
 -- | Example usage:
 -- | ```purescript
@@ -18,7 +18,7 @@
 -- | -- result.chords contains ribbon connections
 -- | ```
 -- |
--- | For rendering, use the path generators in PSD3.Expr.Path.Generators:
+-- | For rendering, use the path generators in Hylograph.Expr.Path.Generators:
 -- | - `genArc` for the arc segments
 -- | - `genRibbon` for the ribbon paths
 module DataViz.Layout.Chord

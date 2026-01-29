@@ -1,0 +1,42 @@
+source,target,type
+PureScript,JavaScript,builds-to
+PureScript,Python,builds-to
+PureScript,Erlang,builds-to
+PureScript,Lua,builds-to
+PureScript,Rust,builds-to
+JavaScript,node,runs-on
+JavaScript,browser,runs-on
+Erlang,BEAM,runs-on
+Lua,nginx,runs-on
+Rust,WASM,runs-on
+PureScript,Finally Tagless,enables
+PureScript,Type Safety,enables
+PureScript,FRP,enables
+PureScript,Declarative,enables
+Rust,Performance,enables
+WASM,Performance,enables
+Interpreters,D3.js,enables
+Interpreters,Meta-tree,enables
+PureScript,psd3-tree,uses-library
+PureScript,psd3-selection,uses-library
+PureScript,psd3-simulation,uses-library
+PureScript,psd3-layouts,uses-library
+JavaScript,D3.js,uses-library
+JavaScript,TangleJS,uses-library
+Python,pandas,uses-library
+Python,numpy,uses-library
+Python,UMAP,uses-library
+D3.js,Data Join,enables
+Algorave,Erlang,runs-on
+Sankey,JavaScript,runs-on
+Code Explorer,JavaScript,runs-on
+Algorave,Live Coding,enables
+Sankey,Data Viz,enables
+D3.js,Data Viz,enables
+FRP,Sankey,enables
+Sankey,Build Systems,enables
+UMAP,Scientific,enables
+psd3-selection,Data-driven UI,enables
+D3.js,Data-driven UI,enables
+Edge Compute,nginx,runs-on
+Lua,Edge Compute,enables

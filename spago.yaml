@@ -1,9 +1,16 @@
 workspace:
   packageSet:
     registry: 67.0.1
+  extraPackages:
+    hylograph-selection:
+      path: "../purescript-hylograph-selection"
+    hylograph-graph:
+      path: "../purescript-hylograph-graph"
+    hylograph-transitions:
+      path: "../purescript-hylograph-transitions"
 
 package:
-  name: psd3-layout
+  name: hylograph-layout
   description: Pure PureScript implementations of D3-style layout algorithms (tree, pack, sankey, edge-bundle, etc.)
   publish:
     version: 0.1.0

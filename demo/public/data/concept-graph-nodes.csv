@@ -1,0 +1,38 @@
+label,category,r
+PureScript,core,12
+JavaScript,backend,8
+Python,backend,8
+Erlang,backend,8
+Lua,backend,8
+Rust,backend,8
+WASM,runtime,7
+BEAM,runtime,7
+nginx,runtime,7
+node,runtime,7
+browser,runtime,7
+Finally Tagless,concept,6
+Type Safety,concept,6
+FRP,concept,6
+Declarative,concept,6
+Data Join,concept,6
+Performance,concept,6
+Interpreters,concept,6
+psd3-tree,library,6
+psd3-selection,library,6
+psd3-simulation,library,6
+psd3-layouts,library,6
+Meta-tree,library,6
+D3.js,ext-library,7
+TangleJS,ext-library,6
+pandas,ext-library,6
+numpy,ext-library,6
+UMAP,ext-library,6
+Algorave,showcase,7
+Sankey,showcase,6
+Code Explorer,showcase,6
+Data Viz,domain,6
+Live Coding,domain,6
+Scientific,domain,6
+Build Systems,domain,6
+Data-driven UI,domain,6
+Edge Compute,domain,6

@@ -1,0 +1,727 @@
+/* Layout Gallery - PSD3
+ * Illuminated Manuscript aesthetic
+ * Inspired by medieval codices - Visual Complexity homage
+ */
+
+/* ==========================================================================
+   Illuminated Manuscript Color Palette
+   ========================================================================== */
+
+:root {
+  /* Vellum/Parchment background tones */
+  --vellum: #f5f0e1;
+  --vellum-dark: #e8e0cc;
+  --vellum-shadow: #d4c9b0;
+
+  /* Manuscript ink and pigments */
+  --ink-black: #1a1612;
+  --ink-brown: #3d2b1f;
+  --ink-sepia: #5c4033;
+
+  /* Illumination colors - rich medieval pigments */
+  --vermillion: #c23b22;        /* Red lead / cinnabar */
+  --ultramarine: #1e3a5f;       /* Lapis lazuli */
+  --gold-leaf: #c9a227;         /* Gold illumination */
+  --gold-bright: #d4af37;
+  --forest-green: #2d5a27;      /* Verdigris */
+  --tyrian-purple: #66023c;     /* Murex purple */
+  --ochre: #cc7722;             /* Yellow ochre */
+  --malachite: #0d6e6e;         /* Copper green */
+
+  /* Layout accent assignments */
+  --color-tree: var(--forest-green);
+  --color-cluster: var(--malachite);
+  --color-pack: var(--vermillion);
+  --color-partition: var(--gold-leaf);
+  --color-treemap: var(--tyrian-purple);
+  --color-chord: var(--ochre);
+  --color-sankey: var(--ultramarine);
+  --color-edge: var(--malachite);
+  --color-adjacency: var(--ink-sepia);
+
+  /* Typography */
+  --font-display: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  --font-body: Georgia, 'Times New Roman', serif;
+
+  /* Circle dimensions */
+  --circle-size: 400px;
+  --circle-gap: 32px;
+  --row-offset: 216px;  /* Half circle + gap for offset */
+}
+
+/* ==========================================================================
+   Base Styles
+   ========================================================================== */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--vellum);
+  color: var(--ink-black);
+  min-height: 100vh;
+  /* Subtle parchment texture via gradient */
+  background-image:
+    radial-gradient(ellipse at 20% 30%, rgba(212, 201, 176, 0.3) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 70%, rgba(212, 201, 176, 0.25) 0%, transparent 50%),
+    linear-gradient(180deg, var(--vellum) 0%, var(--vellum-dark) 100%);
+}
+
+/* ==========================================================================
+   Gallery Container
+   ========================================================================== */
+
+.gallery-container {
+  max-width: 1800px;
+  margin: 0 auto;
+  padding: 60px 40px 80px;
+}
+
+/* ==========================================================================
+   Header - Manuscript Title Style
+   ========================================================================== */
+
+.gallery-header {
+  text-align: center;
+  margin-bottom: 60px;
+  padding-bottom: 40px;
+  border-bottom: 1px solid var(--vellum-shadow);
+  position: relative;
+}
+
+/* Decorative flourish */
+.gallery-header::after {
+  content: '❧';
+  display: block;
+  margin-top: 20px;
+  font-size: 1.5rem;
+  color: var(--gold-leaf);
+}
+
+.gallery-header h1 {
+  font-family: var(--font-display);
+  font-size: 2.8rem;
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  color: var(--ink-brown);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.gallery-header .subtitle {
+  font-family: var(--font-body);
+  color: var(--ink-sepia);
+  font-size: 1.1rem;
+  font-style: italic;
+  font-weight: 400;
+}
+
+.gallery-header .hint {
+  font-family: var(--font-body);
+  color: var(--vellum-shadow);
+  font-size: 0.85rem;
+  font-style: italic;
+  margin-top: 8px;
+}
+
+/* ==========================================================================
+   Offset Grid Layout (Honeycomb Pattern)
+   4-3-4-3 pattern: Row 1 has 4, Row 2 has 3 offset, Row 3 has 4, Row 4 has 3 offset
+   ========================================================================== */
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(4, var(--circle-size));
+  gap: var(--circle-gap);
+  justify-content: center;
+  padding: 0 20px;
+}
+
+/* Row 2: items 5-7, offset (3 items) */
+.layout-card:nth-child(5),
+.layout-card:nth-child(6),
+.layout-card:nth-child(7) {
+  transform: translateX(var(--row-offset));
+}
+
+/* Force item 8 to start new row */
+.layout-card:nth-child(8) {
+  grid-column: 1;
+}
+
+/* Row 4: items 12-14, offset (3 items) */
+.layout-card:nth-child(12),
+.layout-card:nth-child(13),
+.layout-card:nth-child(14) {
+  transform: translateX(var(--row-offset));
+}
+
+/* Force item 12 to start new row */
+.layout-card:nth-child(12) {
+  grid-column: 1;
+}
+
+/* ==========================================================================
+   Layout Card
+   ========================================================================== */
+
+.layout-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+/* ==========================================================================
+   Circular Viewport - Medallion Style
+   ========================================================================== */
+
+.circle-viewport {
+  width: var(--circle-size);
+  height: var(--circle-size);
+  border-radius: 50%;
+  background: var(--vellum);
+  border: 3px solid var(--vellum-shadow);
+  overflow: hidden;
+  position: relative;
+  box-shadow:
+    inset 0 2px 8px rgba(0, 0, 0, 0.08),
+    0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+/* Inner decorative ring */
+.circle-viewport::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  border: 1px solid var(--vellum-shadow);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.circle-viewport:hover {
+  box-shadow:
+    inset 0 2px 8px rgba(0, 0, 0, 0.08),
+    0 8px 24px rgba(0, 0, 0, 0.15);
+  transform: scale(1.02);
+}
+
+/* SVG inside circle */
+.circle-viewport svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ==========================================================================
+   Card Labels - Manuscript Script Style
+   ========================================================================== */
+
+.layout-label {
+  text-align: center;
+}
+
+.layout-label h3 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 0 0 2px 0;
+  color: var(--ink-brown);
+  letter-spacing: 0.05em;
+}
+
+.layout-label p {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--ink-sepia);
+  font-style: italic;
+  margin: 0;
+}
+
+/* ==========================================================================
+   Accent Colors per Layout Type
+   ========================================================================== */
+
+.layout-card[data-layout="tree-horizontal"] .circle-viewport,
+.layout-card[data-layout="tree-radial"] .circle-viewport {
+  border-color: var(--color-tree);
+}
+
+.layout-card[data-layout="cluster-horizontal"] .circle-viewport,
+.layout-card[data-layout="cluster-radial"] .circle-viewport {
+  border-color: var(--color-cluster);
+}
+
+.layout-card[data-layout="pack"] .circle-viewport {
+  border-color: var(--color-pack);
+}
+
+.layout-card[data-layout="partition-sunburst"] .circle-viewport,
+.layout-card[data-layout="partition-icicle"] .circle-viewport {
+  border-color: var(--color-partition);
+}
+
+.layout-card[data-layout="treemap"] .circle-viewport {
+  border-color: var(--color-treemap);
+}
+
+.layout-card[data-layout="chord"] .circle-viewport {
+  border-color: var(--color-chord);
+}
+
+.layout-card[data-layout="sankey"] .circle-viewport {
+  border-color: var(--color-sankey);
+}
+
+.layout-card[data-layout="edge-bundle"] .circle-viewport {
+  border-color: var(--color-edge);
+}
+
+.layout-card[data-layout="adjacency"] .circle-viewport {
+  border-color: var(--color-adjacency);
+}
+
+/* Hover - gold illumination effect */
+.layout-card:hover .circle-viewport {
+  border-color: var(--gold-leaf);
+}
+
+.layout-card:hover .layout-label h3 {
+  color: var(--gold-leaf);
+}
+
+/* ==========================================================================
+   Footer - Colophon Style
+   ========================================================================== */
+
+.gallery-footer {
+  text-align: center;
+  margin-top: 80px;
+  padding-top: 40px;
+  border-top: 1px solid var(--vellum-shadow);
+  position: relative;
+}
+
+.gallery-footer::before {
+  content: '✠';
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--vellum);
+  padding: 0 20px;
+  font-size: 1.2rem;
+  color: var(--gold-leaf);
+}
+
+.gallery-footer p {
+  font-family: var(--font-body);
+  color: var(--ink-sepia);
+  font-size: 0.95rem;
+  font-style: italic;
+}
+
+.gallery-footer a {
+  color: var(--ultramarine);
+  text-decoration: none;
+}
+
+.gallery-footer a:hover {
+  color: var(--gold-leaf);
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   Responsive Adjustments
+   ========================================================================== */
+
+@media (max-width: 1800px) {
+  :root {
+    --circle-size: 340px;
+    --row-offset: 186px;
+  }
+}
+
+@media (max-width: 1500px) {
+  :root {
+    --circle-size: 300px;
+    --row-offset: 166px;
+  }
+
+  .gallery-grid {
+    grid-template-columns: repeat(3, var(--circle-size));
+  }
+
+  /* Reset desktop-specific rules */
+  .layout-card:nth-child(5),
+  .layout-card:nth-child(6),
+  .layout-card:nth-child(7),
+  .layout-card:nth-child(12) {
+    transform: none;
+    grid-column: auto;
+  }
+
+  .layout-card:nth-child(8) {
+    grid-column: auto;
+  }
+
+  /* 3-column pattern: 3-2-3-2-2 */
+  .layout-card:nth-child(4),
+  .layout-card:nth-child(5),
+  .layout-card:nth-child(9),
+  .layout-card:nth-child(10) {
+    transform: translateX(var(--row-offset));
+  }
+
+  .layout-card:nth-child(4) {
+    grid-column: 1;
+  }
+
+  .layout-card:nth-child(6) {
+    grid-column: 1;
+  }
+
+  .layout-card:nth-child(11) {
+    grid-column: 1;
+  }
+}
+
+@media (max-width: 1100px) {
+  :root {
+    --circle-size: 280px;
+  }
+
+  .gallery-grid {
+    grid-template-columns: repeat(2, var(--circle-size));
+  }
+
+  /* Reset previous rules */
+  .layout-card:nth-child(n) {
+    transform: none;
+    grid-column: auto;
+  }
+
+  /* 2-column offset pattern */
+  .layout-card:nth-child(3),
+  .layout-card:nth-child(4),
+  .layout-card:nth-child(7),
+  .layout-card:nth-child(8),
+  .layout-card:nth-child(11),
+  .layout-card:nth-child(12) {
+    transform: translateX(var(--row-offset));
+  }
+
+  .layout-card:nth-child(3),
+  .layout-card:nth-child(5),
+  .layout-card:nth-child(7),
+  .layout-card:nth-child(9),
+  .layout-card:nth-child(11) {
+    grid-column: 1;
+  }
+}
+
+@media (max-width: 700px) {
+  :root {
+    --circle-size: 320px;
+  }
+
+  .gallery-grid {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .layout-card,
+  .layout-card:nth-child(n) {
+    transform: none !important;
+    grid-column: auto !important;
+  }
+
+  .gallery-header h1 {
+    font-size: 2rem;
+    letter-spacing: 0.1em;
+  }
+}
+
+/* ==========================================================================
+   Coordinated Highlighting - Cross-View Node Emphasis
+   ========================================================================== */
+
+/* Base node styling */
+.node {
+  cursor: pointer;
+  transition: opacity 0.15s ease, fill 0.15s ease, r 0.15s ease;
+}
+
+/* Base link styling */
+.link {
+  transition: opacity 0.15s ease, stroke 0.15s ease, stroke-width 0.15s ease;
+}
+
+/* Primary highlight - the hovered node itself */
+.node.highlight-primary {
+  opacity: 1 !important;
+  fill: var(--gold-bright) !important;
+  stroke: var(--ink-brown);
+  stroke-width: 2px;
+}
+
+.link.highlight-primary {
+  opacity: 1 !important;
+  stroke: var(--gold-bright) !important;
+  stroke-width: 2.5px !important;
+}
+
+/* Related highlight - ancestors and descendants */
+.node.highlight-related {
+  opacity: 0.9 !important;
+  stroke: var(--gold-leaf);
+  stroke-width: 1.5px;
+}
+
+.link.highlight-related {
+  opacity: 0.8 !important;
+  stroke: var(--gold-leaf) !important;
+  stroke-width: 1.5px !important;
+}
+
+/* Dimmed - unrelated nodes when something is hovered */
+.node.highlight-dimmed {
+  opacity: 0.2 !important;
+}
+
+.link.highlight-dimmed {
+  opacity: 0.1 !important;
+}
+
+/* Pack circles - special handling for nested circles */
+.pack-circle {
+  cursor: pointer;
+  transition: opacity 0.15s ease, stroke 0.15s ease, stroke-width 0.15s ease;
+}
+
+.pack-circle.highlight-primary {
+  opacity: 1 !important;
+  stroke: var(--gold-bright) !important;
+  stroke-width: 3px !important;
+}
+
+.pack-circle.highlight-related {
+  opacity: 0.9 !important;
+  stroke: var(--gold-leaf) !important;
+  stroke-width: 2px !important;
+}
+
+.pack-circle.highlight-dimmed {
+  opacity: 0.15 !important;
+}
+
+/* Partition arcs (Sunburst/Icicle) */
+.partition-arc {
+  cursor: pointer;
+  transition: opacity 0.15s ease, stroke 0.15s ease;
+}
+
+.partition-arc.highlight-primary {
+  opacity: 1 !important;
+  stroke: var(--gold-bright) !important;
+  stroke-width: 2px !important;
+}
+
+.partition-arc.highlight-related {
+  opacity: 0.9 !important;
+  stroke: var(--gold-leaf) !important;
+  stroke-width: 1px !important;
+}
+
+.partition-arc.highlight-dimmed {
+  opacity: 0.15 !important;
+}
+
+/* Treemap rectangles */
+.treemap-rect {
+  cursor: pointer;
+  transition: opacity 0.15s ease, stroke 0.15s ease;
+}
+
+.treemap-rect.highlight-primary {
+  opacity: 1 !important;
+  stroke: var(--gold-bright) !important;
+  stroke-width: 3px !important;
+}
+
+.treemap-rect.highlight-related {
+  opacity: 0.9 !important;
+  stroke: var(--gold-leaf) !important;
+  stroke-width: 2px !important;
+}
+
+.treemap-rect.highlight-dimmed {
+  opacity: 0.2 !important;
+}
+
+/* ==========================================================================
+   Flow Layouts - Sankey, Chord, Edge Bundle, Adjacency
+   ========================================================================== */
+
+/* Sankey nodes */
+.sankey-node {
+  cursor: pointer;
+  transition: opacity 0.15s ease, fill 0.15s ease;
+}
+
+.sankey-node.highlight-primary {
+  opacity: 1 !important;
+  fill: var(--gold-bright) !important;
+}
+
+.sankey-node.highlight-related {
+  opacity: 0.9 !important;
+  fill: var(--gold-leaf) !important;
+}
+
+.sankey-node.highlight-dimmed {
+  opacity: 0.2 !important;
+}
+
+/* Sankey links */
+.sankey-link {
+  transition: opacity 0.15s ease, fill 0.15s ease;
+}
+
+.sankey-link.highlight-primary {
+  opacity: 1 !important;
+  fill: rgba(212, 175, 55, 0.7) !important;
+}
+
+.sankey-link.highlight-related {
+  opacity: 0.8 !important;
+  fill: rgba(201, 162, 39, 0.5) !important;
+}
+
+.sankey-link.highlight-dimmed {
+  opacity: 0.1 !important;
+}
+
+/* Chord arcs */
+.chord-arc {
+  cursor: pointer;
+  transition: opacity 0.15s ease, fill 0.15s ease;
+}
+
+.chord-arc.highlight-primary {
+  opacity: 1 !important;
+  fill: var(--gold-bright) !important;
+}
+
+.chord-arc.highlight-related {
+  opacity: 0.9 !important;
+  fill: var(--gold-leaf) !important;
+}
+
+.chord-arc.highlight-dimmed {
+  opacity: 0.2 !important;
+}
+
+/* Chord ribbons */
+.chord-ribbon {
+  transition: opacity 0.15s ease, fill 0.15s ease;
+}
+
+.chord-ribbon.highlight-primary {
+  opacity: 1 !important;
+  fill: rgba(212, 175, 55, 0.7) !important;
+}
+
+.chord-ribbon.highlight-related {
+  opacity: 0.8 !important;
+  fill: rgba(201, 162, 39, 0.5) !important;
+}
+
+.chord-ribbon.highlight-dimmed {
+  opacity: 0.1 !important;
+}
+
+/* Edge bundle nodes */
+.bundle-node {
+  cursor: pointer;
+  transition: opacity 0.15s ease, fill 0.15s ease, r 0.15s ease;
+}
+
+.bundle-node.highlight-primary {
+  opacity: 1 !important;
+  fill: var(--gold-bright) !important;
+}
+
+.bundle-node.highlight-related {
+  opacity: 0.9 !important;
+  fill: var(--gold-leaf) !important;
+}
+
+.bundle-node.highlight-dimmed {
+  opacity: 0.2 !important;
+}
+
+/* Edge bundle links */
+.bundle-link {
+  transition: opacity 0.15s ease, stroke 0.15s ease, stroke-width 0.15s ease;
+}
+
+.bundle-link.highlight-primary {
+  opacity: 1 !important;
+  stroke: var(--gold-bright) !important;
+  stroke-width: 2px !important;
+}
+
+.bundle-link.highlight-related {
+  opacity: 0.8 !important;
+  stroke: var(--gold-leaf) !important;
+  stroke-width: 1.5px !important;
+}
+
+.bundle-link.highlight-dimmed {
+  opacity: 0.05 !important;
+}
+
+/* Adjacency cells */
+.adjacency-cell {
+  cursor: pointer;
+  transition: opacity 0.15s ease, fill 0.15s ease;
+}
+
+.adjacency-cell.highlight-primary {
+  fill: var(--gold-bright) !important;
+  fill-opacity: 1 !important;
+}
+
+.adjacency-cell.highlight-related {
+  fill: var(--gold-leaf) !important;
+  fill-opacity: 0.8 !important;
+}
+
+.adjacency-cell.highlight-dimmed {
+  opacity: 0.2 !important;
+}
+
+/* Adjacency labels */
+.adjacency-label {
+  transition: fill 0.15s ease, font-weight 0.15s ease;
+}
+
+.adjacency-label.highlight-primary {
+  fill: var(--ink-brown) !important;
+  font-weight: bold !important;
+}
+
+.adjacency-label.highlight-related {
+  fill: var(--gold-leaf) !important;
+  font-weight: 600 !important;
+}
+
+.adjacency-label.highlight-dimmed {
+  opacity: 0.3 !important;
+}

@@ -1,0 +1,33 @@
+package:
+  name: hylograph-layout-demo
+  description: Interactive gallery showcasing PSD3 layout algorithms
+  dependencies:
+    - aff
+    - affjax
+    - affjax-web
+    - arrays
+    - console
+    - effect
+    - either
+    - foldable-traversable
+    - free
+    - halogen
+    - integers
+    - lists
+    - maybe
+    - nullable
+    - numbers
+    - ordered-collections
+    - prelude
+    - hylograph-layout
+    - hylograph-selection
+    - random
+    - strings
+    - transformers
+    - tuples
+    - unsafe-coerce
+
+  bundle:
+    module: Gallery.Main
+    outfile: public/bundle.js
+    platform: browser
