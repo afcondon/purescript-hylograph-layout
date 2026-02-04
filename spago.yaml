@@ -1,6 +1,4 @@
 workspace:
-  packageSet:
-    registry: 72.0.1
   extraPackages:
     hylograph-selection:
       path: "../purescript-hylograph-selection"
@@ -26,7 +24,7 @@ package:
     - foreign: ">=7.0.0 <8.0.0"
     - foreign-object: ">=4.1.0 <5.0.0"
     - free: ">=7.1.0 <8.0.0"
-    - hylograph-graph: ">=0.1.0 <1.0.0"
+    - hylograph-graph: ">=0.1.0 <0.2.0"
     - integers: ">=6.0.0 <7.0.0"
     - lists: ">=7.0.0 <8.0.0"
     - maybe: ">=6.0.0 <7.0.0"
