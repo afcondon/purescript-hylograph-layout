@@ -17,12 +17,9 @@ package:
       githubRepo: purescript-hylograph-layout
   dependencies:
     - arrays: ">=7.3.0 <8.0.0"
-    - console: ">=6.1.0 <7.0.0"
-    - effect: ">=4.0.0 <5.0.0"
     - either: ">=6.1.0 <7.0.0"
     - foldable-traversable: ">=6.0.0 <7.0.0"
     - foreign: ">=7.0.0 <8.0.0"
-    - foreign-object: ">=4.1.0 <5.0.0"
     - free: ">=7.1.0 <8.0.0"
     - hylograph-graph: ">=0.1.0 <0.2.0"
     - integers: ">=6.0.0 <7.0.0"
@@ -31,17 +28,17 @@ package:
     - numbers: ">=9.0.1 <10.0.0"
     - ordered-collections: ">=3.2.0 <4.0.0"
     - prelude: ">=6.0.2 <7.0.0"
-    - random: ">=6.0.0 <7.0.0"
     - strings: ">=6.0.1 <7.0.0"
     - transformers: ">=6.1.0 <7.0.0"
     - tree-rose: ">=4.0.2 <5.0.0"
     - tuples: ">=7.0.0 <8.0.0"
-    - unsafe-coerce: ">=6.0.0 <7.0.0"
   test:
     main: Test.Main
     dependencies:
       - argonaut-codecs
       - argonaut-core
+      - console
+      - effect
       - node-buffer
       - node-fs
       - node-path

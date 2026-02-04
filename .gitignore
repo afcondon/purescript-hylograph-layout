@@ -1,3 +1,6 @@
 .spago/
 output/
 node_modules/
+.DS_Store
+.spago/
+output/
