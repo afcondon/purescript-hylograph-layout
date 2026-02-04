@@ -26,6 +26,7 @@ package:
     - foldable-traversable
     - foreign
     - foreign-object
+    - hylograph-graph
     - integers
     - lists
     - maybe
