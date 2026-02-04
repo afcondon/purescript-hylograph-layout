@@ -24,8 +24,6 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Number (pow)
 import Data.Set as Set
-import Effect.Console (log)
-import Effect.Unsafe (unsafePerformEffect)
 import DataViz.Layout.Sankey.Types (Alignment(..), DependencyMap, LinkCSVRow, LinkColorMode(..), LinkID(..), NodeID(..), SankeyConfig, SankeyGraphModel, SankeyLayoutResult, SankeyLink, SankeyNode, defaultSankeyConfig, initialSankeyGraphModel, initialiseSankeyLink, initialiseSankeyNode)
 
 -- Constants
@@ -67,54 +65,26 @@ computeLayoutWithConfig linkInputs config =
     -- Step 1: Build graph from link inputs (creates nodes and links)
     for_ linkInputs processCSVLink
     initialiseSankeyNodes
-    logStep "After initialiseSankeyNodes (nodeLinks)"
 
     -- Step 2: Compute node links (populate sourceLinks/targetLinks arrays)
 
     -- Step 3: Compute node values (max flow through each node)
     computeNodeValues
-    logStep "After computeNodeValues"
 
     -- Step 4: Compute node depths (left-to-right BFS)
     computeNodeDepths
-    logStep "After computeNodeDepths"
 
     -- Step 5: Compute node heights (right-to-left BFS)
     computeNodeHeights
-    logStep "After computeNodeHeights"
 
     -- Step 6: Compute node breadths (vertical positioning with relaxation)
     computeNodeBreadths
-    logStep "After computeNodeBreadths (FINAL)"
 
     -- Step 7: Compute link breadths (link y0/y1 positions)
     computeLinkBreadths
 
     -- Step 8: Assign colors
     assignColors
-
-  -- Helper to log current node state
-  logStep :: String -> State SankeyGraphModel Unit
-  logStep stepName = do
-    model <- get
-    let
-      _ = unsafePerformEffect $ do
-        log $ "\n=== " <> stepName <> " ==="
-        for_ (Array.sortBy (\a b -> compare a.name b.name) model.sankeyNodes) $ \n -> do
-          log $ "  " <> n.name
-            <> " | layer="
-            <> show n.layer
-            <> " | depth="
-            <> show n.depth
-            <> " | height="
-            <> show n.nodeHeight
-            <> " | value="
-            <> show n.value
-            <> " | y0="
-            <> show n.y0
-            <> " | y1="
-            <> show n.y1
-    pure unit
 
 -- ============================================================================
 -- Step 1: Build Graph from Link Inputs
@@ -342,36 +312,11 @@ computeNodeBreadths = do
   let ky = calculateGlobalKy nodesWithY extent.y0 extent.y1 adjustedPadding
   let linksWithWidth = map (\link -> link { width = link.value * ky }) model.sankeyLinks
 
-  -- DEBUG: Log positions AFTER initializeNodeBreadths (before relaxation)
-  let
-    _ = unsafePerformEffect $ do
-      log $ "\n=== After initializeNodeBreadths (ky=" <> show ky <> ", adjustedPadding=" <> show adjustedPadding <> ") ==="
-      -- Group by layer for easier comparison with D3
-      let maxLayer' = foldl (\acc node -> max acc node.layer) 0 nodesWithY
-      for_ (Array.range 0 maxLayer') $ \layerIdx -> do
-        let layerNodes = Array.sortBy (\a b -> compare a.y0 b.y0) $ filter (\n -> n.layer == layerIdx) nodesWithY
-        log $ "  Layer " <> show layerIdx <> ":"
-        for_ layerNodes $ \n ->
-          log $ "    " <> n.name <> " | y0=" <> show n.y0 <> " | y1=" <> show n.y1 <> " | value=" <> show n.value
-
   -- Step 6c: Run relaxation iterations to minimize crossings
   -- D3 doesn't pre-sort, it relies on relaxation + collision resolution to establish order
   -- IMPORTANT: Use linksWithWidth so targetTop/sourceTop have correct link widths
   -- Pass adjustedPadding to ensure consistent spacing throughout the algorithm
   let relaxedNodes = relaxation nodesWithY linksWithWidth config adjustedPadding extent.y0 extent.y1
-
-  -- DEBUG: Log positions AFTER relaxation for key nodes
-  let
-    _ = unsafePerformEffect $ do
-      case find (\n -> n.name == "Nuclear") relaxedNodes of
-        Just n -> log $ "AFTER relaxation - Nuclear: y0=" <> show n.y0 <> ", y1=" <> show n.y1
-        Nothing -> pure unit
-      case find (\n -> n.name == "Thermal generation") relaxedNodes of
-        Just n -> log $ "AFTER relaxation - Thermal generation: y0=" <> show n.y0 <> ", y1=" <> show n.y1
-        Nothing -> pure unit
-      case find (\n -> n.name == "Losses") relaxedNodes of
-        Just n -> log $ "AFTER relaxation - Losses: y0=" <> show n.y0 <> ", y1=" <> show n.y1
-        Nothing -> pure unit
 
   -- Store both nodes AND links (with widths) so computeLinkBreadths can use them
   modify_ _ { sankeyNodes = relaxedNodes, sankeyLinks = linksWithWidth }
@@ -910,19 +855,6 @@ computeLinkBreadths = do
 
   -- Then calculate y positions for each link
   let linksWithY = calculateLinkYPositions model.sankeyNodes linksWithWidth
-
-  -- DEBUG: Log link breadths for key links
-  let
-    _ = unsafePerformEffect do
-      log "\n=== After computeLinkBreadths ==="
-      for_ linksWithY $ \link -> do
-        case
-          find (\n -> n.index == link.sourceIndex) model.sankeyNodes,
-          find (\n -> n.index == link.targetIndex) model.sankeyNodes
-          of
-          Just srcNode, Just tgtNode ->
-            log $ "  " <> srcNode.name <> " -> " <> tgtNode.name <> " | y0=" <> show link.y0 <> " | y1=" <> show link.y1 <> " | width=" <> show link.width
-          _, _ -> pure unit
 
   modify_ _ { sankeyLinks = linksWithY }
   where
