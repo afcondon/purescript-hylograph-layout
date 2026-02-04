@@ -14,17 +14,17 @@ module DataViz.Layout.Sankey.Compute
 import Prelude
 
 import Control.Monad.State (State, execState, get, modify_)
-import Data.Array (catMaybes, filter, find, foldl, foldr, length, mapWithIndex, snoc, sortBy, (!!))
+import Data.Array (catMaybes, filter, find, foldl, length, mapWithIndex, snoc, sortBy, (!!))
 import Data.Array as Array
-import Data.Tuple (Tuple(..))
 import Data.Foldable (for_)
+import Data.Graph.Weighted.DAG as DAG
 import Data.Int (toNumber)
 import Data.Map as M
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Number (pow)
 import Data.Set as Set
-import DataViz.Layout.Sankey.Types (Alignment(..), DependencyMap, LinkCSVRow, LinkColorMode(..), LinkID(..), NodeID(..), SankeyConfig, SankeyGraphModel, SankeyLayoutResult, SankeyLink, SankeyNode, defaultSankeyConfig, initialSankeyGraphModel, initialiseSankeyLink, initialiseSankeyNode)
+import DataViz.Layout.Sankey.Types (Alignment(..), LinkCSVRow, LinkColorMode(..), LinkID(..), NodeID(..), SankeyConfig, SankeyGraphModel, SankeyLayoutResult, SankeyLink, SankeyNode, defaultSankeyConfig, initialSankeyGraphModel, initialiseSankeyLink, initialiseSankeyNode)
 
 -- Constants
 epsilon :: Number
@@ -90,16 +90,8 @@ computeLayoutWithConfig linkInputs config =
 -- Step 1: Build Graph from Link Inputs
 -- ============================================================================
 
--- | utility to update a dependency map, adding target into set if pre-existing source id
-unionInsert :: NodeID -> NodeID -> DependencyMap -> DependencyMap
-unionInsert sid tid deps = M.insert sid targetSet deps
-  where
-  targetSet =
-    case M.lookup sid deps of
-      Nothing -> Set.singleton tid -- source is new, tid is first target
-      (Just targets) -> Set.insert tid targets -- source exists, ensure tid is in target set
-
 -- | Process each row of the CSV to get the information needed to build a Sankey
+-- | Builds the DAG incrementally by adding edges
 processCSVLink :: LinkCSVRow -> State SankeyGraphModel Unit
 processCSVLink link = do
   model <- get
@@ -129,8 +121,7 @@ processCSVLink link = do
     , nodeNameToID = M.insert link.s sid $ M.insert link.t tid model.nodeNameToID
     , nodeIDToName = M.insert sid link.s $ M.insert tid link.t model.nodeIDToName
     , nodeOrder = model.nodeOrder <> newNodes -- Append new nodes in encounter order
-    , deps = unionInsert sid tid model.deps
-    , sped = unionInsert tid sid model.sped
+    , graph = DAG.unsafeAddEdge sid tid link.v model.graph -- Add edge to DAG
     , sankeyLinks =
         snoc model.sankeyLinks $ initialiseSankeyLink { source: sid, target: tid, value: link.v, id: LinkID model.linkCount }
     }

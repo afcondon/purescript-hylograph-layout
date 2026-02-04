@@ -6,7 +6,7 @@ Pure PureScript implementations of layout algorithms for hierarchies and flow di
 
 ## Overview
 
-Layout algorithms for hierarchical and graph data, implemented in pure PureScript. Many of these layouts are familiar to users of D3 but here they are implemented without FFI dependencies using FP implementations in 100% PureScript. These work with the rose-tree data structure from `purescript-tree-rose`.
+Layout algorithms for hierarchical and graph data, implemented in pure PureScript. Many of these layouts are familiar to users of D3 but here they are implemented without FFI dependencies using FP implementations in 100% PureScript. The hierarchical ones work with the rose-tree data structure from `purescript-tree-rose`.
 
 ## Installation
 
@@ -26,7 +26,7 @@ spago install hylograph-layout
 
 ### Graph Layouts
 
-- **Sankey** - Flow diagram layout for directed acyclic graphs
+- **Sankey** - Flow diagram layout for directed acyclic graphs (uses `hylograph-graph` for DAG operations)
 - **EdgeBundle** - Hierarchical edge bundling
 - **Chord** - Chord diagram layout
 - **Adjacency** - Adjacency matrix layout

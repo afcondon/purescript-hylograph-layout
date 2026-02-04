@@ -10,7 +10,6 @@ module DataViz.Layout.Sankey.Types
   , Link(..)
   , NodeIDMap
   , NodeNameMap
-  , DependencyMap
   , SankeyNodeInput
   , SankeyNode
   , SankeyLink
@@ -28,8 +27,11 @@ module DataViz.Layout.Sankey.Types
 
 import Prelude
 
+import Data.Graph.Weighted as WG
+import Data.Graph.Weighted.DAG (DAG)
+import Data.Graph.Weighted.DAG as DAG
 import Data.Map (Map, empty, lookup) as Map
-import Data.Maybe (Maybe, fromMaybe)
+import Data.Maybe (Maybe)
 import Data.Set as Set
 
 -- | Input format for links from CSV (user-provided flow data with named nodes)
@@ -56,7 +58,6 @@ instance showLink :: Show Link where
 
 type NodeIDMap = Map.Map String NodeID
 type NodeNameMap = Map.Map NodeID String
-type DependencyMap = Map.Map NodeID (Set.Set NodeID)
 
 -- | Input format for nodes (minimal user-provided data) - for backward compatibility
 type SankeyNodeInput =
@@ -186,8 +187,7 @@ type SankeyGraphModel =
   , nodeNameToID :: NodeIDMap
   , nodeIDToName :: NodeNameMap
   , nodeOrder :: Array NodeID -- Nodes in encounter order (matches D3's Set insertion order)
-  , deps :: DependencyMap -- source to Set targets
-  , sped :: DependencyMap -- target to Set sources
+  , graph :: DAG NodeID Number -- DAG for adjacency lookups (replaces deps/sped)
   , sankeyNodes :: Array SankeyNode
   , sankeyLinks :: Array SankeyLink
   , config :: SankeyConfig
@@ -202,8 +202,7 @@ initialSankeyGraphModel config =
   , nodeNameToID: Map.empty
   , nodeIDToName: Map.empty
   , nodeOrder: [] -- Will be populated in encounter order
-  , deps: Map.empty
-  , sped: Map.empty
+  , graph: DAG.unsafeFromWeightedDigraph WG.empty -- Start with empty DAG
   , sankeyNodes: []
   , sankeyLinks: []
   , config
@@ -213,9 +212,9 @@ initialSankeyGraphModel config =
 initialiseSankeyNode :: SankeyGraphModel -> NodeID -> Maybe SankeyNode
 initialiseSankeyNode m id = do
   name <- Map.lookup id m.nodeIDToName
-  -- Source nodes won't be in sped, sink nodes won't be in deps - use empty Set as default
-  let sourceLinks = fromMaybe Set.empty $ Map.lookup id m.deps
-  let targetLinks = fromMaybe Set.empty $ Map.lookup id m.sped
+  -- Get adjacency from DAG: outgoing targets and incoming sources
+  let sourceLinks = Set.fromFoldable $ map _.target $ DAG.outgoing id m.graph
+  let targetLinks = Set.fromFoldable $ map _.source $ DAG.incoming id m.graph
   pure $
     { name
     , x0: 0.0
