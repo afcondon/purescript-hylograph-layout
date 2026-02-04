@@ -1,3 +1,17 @@
+-- | Circle packing layout algorithm.
+-- |
+-- | Implements the front-chain circle packing algorithm for laying out hierarchical
+-- | data as nested circles. Each node's area is proportional to its value, with
+-- | children packed inside their parent's circle.
+-- |
+-- | The algorithm:
+-- | 1. Build hierarchy from input data with `hierarchy`
+-- | 2. Pack sibling circles using `packSiblingsMap` (front-chain algorithm)
+-- | 3. Compute enclosing circle with `packEnclose`
+-- | 4. Recursively pack all levels with `pack`
+-- |
+-- | Based on Wang et al.'s "Visualization of Large Hierarchical Data by Circle Packing"
+-- | and the D3.js implementation.
 module DataViz.Layout.Hierarchy.Pack
   ( CircleId
   , Circle

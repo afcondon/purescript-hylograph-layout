@@ -1,3 +1,14 @@
+-- | SVG path generators for hierarchical tree links.
+-- |
+-- | Provides multiple link styles for connecting parent-child nodes in tree layouts:
+-- |
+-- | - **Step links**: Right-angle paths (H-V-H or V-H-V) for orthogonal trees
+-- | - **Bezier links**: Smooth cubic curves for organic-looking trees
+-- | - **Radial links**: Curved paths for radial/polar tree layouts
+-- | - **Diagonal links**: Simple straight lines
+-- |
+-- | Each generator takes source and target coordinates and returns an SVG path string.
+-- | Use `linkGenerator` to dispatch based on `LinkStyle`.
 module DataViz.Layout.Hierarchy.Link
   ( LinkStyle(..)
   , linkStepHorizontal
