@@ -1,5 +1,5 @@
 = Module Overview
-:description: Reference for all PSD3 Layout modules
+:description: Reference for all Hylograph Layout modules
 
 == Hierarchy Core
 

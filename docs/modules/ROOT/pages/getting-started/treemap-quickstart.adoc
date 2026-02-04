@@ -113,7 +113,7 @@ type TreemapNode a =
 
 [source,purescript]
 ----
-import PSD3.Selection as S
+import Hylograph.Selection as S
 
 renderTreemap laid = do
   let nodes = H.descendants laid

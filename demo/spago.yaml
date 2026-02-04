@@ -1,6 +1,6 @@
 package:
   name: hylograph-layout-demo
-  description: Interactive gallery showcasing PSD3 layout algorithms
+  description: Interactive gallery showcasing Hylograph layout algorithms
   dependencies:
     - aff
     - affjax

@@ -1,11 +1,11 @@
-= PSD3 Layout
+= Hylograph Layout
 :description: Pure PureScript layout algorithms for data visualization
 
 Pure PureScript implementations of D3's layout algorithms for hierarchical data, flow diagrams, and relationship visualizations.
 
-== What is PSD3 Layout?
+== What is Hylograph Layout?
 
-PSD3 Layout provides layout algorithms that compute positions and dimensions for visualization elements. These are pure functions that transform your data into renderable coordinates.
+Hylograph Layout provides layout algorithms that compute positions and dimensions for visualization elements. These are pure functions that transform your data into renderable coordinates.
 
 [source,purescript]
 ----
@@ -55,7 +55,7 @@ All layouts are pure - they take data and return positioned data. No side effect
 Algorithms match D3's implementations for familiar results.
 
 *Composable*::
-Layout results work naturally with psd3-selection for rendering.
+Layout results work naturally with hylograph-selection for rendering.
 
 == Getting Started
 
@@ -67,13 +67,13 @@ Layout results work naturally with psd3-selection for rendering.
 
 [source,bash]
 ----
-spago install psd3-layout
+spago install hylograph-layout
 ----
 
-== Part of the PSD3 Ecosystem
+== Part of the Hylograph Ecosystem
 
-* *psd3-tree* - Tree data structures (dependency)
-* *psd3-selection* - D3 selection and rendering library
-* *psd3-simulation* - Force simulation engine
-* *psd3-layout* - Layout algorithms (this package)
-* *psd3-graph* - Graph algorithms and pathfinding
+* *hylograph-graph* - Tree data structures (dependency)
+* *hylograph-selection* - D3 selection and rendering library
+* *hylograph-simulation* - Force simulation engine
+* *hylograph-layout* - Layout algorithms (this package)
+* *hylograph-graph* - Graph algorithms and pathfinding

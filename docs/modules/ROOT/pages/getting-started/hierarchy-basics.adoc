@@ -1,5 +1,5 @@
 = Hierarchy Basics
-:description: Working with hierarchical data in PSD3 Layout
+:description: Working with hierarchical data in Hylograph Layout
 
 Hierarchical layouts work with tree-structured data. This guide covers the fundamentals.
 
@@ -145,7 +145,7 @@ main = do
       laid = Tree.tree (Tree.defaultConfig { size = { width: 600.0, height: 400.0 } }) root
 
   -- laid now contains nodes with x, y positions
-  -- Use psd3-selection to render
+  -- Use hylograph-selection to render
 ----
 
 == Next Steps

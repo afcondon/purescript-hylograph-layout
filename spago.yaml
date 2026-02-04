@@ -17,7 +17,7 @@ package:
     license: MIT
     location:
       githubOwner: afcondon
-      githubRepo: purescript-d3-layout
+      githubRepo: purescript-hylograph-layout
   dependencies:
     - arrays
     - console

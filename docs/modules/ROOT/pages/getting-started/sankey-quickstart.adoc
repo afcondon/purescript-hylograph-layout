@@ -1,5 +1,5 @@
 = Sankey Quickstart
-:description: Create flow diagrams with PSD3 Layout
+:description: Create flow diagrams with Hylograph Layout
 
 Sankey diagrams visualize flow between nodes, with link width proportional to flow quantity.
 
@@ -109,7 +109,7 @@ type PositionedLink =
 
 == Loading from CSV
 
-PSD3 Layout can parse Sankey data from CSV:
+Hylograph Layout can parse Sankey data from CSV:
 
 [source,purescript]
 ----
@@ -128,11 +128,11 @@ case parseCSV csvData of
   Left err -> -- handle parse error
 ----
 
-== Rendering with PSD3 Selection
+== Rendering with Hylograph Selection
 
 [source,purescript]
 ----
-import PSD3.Selection as S
+import Hylograph.Selection as S
 
 renderSankey result = do
   -- Render nodes as rectangles

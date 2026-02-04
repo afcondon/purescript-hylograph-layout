@@ -1,8 +1,8 @@
-# purescript-psd3-layout
+# purescript-hylograph-layout
 
 [![Layout Gallery Demo](../../site/lib-layout/public/demo.jpeg)](/layouts/)
 
-Pure PureScript implementations of layout algorithms for hierarchies and flow diagrams. 
+Pure PureScript implementations of layout algorithms for hierarchies and flow diagrams.
 
 ## Overview
 
@@ -11,7 +11,7 @@ Layout algorithms for hierarchical and graph data, implemented in pure PureScrip
 ## Installation
 
 ```bash
-spago install psd3-layout
+spago install hylograph-layout
 ```
 
 ## Available Layouts
@@ -22,11 +22,14 @@ spago install psd3-layout
 - **Pack** - Circle packing for hierarchical data
 - **Partition** - Sunburst/icicle partition layout
 - **Treemap** - Multiple tiling algorithms: squarify (default), slice, dice, sliceDice, binary
+- **Cluster** - Dendrogram layout
 
 ### Graph Layouts
 
 - **Sankey** - Flow diagram layout for directed acyclic graphs
 - **EdgeBundle** - Hierarchical edge bundling
+- **Chord** - Chord diagram layout
+- **Adjacency** - Adjacency matrix layout
 
 ## Example
 
@@ -46,15 +49,18 @@ positioned = tree config myTree
 - `DataViz.Layout.Hierarchy.Pack` - Circle packing
 - `DataViz.Layout.Hierarchy.Partition` - Partition/sunburst
 - `DataViz.Layout.Hierarchy.Treemap` - Treemap
-- `DataViz.Layout.Sankey` - Sankey diagrams
-- `DataViz.Layout.EdgeBundle` - Edge bundling
+- `DataViz.Layout.Hierarchy.Cluster` - Dendrogram
+- `DataViz.Layout.Hierarchy.EdgeBundle` - Edge bundling
+- `DataViz.Layout.Sankey.Compute` - Sankey diagrams
+- `DataViz.Layout.Chord` - Chord diagrams
+- `DataViz.Layout.Adjacency` - Adjacency matrix
 
-## Part of PSD3
+## Part of Hylograph
 
-- **psd3-layout** - Layout algorithms (this package)
-- **psd3-graph** - Graph algorithms and DAG support
-- **psd3-selection** - D3 selection library
-- **psd3-simulation** - Force simulation
+- **hylograph-layout** - Layout algorithms (this package)
+- **hylograph-graph** - Graph algorithms and DAG support
+- **hylograph-selection** - D3 selection library
+- **hylograph-simulation** - Force simulation
 
 Uses `tree-rose` for rose tree data structures.
 
