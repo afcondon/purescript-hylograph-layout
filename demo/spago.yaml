@@ -20,7 +20,7 @@ package:
     - ordered-collections
     - prelude
     - hylograph-layout
-    - hylograph-selection
+    - hylograph-selection: ">=0.1.0 <0.2.0"
     - random
     - strings
     - transformers

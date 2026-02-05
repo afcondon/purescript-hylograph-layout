@@ -83,7 +83,9 @@
             "free",
             "halogen",
             "hylograph-layout",
-            "hylograph-selection",
+            {
+              "hylograph-selection": ">=0.1.0 <0.2.0"
+            },
             "integers",
             "lists",
             "maybe",
@@ -103,14 +105,7 @@
         }
       }
     },
-    "extra_packages": {
-      "hylograph-selection": {
-        "path": "../purescript-hylograph-selection"
-      },
-      "hylograph-transitions": {
-        "path": "../purescript-hylograph-transitions"
-      }
-    }
+    "extra_packages": {}
   },
   "packages": {
     "aff": {
@@ -349,15 +344,6 @@
         "partial",
         "prelude",
         "tuples"
-      ]
-    },
-    "debug": {
-      "type": "registry",
-      "version": "6.0.2",
-      "integrity": "sha256-d/EzRm/J2JyzvlIeo2Ex78Y7HRB0IXBitnVJywL4gHk=",
-      "dependencies": [
-        "functions",
-        "prelude"
       ]
     },
     "distributive": {
@@ -737,24 +723,21 @@
       ]
     },
     "hylograph-selection": {
-      "type": "local",
-      "path": "../purescript-hylograph-selection",
+      "type": "registry",
+      "version": "0.1.1",
+      "integrity": "sha256-PGMAJeq9FiicgPQY4pdLDNmpSyfd6MbhYshehU9ZIbQ=",
       "dependencies": [
-        "aff",
         "arrays",
         "colors",
         "console",
         "contravariant",
         "datetime",
-        "debug",
         "effect",
         "either",
         "foldable-traversable",
-        "foreign-object",
-        "functions",
+        "free",
         "graphs",
         "hylograph-graph",
-        "hylograph-layout",
         "hylograph-transitions",
         "integers",
         "lists",
@@ -765,7 +748,7 @@
         "ordered-collections",
         "partial",
         "prelude",
-        "profunctor",
+        "refs",
         "strings",
         "transformers",
         "tree-rose",
@@ -774,15 +757,15 @@
         "unsafe-coerce",
         "unsafe-reference",
         "web-dom",
-        "web-events",
         "web-html",
         "web-pointerevents",
         "web-uievents"
       ]
     },
     "hylograph-transitions": {
-      "type": "local",
-      "path": "../purescript-hylograph-transitions",
+      "type": "registry",
+      "version": "0.1.0",
+      "integrity": "sha256-4OxA786UfwAbJYVyLKrbtR7Pc+B1chPKvYkmhh5ye04=",
       "dependencies": [
         "arrays",
         "control",

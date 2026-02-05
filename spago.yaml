@@ -1,9 +1,5 @@
 workspace:
-  extraPackages:
-    hylograph-selection:
-      path: "../purescript-hylograph-selection"
-    hylograph-transitions:
-      path: "../purescript-hylograph-transitions"
+  extraPackages: {}
 
 package:
   name: hylograph-layout
