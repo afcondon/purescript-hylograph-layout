@@ -1,6 +1,7 @@
 -- | Types for geometric layout patterns
 module DataViz.Layout.Pattern.Types
   ( Point
+  , Rect
   , Viewport
   , viewport
   , viewportWithPadding
@@ -15,6 +16,9 @@ import Prelude
 
 -- | A 2D point
 type Point = { x :: Number, y :: Number }
+
+-- | A positioned rectangle
+type Rect = { x :: Number, y :: Number, width :: Number, height :: Number }
 
 -- | Padding specification (can be uniform or per-side)
 type Padding =

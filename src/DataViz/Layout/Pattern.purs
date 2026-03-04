@@ -48,6 +48,10 @@ module DataViz.Layout.Pattern
   , layered
   , layeredCentered
 
+  -- * Masonry layouts
+  , masonry
+  , masonryAuto
+
   -- * Re-exports
   , module Types
   ) where
@@ -55,10 +59,12 @@ module DataViz.Layout.Pattern
 import Prelude
 
 import Data.Array as Array
+import Data.Foldable (foldl)
 import Data.Int (floor, toNumber, ceil)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Number (sqrt, pi, cos, sin)
-import DataViz.Layout.Pattern.Types (Point, Viewport, usableArea)
-import DataViz.Layout.Pattern.Types (Point, Viewport, Padding, viewport, viewportWithPadding, usableArea, uniformPadding, padding, noPadding) as Types
+import DataViz.Layout.Pattern.Types (Point, Rect, Viewport, usableArea)
+import DataViz.Layout.Pattern.Types (Point, Rect, Viewport, Padding, viewport, viewportWithPadding, usableArea, uniformPadding, padding, noPadding) as Types
 
 -- =============================================================================
 -- Grid Layouts
@@ -485,3 +491,78 @@ layeredCentered vp layerCounts =
           (Array.replicate count unit)
   in
     Array.concat $ Array.mapWithIndex layerPositions layerCounts
+
+-- =============================================================================
+-- Masonry Layouts
+-- =============================================================================
+
+-- | Masonry (Pinterest-style) layout with fixed column count.
+-- | Places each item into the shortest column, producing a compact arrangement.
+-- |
+-- | Takes column count, gap between items, viewport, and array of item heights.
+-- | Returns positioned rectangles in input order.
+-- |
+-- | ```purescript
+-- | let rects = masonry 3 10.0 (viewport 800.0 600.0) [100.0, 150.0, 80.0, 200.0, 120.0]
+-- | ```
+masonry :: Int -> Number -> Viewport -> Array Number -> Array Rect
+masonry cols gap vp heights =
+  let
+    area = usableArea vp
+    actualCols = max 1 cols
+    colWidth = (area.width - gap * toNumber (actualCols - 1)) / toNumber actualCols
+
+    -- Find index of shortest column
+    shortestCol :: Array Number -> Int
+    shortestCol colHeights =
+      let
+        indexed = Array.mapWithIndex (\i h -> { i, h }) colHeights
+      in
+        fromMaybe 0 $ map _.i $ foldl
+          (\acc item -> case acc of
+            Nothing -> Just item
+            Just best -> if item.h < best.h then Just item else Just best
+          )
+          Nothing
+          indexed
+
+    -- Accumulator: column heights and collected rects
+    result = foldl
+      (\acc itemHeight ->
+        let
+          col = shortestCol acc.colHeights
+          x = area.x + toNumber col * (colWidth + gap)
+          colH = fromMaybe 0.0 (Array.index acc.colHeights col)
+          -- Add gap if column already has items
+          y = area.y + colH + (if colH > 0.0 then gap else 0.0)
+          rect = { x, y, width: colWidth, height: itemHeight }
+          newColHeight = (y - area.y) + itemHeight
+          newColHeights = fromMaybe acc.colHeights $
+            Array.updateAt col newColHeight acc.colHeights
+        in
+          { colHeights: newColHeights
+          , rects: acc.rects <> [ rect ]
+          }
+      )
+      { colHeights: Array.replicate actualCols 0.0
+      , rects: []
+      }
+      heights
+  in
+    result.rects
+
+-- | Masonry layout with automatic column count from max column width.
+-- | Computes how many columns fit given the max width, then delegates to `masonry`.
+-- |
+-- | ```purescript
+-- | let rects = masonryAuto 250.0 10.0 (viewport 800.0 600.0) heights
+-- | ```
+masonryAuto :: Number -> Number -> Viewport -> Array Number -> Array Rect
+masonryAuto maxColWidth gap vp heights =
+  let
+    area = usableArea vp
+    -- Solve: cols * maxColWidth + (cols - 1) * gap <= area.width
+    -- cols * (maxColWidth + gap) <= area.width + gap
+    cols = max 1 $ floor ((area.width + gap) / (maxColWidth + gap))
+  in
+    masonry cols gap vp heights

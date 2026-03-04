@@ -725,3 +725,90 @@ body {
 .adjacency-label.highlight-dimmed {
   opacity: 0.3 !important;
 }
+
+/* ==========================================================================
+   Gallery Navigation
+   ========================================================================== */
+
+.gallery-nav {
+  margin-top: 12px;
+}
+
+.gallery-nav a {
+  color: var(--ultramarine);
+  text-decoration: none;
+  font-style: italic;
+  font-size: 0.95rem;
+}
+
+.gallery-nav a:hover {
+  color: var(--gold-leaf);
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   Masonry Demo
+   ========================================================================== */
+
+.masonry-demo {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 60px 40px 80px;
+}
+
+.masonry-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.masonry-label {
+  font-family: var(--font-body);
+  color: var(--ink-sepia);
+  font-size: 0.95rem;
+  margin-right: 4px;
+}
+
+.masonry-btn {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  padding: 6px 16px;
+  border: 1px solid var(--vellum-shadow);
+  border-radius: 4px;
+  background: var(--vellum);
+  color: var(--ink-brown);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.masonry-btn:hover {
+  border-color: var(--gold-leaf);
+  color: var(--gold-leaf);
+}
+
+.masonry-btn.active {
+  background: var(--ultramarine);
+  color: var(--vellum);
+  border-color: var(--ultramarine);
+}
+
+.masonry-btn-regen {
+  margin-left: auto;
+  background: var(--vellum-dark);
+  border-color: var(--ink-sepia);
+}
+
+.masonry-btn-regen:hover {
+  background: var(--gold-leaf);
+  color: var(--vellum);
+  border-color: var(--gold-leaf);
+}
+
+.masonry-viewport {
+  border: 1px solid var(--vellum-shadow);
+  border-radius: 8px;
+  padding: 16px;
+  background: var(--vellum);
+}

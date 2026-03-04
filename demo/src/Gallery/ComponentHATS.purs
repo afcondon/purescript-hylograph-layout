@@ -105,6 +105,12 @@ renderHeader =
     , HH.p
         [ HP.class_ (H.ClassName "hint") ]
         [ HH.text "(hover any element to see coordinated highlighting)" ]
+    , HH.p
+        [ HP.class_ (H.ClassName "gallery-nav") ]
+        [ HH.a
+            [ HP.href "#masonry" ]
+            [ HH.text "Masonry Demo \x2192" ]
+        ]
     ]
 
 renderGrid :: forall m. State -> H.ComponentHTML Action () m

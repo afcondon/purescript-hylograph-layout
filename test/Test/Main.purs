@@ -17,6 +17,7 @@ import Test.Layout.PackSpec (runPackTests)
 import Test.Layout.TreemapSpec (runTreemapTests)
 import Test.Layout.PartitionSpec (runPartitionTests)
 import Test.Layout.EdgeBundleSpec (runEdgeBundleTests)
+import Test.Layout.MasonrySpec (runMasonryTests)
 
 main :: Effect Unit
 main = do
@@ -34,9 +35,10 @@ main = do
   treemapFailures <- runTreemapTests
   partitionFailures <- runPartitionTests
   edgebundleFailures <- runEdgeBundleTests
+  masonryFailures <- runMasonryTests
 
   -- Summary
-  let totalFailures = sankeyFailures + treeFailures + clusterFailures + stateMachineFailures + adjacencyFailures + packFailures + treemapFailures + partitionFailures + edgebundleFailures
+  let totalFailures = sankeyFailures + treeFailures + clusterFailures + stateMachineFailures + adjacencyFailures + packFailures + treemapFailures + partitionFailures + edgebundleFailures + masonryFailures
   log "\n================================"
   log "Summary"
   log "================================"
@@ -49,6 +51,7 @@ main = do
   log $ "Treemap: " <> show (4 - treemapFailures) <> "/4 passed"
   log $ "Partition: " <> show (4 - partitionFailures) <> "/4 passed"
   log $ "EdgeBundle: " <> show (4 - edgebundleFailures) <> "/4 passed"
+  log $ "Masonry: " <> show (4 - masonryFailures) <> "/4 passed"
 
   if totalFailures == 0 then do
     log "\nAll tests passed!"
