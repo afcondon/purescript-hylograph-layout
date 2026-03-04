@@ -10,6 +10,7 @@ module DataViz.Layout.Pattern.Types
   , uniformPadding
   , padding
   , noPadding
+  , WaffleCell
   ) where
 
 import Prelude
@@ -54,6 +55,9 @@ viewport w h = { width: w, height: h, padding: noPadding }
 -- | Create a viewport with uniform padding
 viewportWithPadding :: Number -> Number -> Number -> Viewport
 viewportWithPadding w h p = { width: w, height: h, padding: uniformPadding p }
+
+-- | A cell in a waffle chart, tagged with its category index
+type WaffleCell = { rect :: Rect, category :: Int }
 
 -- | Get the usable area after accounting for padding
 -- | Returns { x, y, width, height } where x,y is the top-left of usable area

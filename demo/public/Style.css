@@ -812,3 +812,319 @@ body {
   padding: 16px;
   background: var(--vellum);
 }
+
+/* ==========================================================================
+   Pattern Demo Shared Styles (shelf, waffle, stacked, waterfall, etc.)
+   ========================================================================== */
+
+.pattern-demo {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 60px 40px 80px;
+}
+
+/* Gallery navigation links */
+.gallery-nav {
+  margin-top: 8px;
+  font-size: 0.9rem;
+}
+
+.gallery-nav a {
+  color: var(--ultramarine);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.gallery-nav a:hover {
+  color: var(--gold-leaf);
+}
+
+/* Waffle chart legend */
+.waffle-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--ink-brown);
+}
+
+.waffle-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.waffle-legend-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+}
+
+/* ==========================================================================
+   Landing Page
+   ========================================================================== */
+
+.landing-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 80px 40px;
+}
+
+.landing-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  margin-top: 20px;
+}
+
+.landing-card {
+  display: block;
+  text-decoration: none;
+  color: var(--ink-black);
+  border: 2px solid var(--vellum-shadow);
+  border-radius: 8px;
+  padding: 32px 28px;
+  background: var(--vellum);
+  transition: all 0.25s ease;
+  border-top: 4px solid var(--card-accent, var(--vellum-shadow));
+}
+
+.landing-card:hover {
+  border-color: var(--card-accent, var(--gold-leaf));
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.landing-card-body h2 {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  color: var(--ink-brown);
+  margin: 0 0 12px 0;
+  text-transform: uppercase;
+}
+
+.landing-card:hover h2 {
+  color: var(--card-accent, var(--gold-leaf));
+}
+
+.landing-card-desc {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--ink-sepia);
+  font-style: italic;
+  line-height: 1.5;
+  margin: 0 0 16px 0;
+}
+
+.landing-card-count {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--vellum-shadow);
+  margin: 0;
+  letter-spacing: 0.05em;
+}
+
+.landing-card-preview {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.landing-viewport {
+  --circle-size: 200px;
+  width: 200px;
+  height: 200px;
+  pointer-events: none;
+  transition: border-color 0.25s ease;
+}
+
+.landing-card:hover .landing-viewport {
+  border-color: var(--card-accent, var(--gold-leaf));
+}
+
+@media (max-width: 800px) {
+  .landing-cards {
+    grid-template-columns: 1fr;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* ==========================================================================
+   Hierarchy Grid (10 items: 4-3-3)
+   ========================================================================== */
+
+.hierarchy-grid {
+  grid-template-columns: repeat(4, var(--circle-size));
+}
+
+/* Row 2: items 5-7, offset */
+.hierarchy-grid .layout-card:nth-child(5),
+.hierarchy-grid .layout-card:nth-child(6),
+.hierarchy-grid .layout-card:nth-child(7) {
+  transform: translateX(var(--row-offset));
+}
+
+/* Force item 8 to new row */
+.hierarchy-grid .layout-card:nth-child(8) {
+  grid-column: 1;
+}
+
+/* Row 3: items 8-10, offset */
+.hierarchy-grid .layout-card:nth-child(8),
+.hierarchy-grid .layout-card:nth-child(9),
+.hierarchy-grid .layout-card:nth-child(10) {
+  transform: translateX(var(--row-offset));
+}
+
+/* ==========================================================================
+   Flow Grid (4 items: single row)
+   ========================================================================== */
+
+.flow-grid {
+  grid-template-columns: repeat(4, var(--circle-size));
+}
+
+/* No offset needed for single row */
+.flow-grid .layout-card:nth-child(n) {
+  transform: none;
+}
+
+@media (max-width: 1800px) {
+  .flow-grid {
+    grid-template-columns: repeat(4, var(--circle-size));
+  }
+}
+
+@media (max-width: 1500px) {
+  .hierarchy-grid {
+    grid-template-columns: repeat(3, var(--circle-size));
+  }
+
+  /* Reset 4-col hierarchy rules */
+  .hierarchy-grid .layout-card:nth-child(5),
+  .hierarchy-grid .layout-card:nth-child(6),
+  .hierarchy-grid .layout-card:nth-child(7),
+  .hierarchy-grid .layout-card:nth-child(8),
+  .hierarchy-grid .layout-card:nth-child(9),
+  .hierarchy-grid .layout-card:nth-child(10) {
+    transform: none;
+    grid-column: auto;
+  }
+
+  /* 3-col hierarchy: 3-2-3-2 offset */
+  .hierarchy-grid .layout-card:nth-child(4),
+  .hierarchy-grid .layout-card:nth-child(5) {
+    transform: translateX(var(--row-offset));
+  }
+  .hierarchy-grid .layout-card:nth-child(4) {
+    grid-column: 1;
+  }
+  .hierarchy-grid .layout-card:nth-child(6) {
+    grid-column: 1;
+  }
+  .hierarchy-grid .layout-card:nth-child(9),
+  .hierarchy-grid .layout-card:nth-child(10) {
+    transform: translateX(var(--row-offset));
+  }
+
+  .flow-grid {
+    grid-template-columns: repeat(2, var(--circle-size));
+  }
+  .flow-grid .layout-card:nth-child(n) {
+    transform: none;
+  }
+}
+
+@media (max-width: 1100px) {
+  .hierarchy-grid {
+    grid-template-columns: repeat(2, var(--circle-size));
+  }
+  .hierarchy-grid .layout-card:nth-child(n) {
+    transform: none;
+    grid-column: auto;
+  }
+
+  .flow-grid {
+    grid-template-columns: repeat(2, var(--circle-size));
+  }
+}
+
+@media (max-width: 700px) {
+  .hierarchy-grid,
+  .flow-grid {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+  .hierarchy-grid .layout-card:nth-child(n),
+  .flow-grid .layout-card:nth-child(n) {
+    transform: none !important;
+    grid-column: auto !important;
+  }
+}
+
+/* ==========================================================================
+   Pattern Page
+   ========================================================================== */
+
+.pattern-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 40px 80px;
+}
+
+.pattern-page-header {
+  padding-top: 60px;
+}
+
+/* Remove individual demo padding/margins when composed on pattern page */
+.pattern-section .masonry-demo,
+.pattern-section .pattern-demo {
+  padding: 0;
+  max-width: none;
+}
+
+/* Remove individual demo headers — the parent page has one */
+.pattern-section .gallery-header {
+  border-bottom: none;
+  margin-bottom: 24px;
+  padding-bottom: 0;
+}
+
+.pattern-section .gallery-header::after {
+  display: none;
+}
+
+/* Hide the back-links within child demos on the composed page */
+.pattern-section .gallery-header .hint {
+  display: none;
+}
+
+.pattern-divider {
+  text-align: center;
+  padding: 40px 0;
+  color: var(--gold-leaf);
+  font-size: 1.2rem;
+}
+
+.pattern-divider span {
+  display: inline-block;
+  position: relative;
+}
+
+.pattern-divider::before,
+.pattern-divider::after {
+  content: '';
+  display: inline-block;
+  width: 80px;
+  height: 1px;
+  background: var(--vellum-shadow);
+  vertical-align: middle;
+  margin: 0 16px;
+}

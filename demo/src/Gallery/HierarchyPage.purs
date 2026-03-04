@@ -1,8 +1,8 @@
--- | HATS-powered Layout Gallery Component
+-- | Hierarchy Page
 -- |
--- | Uses HATS for rendering ALL layouts with coordinated highlighting.
--- | Highlighting is fully automatic via HATS behaviors - no Halogen state needed.
-module Gallery.ComponentHATS where
+-- | Shows 10 hierarchy layouts (Tree×3, Cluster×3, Pack, Sunburst, Icicle, Treemap)
+-- | in circular viewports with HATS coordinated highlighting.
+module Gallery.HierarchyPage where
 
 import Prelude
 
@@ -19,33 +19,21 @@ import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
 
 import Gallery.Data (FlareNode, loadFlareData, flareToTree, flareToPackHierarchy, flareToPartitionHierarchy)
-import Gallery.FlowData (SankeyData, MatrixData, EdgeBundleData, loadSankeyData, loadMatrixData, loadEdgeBundleData)
 import Gallery.RenderHATS as HATS
-import Gallery.Types (LayoutType(..), allLayouts, layoutInfo)
+import Gallery.Types (LayoutType(..), layoutInfo)
 
 -- =============================================================================
 -- Types
 -- =============================================================================
 
--- | Loaded hierarchical data in various formats for different layouts
 type HierarchyData =
   { tree :: Tree { name :: String, path :: String, value :: Number, x :: Number, y :: Number, depth :: Int, height :: Int }
   , pack :: Pack.HierarchyData { name :: String, path :: String }
   , partition :: Partition.HierarchyData { name :: String, path :: String }
   }
 
--- | Flow data for non-hierarchical layouts
-type FlowData =
-  { sankey :: Maybe SankeyData
-  , matrix :: Maybe MatrixData
-  , edgeBundle :: Maybe EdgeBundleData
-  }
-
--- | Component state - simplified since HATS handles highlighting automatically
 type State =
-  { layouts :: Array LayoutType
-  , flareData :: Maybe HierarchyData
-  , flowData :: FlowData
+  { flareData :: Maybe HierarchyData
   , loading :: Boolean
   , error :: Maybe String
   }
@@ -53,10 +41,15 @@ type State =
 data Action
   = Initialize
   | DataLoaded (Either String FlareNode)
-  | SankeyLoaded (Either String SankeyData)
-  | MatrixLoaded (Either String MatrixData)
-  | EdgeBundleLoaded (Either String EdgeBundleData)
-  | RenderHATSLayouts
+  | RenderLayouts
+
+-- | Hierarchy layouts in display order: 4-3-3
+hierarchyLayouts :: Array LayoutType
+hierarchyLayouts =
+  [ TreeHorizontal, Pack, TreeVertical, PartitionSunburst
+  , TreeRadial, PartitionIcicle, ClusterHorizontal
+  , Treemap, ClusterVertical, ClusterRadial
+  ]
 
 -- =============================================================================
 -- Component
@@ -74,9 +67,7 @@ component = H.mkComponent
 
 initialState :: forall input. input -> State
 initialState _ =
-  { layouts: allLayouts
-  , flareData: Nothing
-  , flowData: { sankey: Nothing, matrix: Nothing, edgeBundle: Nothing }
+  { flareData: Nothing
   , loading: true
   , error: Nothing
   }
@@ -86,11 +77,13 @@ initialState _ =
 -- =============================================================================
 
 render :: forall m. State -> H.ComponentHTML Action () m
-render state =
+render _state =
   HH.div
     [ HP.class_ (H.ClassName "gallery-container") ]
     [ renderHeader
-    , renderGrid state
+    , HH.div
+        [ HP.class_ (H.ClassName "gallery-grid hierarchy-grid") ]
+        (hierarchyLayouts <#> renderLayoutCard)
     , renderFooter
     ]
 
@@ -98,40 +91,19 @@ renderHeader :: forall m. H.ComponentHTML Action () m
 renderHeader =
   HH.div
     [ HP.class_ (H.ClassName "gallery-header") ]
-    [ HH.h1_ [ HH.text "Layout Gallery (HATS)" ]
+    [ HH.h1_ [ HH.text "Hierarchy Layouts" ]
     , HH.p
         [ HP.class_ (H.ClassName "subtitle") ]
-        [ HH.text "14 100% PureScript layout algorithms — fully HATS-rendered" ]
-    , HH.p
-        [ HP.class_ (H.ClassName "hint") ]
-        [ HH.text "(hover any element to see coordinated highlighting)" ]
+        [ HH.text "10 layouts for nested data \x2014 hover any element for coordinated highlighting" ]
     , HH.p
         [ HP.class_ (H.ClassName "gallery-nav") ]
-        [ HH.a [ HP.href "#masonry" ] [ HH.text "Masonry" ]
+        [ HH.a [ HP.href "#" ] [ HH.text "\x2190 Gallery" ]
         , HH.text " \x00b7 "
-        , HH.a [ HP.href "#shelf" ] [ HH.text "Shelf" ]
+        , HH.a [ HP.href "#flow" ] [ HH.text "Flow" ]
         , HH.text " \x00b7 "
-        , HH.a [ HP.href "#waffle" ] [ HH.text "Waffle" ]
-        , HH.text " \x00b7 "
-        , HH.a [ HP.href "#stacked" ] [ HH.text "Stacked" ]
-        , HH.text " \x00b7 "
-        , HH.a [ HP.href "#waterfall" ] [ HH.text "Waterfall" ]
-        , HH.text " \x00b7 "
-        , HH.a [ HP.href "#justified" ] [ HH.text "Justified" ]
-        , HH.text " \x00b7 "
-        , HH.a [ HP.href "#binpack" ] [ HH.text "Bin Pack" ]
-        , HH.text " \x00b7 "
-        , HH.a [ HP.href "#calendar" ] [ HH.text "Calendar" ]
-        , HH.text " \x00b7 "
-        , HH.a [ HP.href "#swimlane" ] [ HH.text "Swimlane" ]
+        , HH.a [ HP.href "#pattern" ] [ HH.text "Pattern" ]
         ]
     ]
-
-renderGrid :: forall m. State -> H.ComponentHTML Action () m
-renderGrid state =
-  HH.div
-    [ HP.class_ (H.ClassName "gallery-grid") ]
-    (state.layouts <#> renderLayoutCard)
 
 renderLayoutCard :: forall m. LayoutType -> H.ComponentHTML Action () m
 renderLayoutCard layoutType =
@@ -143,7 +115,6 @@ renderLayoutCard layoutType =
         [ HP.class_ (H.ClassName "circle-viewport")
         , HP.id (hatsContainerId layoutType)
         ]
-        -- HATS renders into this container imperatively
         []
     , HH.div
         [ HP.class_ (H.ClassName "layout-label") ]
@@ -168,10 +139,7 @@ layoutTypeAttr Pack = "pack"
 layoutTypeAttr PartitionSunburst = "partition-sunburst"
 layoutTypeAttr PartitionIcicle = "partition-icicle"
 layoutTypeAttr Treemap = "treemap"
-layoutTypeAttr Chord = "chord"
-layoutTypeAttr Sankey = "sankey"
-layoutTypeAttr EdgeBundle = "edge-bundle"
-layoutTypeAttr Adjacency = "adjacency"
+layoutTypeAttr _ = ""
 
 renderFooter :: forall m. H.ComponentHTML Action () m
 renderFooter =
@@ -182,7 +150,7 @@ renderFooter =
         , HH.a
             [ HP.href "https://github.com/afcondon/purescript-d3-layout" ]
             [ HH.text "hylograph-layout" ]
-        , HH.text " library — Pure PureScript + HATS"
+        , HH.text " library"
         ]
     ]
 
@@ -190,49 +158,21 @@ renderFooter =
 -- HATS Rendering
 -- =============================================================================
 
--- | Render all HATS layouts - highlighting is handled automatically by HATS behaviors
 renderHATSLayouts :: State -> Effect Unit
-renderHATSLayouts state = do
-  -- Render hierarchy layouts
+renderHATSLayouts state =
   case state.flareData of
     Nothing -> pure unit
     Just hierData -> do
-      -- Tree layouts
       HATS.renderTreeHorizontal ("#" <> hatsContainerId TreeHorizontal) hierData.tree
       HATS.renderTreeVertical ("#" <> hatsContainerId TreeVertical) hierData.tree
       HATS.renderTreeRadial ("#" <> hatsContainerId TreeRadial) hierData.tree
-
-      -- Cluster layouts
       HATS.renderClusterHorizontal ("#" <> hatsContainerId ClusterHorizontal) hierData.tree
       HATS.renderClusterVertical ("#" <> hatsContainerId ClusterVertical) hierData.tree
       HATS.renderClusterRadial ("#" <> hatsContainerId ClusterRadial) hierData.tree
-
-      -- Pack layout
       HATS.renderPack ("#" <> hatsContainerId Pack) hierData.pack
-
-      -- Partition layouts
       HATS.renderSunburst ("#" <> hatsContainerId PartitionSunburst) hierData.partition
       HATS.renderIcicle ("#" <> hatsContainerId PartitionIcicle) hierData.partition
       HATS.renderTreemap ("#" <> hatsContainerId Treemap) hierData.partition
-
-  -- Render Sankey
-  case state.flowData.sankey of
-    Nothing -> pure unit
-    Just sankeyData ->
-      HATS.renderSankey ("#" <> hatsContainerId Sankey) sankeyData
-
-  -- Render Chord and Adjacency (both use matrix data)
-  case state.flowData.matrix of
-    Nothing -> pure unit
-    Just matrixData -> do
-      HATS.renderChord ("#" <> hatsContainerId Chord) matrixData
-      HATS.renderAdjacency ("#" <> hatsContainerId Adjacency) matrixData
-
-  -- Render Edge Bundle
-  case state.flowData.edgeBundle of
-    Nothing -> pure unit
-    Just bundleData ->
-      HATS.renderEdgeBundle ("#" <> hatsContainerId EdgeBundle) bundleData
 
 -- =============================================================================
 -- Actions
@@ -241,17 +181,8 @@ renderHATSLayouts state = do
 handleAction :: forall output m. MonadAff m => Action -> H.HalogenM State Action () output m Unit
 handleAction = case _ of
   Initialize -> do
-    -- Load hierarchy data
     flareResult <- liftAff loadFlareData
     handleAction (DataLoaded flareResult)
-
-    -- Load flow data
-    sankeyResult <- liftAff loadSankeyData
-    handleAction (SankeyLoaded sankeyResult)
-    matrixResult <- liftAff loadMatrixData
-    handleAction (MatrixLoaded matrixResult)
-    edgeBundleResult <- liftAff loadEdgeBundleData
-    handleAction (EdgeBundleLoaded edgeBundleResult)
 
   DataLoaded result -> do
     case result of
@@ -265,29 +196,8 @@ handleAction = case _ of
             , partition: flareToPartitionHierarchy flareNode
             }
         H.modify_ _ { loading = false, flareData = Just hierData }
-        handleAction RenderHATSLayouts
+        handleAction RenderLayouts
 
-  SankeyLoaded result -> do
-    case result of
-      Left _ -> pure unit
-      Right sankeyData -> do
-        H.modify_ \s -> s { flowData = s.flowData { sankey = Just sankeyData } }
-        handleAction RenderHATSLayouts
-
-  MatrixLoaded result -> do
-    case result of
-      Left _ -> pure unit
-      Right matrixData -> do
-        H.modify_ \s -> s { flowData = s.flowData { matrix = Just matrixData } }
-        handleAction RenderHATSLayouts
-
-  EdgeBundleLoaded result -> do
-    case result of
-      Left _ -> pure unit
-      Right edgeBundleData -> do
-        H.modify_ \s -> s { flowData = s.flowData { edgeBundle = Just edgeBundleData } }
-        handleAction RenderHATSLayouts
-
-  RenderHATSLayouts -> do
+  RenderLayouts -> do
     state <- H.get
     liftEffect $ renderHATSLayouts state
