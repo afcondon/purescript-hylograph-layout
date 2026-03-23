@@ -48,7 +48,7 @@ import Effect (Effect)
 import Hylograph.HATS (Tree, elem, forEach, withBehaviors, onCoordinatedHighlight, HighlightClass(..)) as HATS
 import Hylograph.HATS.Friendly as F
 import Hylograph.HATS.InterpreterTick as HATSInterp
-import Hylograph.Internal.Selection.Types (ElementType(..))
+import Hylograph.Internal.Element.Types (ElementType(..))
 import Hylograph.Transform (clearContainer)
 
 import Gallery.FlowData (SankeyData, MatrixData, EdgeBundleData)

@@ -21,7 +21,7 @@
               "free": ">=7.1.0 <8.0.0"
             },
             {
-              "hylograph-graph": ">=0.1.0 <0.2.0"
+              "hylograph-graph": ">=0.2.0 <0.3.0"
             },
             {
               "integers": ">=6.0.0 <7.0.0"
@@ -106,7 +106,7 @@
               "hylograph-layout": "*"
             },
             {
-              "hylograph-selection": ">=0.1.1 <0.2.0"
+              "hylograph-selection": ">=0.3.1 <0.4.0"
             },
             {
               "integers": ">=6.0.0 <7.0.0"
@@ -750,8 +750,8 @@
     },
     "hylograph-graph": {
       "type": "registry",
-      "version": "0.1.0",
-      "integrity": "sha256-0sfy5Z0U+X78LNRO/H6xJwi45ECaHr/FF2SNNcpAhew=",
+      "version": "0.2.0",
+      "integrity": "sha256-TmOOCHbF8KbOLHegvKINm635hoGI2tTgSdiYCOeqSXM=",
       "dependencies": [
         "arrays",
         "either",
@@ -770,12 +770,11 @@
     },
     "hylograph-selection": {
       "type": "registry",
-      "version": "0.1.1",
-      "integrity": "sha256-PGMAJeq9FiicgPQY4pdLDNmpSyfd6MbhYshehU9ZIbQ=",
+      "version": "0.3.1",
+      "integrity": "sha256-02bb82LelMRywIs5ZvTtwLCnBh8VXrjbSpx+to2nRl8=",
       "dependencies": [
         "arrays",
         "colors",
-        "console",
         "contravariant",
         "datetime",
         "effect",
@@ -792,7 +791,6 @@
         "nullable",
         "numbers",
         "ordered-collections",
-        "partial",
         "prelude",
         "refs",
         "strings",
@@ -801,8 +799,8 @@
         "tuples",
         "typelevel-prelude",
         "unsafe-coerce",
-        "unsafe-reference",
         "web-dom",
+        "web-events",
         "web-html",
         "web-pointerevents",
         "web-uievents"
