@@ -2546,7 +2546,7 @@
     return dict.foldl;
   };
   var maximumBy = function(dictFoldable) {
-    var foldl22 = foldl(dictFoldable);
+    var foldl23 = foldl(dictFoldable);
     return function(cmp) {
       var max$prime = function(v) {
         return function(v1) {
@@ -2568,7 +2568,7 @@
           throw new Error("Failed pattern match at Data.Foldable (line 441, column 3 - line 441, column 27): " + [v.constructor.name, v1.constructor.name]);
         };
       };
-      return foldl22(max$prime)(Nothing.value);
+      return foldl23(max$prime)(Nothing.value);
     };
   };
   var maximum = function(dictOrd) {
@@ -2578,7 +2578,7 @@
     };
   };
   var minimumBy = function(dictFoldable) {
-    var foldl22 = foldl(dictFoldable);
+    var foldl23 = foldl(dictFoldable);
     return function(cmp) {
       var min$prime = function(v) {
         return function(v1) {
@@ -2600,7 +2600,7 @@
           throw new Error("Failed pattern match at Data.Foldable (line 454, column 3 - line 454, column 27): " + [v.constructor.name, v1.constructor.name]);
         };
       };
-      return foldl22(min$prime)(Nothing.value);
+      return foldl23(min$prime)(Nothing.value);
     };
   };
   var minimum = function(dictOrd) {
@@ -2610,9 +2610,9 @@
     };
   };
   var sum = function(dictFoldable) {
-    var foldl22 = foldl(dictFoldable);
+    var foldl23 = foldl(dictFoldable);
     return function(dictSemiring) {
-      return foldl22(add(dictSemiring))(zero(dictSemiring));
+      return foldl23(add(dictSemiring))(zero(dictSemiring));
     };
   };
   var foldableMaybe = {
@@ -5504,7 +5504,7 @@
     return Leaf2;
   })();
   var Node = /* @__PURE__ */ (function() {
-    function Node3(value0, value1, value22, value32, value42, value52) {
+    function Node2(value0, value1, value22, value32, value42, value52) {
       this.value0 = value0;
       this.value1 = value1;
       this.value2 = value22;
@@ -5513,20 +5513,20 @@
       this.value5 = value52;
     }
     ;
-    Node3.create = function(value0) {
+    Node2.create = function(value0) {
       return function(value1) {
         return function(value22) {
           return function(value32) {
             return function(value42) {
               return function(value52) {
-                return new Node3(value0, value1, value22, value32, value42, value52);
+                return new Node2(value0, value1, value22, value32, value42, value52);
               };
             };
           };
         };
       };
     };
-    return Node3;
+    return Node2;
   })();
   var Split = /* @__PURE__ */ (function() {
     function Split2(value0, value1, value22) {
@@ -6417,7 +6417,7 @@
   var foldr3 = function(k) {
     return function(b2) {
       return function(q2) {
-        var foldl22 = function($copy_v) {
+        var foldl23 = function($copy_v) {
           return function($copy_v1) {
             return function($copy_v2) {
               var $tco_var_v = $copy_v;
@@ -6457,7 +6457,7 @@
               var v = uncons3(xs);
               if (v instanceof Nothing) {
                 $tco_done1 = true;
-                return foldl22(function(x2) {
+                return foldl23(function(x2) {
                   return function(i2) {
                     return i2(x2);
                   };
@@ -6711,7 +6711,7 @@
   };
   var foldableCofree = function(dictFoldable) {
     var foldr4 = foldr(dictFoldable);
-    var foldl22 = foldl(dictFoldable);
+    var foldl23 = foldl(dictFoldable);
     var foldMap2 = foldMap(dictFoldable);
     return {
       foldr: function(f) {
@@ -6725,7 +6725,7 @@
       foldl: function(f) {
         var go2 = function(b2) {
           return function(fa) {
-            return foldl22(go2)(f(b2)(head3(fa)))(tail(fa));
+            return foldl23(go2)(f(b2)(head3(fa)))(tail(fa));
           };
         };
         return go2;
@@ -6832,13 +6832,13 @@
     labelHeight: 80
   };
   var cellPosition = function(config) {
-    return function(offsetX2) {
-      return function(offsetY2) {
+    return function(offsetX) {
+      return function(offsetY) {
         return function(rowIdx) {
           return function(colIdx) {
             return {
-              x: offsetX2 + toNumber(colIdx) * config.cellSize,
-              y: offsetY2 + toNumber(rowIdx) * config.cellSize,
+              x: offsetX + toNumber(colIdx) * config.cellSize,
+              y: offsetY + toNumber(rowIdx) * config.cellSize,
               width: config.cellSize,
               height: config.cellSize
             };
@@ -6898,15 +6898,15 @@
     };
   };
   var buildCells = function(config) {
-    return function(offsetX2) {
-      return function(offsetY2) {
+    return function(offsetX) {
+      return function(offsetY) {
         return function(matrix) {
           return function(names) {
             var buildCell = function(rowIdx) {
               return function(colIdx) {
                 return function(value13) {
                   var rowName = fromMaybe("")(index(names)(rowIdx));
-                  var position2 = cellPosition(config)(offsetX2)(offsetY2)(rowIdx)(colIdx);
+                  var position2 = cellPosition(config)(offsetX)(offsetY)(rowIdx)(colIdx);
                   var colName = fromMaybe("")(index(names)(colIdx));
                   return {
                     row: rowIdx,
@@ -10713,10 +10713,10 @@
   };
   var empty6 = empty3;
   var fromFoldable10 = function(dictFoldable) {
-    var foldl22 = foldl(dictFoldable);
+    var foldl23 = foldl(dictFoldable);
     return function(dictOrd) {
       var insert14 = insert5(dictOrd);
-      return foldl22(function(m) {
+      return foldl23(function(m) {
         return function(a2) {
           return insert14(a2)(m);
         };
@@ -10850,6 +10850,9 @@
   };
 
   // output/DataViz.Layout.Sankey.Types/index.js
+  var max7 = /* @__PURE__ */ max(ordNumber);
+  var foldl13 = /* @__PURE__ */ foldl(foldableArray);
+  var add5 = /* @__PURE__ */ add(semiringNumber);
   var compare4 = /* @__PURE__ */ compare(ordInt);
   var bind5 = /* @__PURE__ */ bind(bindMaybe);
   var map27 = /* @__PURE__ */ map(functorArray);
@@ -10913,6 +10916,9 @@
     Center2.value = new Center2();
     return Center2;
   })();
+  var sankeyNodeValue = function(v) {
+    return max7(foldl13(add5)(0)(v.incoming))(foldl13(add5)(0)(v.outgoing));
+  };
   var initialiseSankeyLink = function(l) {
     return {
       sourceIndex: l.source,
@@ -11017,7 +11023,8 @@
           y0: 1,
           x1: width9 - 1,
           y1: height9 - 5
-        }
+        },
+        nodeValueStrategy: sankeyNodeValue
       };
     };
   };
@@ -11035,7 +11042,7 @@
   var unsafeAddEdge2 = /* @__PURE__ */ unsafeAddEdge(ordNodeID);
   var map28 = /* @__PURE__ */ map(functorArray);
   var min6 = /* @__PURE__ */ min(ordNumber);
-  var max7 = /* @__PURE__ */ max(ordInt);
+  var max8 = /* @__PURE__ */ max(ordInt);
   var eq13 = /* @__PURE__ */ eq(eqNodeID);
   var append16 = /* @__PURE__ */ append(semigroupOrdering);
   var compare5 = /* @__PURE__ */ compare(ordNumber);
@@ -11094,27 +11101,27 @@
         throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 106, column 7 - line 116, column 177): " + [s.constructor.name, t.constructor.name]);
       })();
       return modify_3(function(v1) {
-        var $116 = {};
-        for (var $117 in v1) {
-          if ({}.hasOwnProperty.call(v1, $117)) {
-            $116[$117] = v1[$117];
+        var $118 = {};
+        for (var $119 in v1) {
+          if ({}.hasOwnProperty.call(v1, $119)) {
+            $118[$119] = v1[$119];
           }
           ;
         }
         ;
-        $116.linkCount = model.linkCount + 1 | 0;
-        $116.nodeCount = v.nodeCount;
-        $116.nodeNameToID = insert6(link3.s)(v.sid)(insert6(link3.t)(v.tid)(model.nodeNameToID));
-        $116.nodeIDToName = insert1(v.sid)(link3.s)(insert1(v.tid)(link3.t)(model.nodeIDToName));
-        $116.nodeOrder = append6(model.nodeOrder)(v.newNodes);
-        $116.graph = unsafeAddEdge2(v.sid)(v.tid)(link3.v)(model.graph);
-        $116.sankeyLinks = snoc(model.sankeyLinks)(initialiseSankeyLink({
+        $118.linkCount = model.linkCount + 1 | 0;
+        $118.nodeCount = v.nodeCount;
+        $118.nodeNameToID = insert6(link3.s)(v.sid)(insert6(link3.t)(v.tid)(model.nodeNameToID));
+        $118.nodeIDToName = insert1(v.sid)(link3.s)(insert1(v.tid)(link3.t)(model.nodeIDToName));
+        $118.nodeOrder = append6(model.nodeOrder)(v.newNodes);
+        $118.graph = unsafeAddEdge2(v.sid)(v.tid)(link3.v)(model.graph);
+        $118.sankeyLinks = snoc(model.sankeyLinks)(initialiseSankeyLink({
           source: v.sid,
           target: v.tid,
           value: link3.v,
           id: model.linkCount
         }));
-        return $116;
+        return $118;
       });
     });
   };
@@ -11192,8 +11199,8 @@
                       })(0)(layerNodes);
                       var numNodes = toNumber(length(layerNodes));
                       var availableHeight = height9 - (numNodes - 1) * padding1;
-                      var $123 = totalValue > 0;
-                      if ($123) {
+                      var $125 = totalValue > 0;
+                      if ($125) {
                         return availableHeight / totalValue;
                       }
                       ;
@@ -11219,7 +11226,7 @@
               var totalHeight = y1 - y0;
               var maxLayer = foldl2(function(acc) {
                 return function(node) {
-                  return max7(acc)(node.layer);
+                  return max8(acc)(node.layer);
                 };
               })(0)(nodes2);
               var layers = map28(function(layerIdx) {
@@ -11240,16 +11247,16 @@
   var initialiseSankeyNodes = /* @__PURE__ */ bind6(get4)(function(model) {
     var sankeyNodes = catMaybes(map28(initialiseSankeyNode(model))(model.nodeOrder));
     return modify_3(function(v) {
-      var $126 = {};
-      for (var $127 in v) {
-        if ({}.hasOwnProperty.call(v, $127)) {
-          $126[$127] = v[$127];
+      var $128 = {};
+      for (var $129 in v) {
+        if ({}.hasOwnProperty.call(v, $129)) {
+          $128[$129] = v[$129];
         }
         ;
       }
       ;
-      $126.sankeyNodes = sankeyNodes;
-      return $126;
+      $128.sankeyNodes = sankeyNodes;
+      return $128;
     });
   });
   var epsilon2 = 1e-6;
@@ -11325,8 +11332,8 @@
                                 return acc;
                               }
                               ;
-                              var $140 = eq13(link3.sourceIndex)(source2.index);
-                              if ($140) {
+                              var $142 = eq13(link3.sourceIndex)(source2.index);
+                              if ($142) {
                                 return {
                                   y: acc.y,
                                   found: true
@@ -11348,8 +11355,8 @@
                                 return acc;
                               }
                               ;
-                              var $142 = eq13(link3.targetIndex)(target6.index);
-                              if ($142) {
+                              var $144 = eq13(link3.targetIndex)(target6.index);
+                              if ($144) {
                                 return {
                                   y: acc.y,
                                   found: true
@@ -11420,8 +11427,8 @@
                                 return acc;
                               }
                               ;
-                              var $152 = eq13(link3.targetIndex)(target6.index);
-                              if ($152) {
+                              var $154 = eq13(link3.targetIndex)(target6.index);
+                              if ($154) {
                                 return {
                                   y: acc.y,
                                   found: true
@@ -11443,8 +11450,8 @@
                                 return acc;
                               }
                               ;
-                              var $154 = eq13(link3.sourceIndex)(source2.index);
-                              if ($154) {
+                              var $156 = eq13(link3.sourceIndex)(source2.index);
+                              if ($156) {
                                 return {
                                   y: acc.y,
                                   found: true
@@ -11481,8 +11488,8 @@
                               var $tco_done = false;
                               var $tco_result;
                               function $tco_loop(idx, y2, currentNodes) {
-                                var $155 = idx >= n;
-                                if ($155) {
+                                var $157 = idx >= n;
+                                if ($157) {
                                   $tco_done = true;
                                   return currentNodes;
                                 }
@@ -11496,8 +11503,8 @@
                                 if (v instanceof Just) {
                                   var dy = (y2 - v.value0.node.y0) * beta2;
                                   var updated = (function() {
-                                    var $157 = dy > epsilon2;
-                                    if ($157) {
+                                    var $159 = dy > epsilon2;
+                                    if ($159) {
                                       var newNode = {
                                         color: v.value0.node.color,
                                         depth: v.value0.node.depth,
@@ -11561,8 +11568,8 @@
                   return function(targetY) {
                     return function(padding1) {
                       return function(beta2) {
-                        var $161 = startIdx < 0;
-                        if ($161) {
+                        var $163 = startIdx < 0;
+                        if ($163) {
                           return nodes1;
                         }
                         ;
@@ -11574,8 +11581,8 @@
                               var $tco_done1 = false;
                               var $tco_result;
                               function $tco_loop(idx, y2, currentNodes) {
-                                var $162 = idx < 0;
-                                if ($162) {
+                                var $164 = idx < 0;
+                                if ($164) {
                                   $tco_done1 = true;
                                   return currentNodes;
                                 }
@@ -11589,8 +11596,8 @@
                                 if (v instanceof Just) {
                                   var dy = (v.value0.node.y1 - y2) * beta2;
                                   var updated = (function() {
-                                    var $164 = dy > epsilon2;
-                                    if ($164) {
+                                    var $166 = dy > epsilon2;
+                                    if ($166) {
                                       var newNode = {
                                         color: v.value0.node.color,
                                         depth: v.value0.node.depth,
@@ -11654,8 +11661,8 @@
                   return function(yMin) {
                     return function(yMax) {
                       return function(beta2) {
-                        var $168 = $$null(sorted);
-                        if ($168) {
+                        var $170 = $$null(sorted);
+                        if ($170) {
                           return sorted;
                         }
                         ;
@@ -11741,8 +11748,8 @@
                         sum: 0,
                         totalWeight: 0
                       })(sortedLinks);
-                      var $179 = result.totalWeight > 0;
-                      if ($179) {
+                      var $181 = result.totalWeight > 0;
+                      if ($181) {
                         return result.sum / result.totalWeight;
                       }
                       ;
@@ -11798,8 +11805,8 @@
                         sum: 0,
                         totalWeight: 0
                       })(sortedLinks);
-                      var $186 = result.totalWeight > 0;
-                      if ($186) {
+                      var $188 = result.totalWeight > 0;
+                      if ($188) {
                         return result.sum / result.totalWeight;
                       }
                       ;
@@ -11862,8 +11869,8 @@
                                     y1: newY1
                                   };
                                   return map28(function(n) {
-                                    var $189 = eq13(n.index)(nodeIdx);
-                                    if ($189) {
+                                    var $191 = eq13(n.index)(nodeIdx);
+                                    if ($191) {
                                       return updatedNode;
                                     }
                                     ;
@@ -11905,7 +11912,7 @@
                         return function(beta2) {
                           var maxLayer = foldl2(function(acc) {
                             return function(node) {
-                              return max7(acc)(node.layer);
+                              return max8(acc)(node.layer);
                             };
                           })(0)(currentNodes);
                           var layerIndices = (function() {
@@ -11927,8 +11934,8 @@
                   };
                 };
               };
-              var $192 = config.iterations <= 0;
-              if ($192) {
+              var $194 = config.iterations <= 0;
+              if ($194) {
                 return nodes2;
               }
               ;
@@ -11948,52 +11955,53 @@
     };
   };
   var computeNodeValues = /* @__PURE__ */ (function() {
-    var setNodeValue2 = function(links) {
-      return function(n) {
-        var totalOut = foldl2(function(sum3) {
-          return function(link3) {
-            return sum3 + link3.value;
+    var setNodeValue2 = function(valueFn) {
+      return function(links) {
+        return function(n) {
+          var outgoing4 = map28(function(v) {
+            return v.value;
+          })(filter(function(l) {
+            return eq13(l.sourceIndex)(n.index);
+          })(links));
+          var incoming4 = map28(function(v) {
+            return v.value;
+          })(filter(function(l) {
+            return eq13(l.targetIndex)(n.index);
+          })(links));
+          return {
+            name: n.name,
+            x0: n.x0,
+            y0: n.y0,
+            x1: n.x1,
+            y1: n.y1,
+            depth: n.depth,
+            nodeHeight: n.nodeHeight,
+            layer: n.layer,
+            index: n.index,
+            color: n.color,
+            sourceLinks: n.sourceLinks,
+            targetLinks: n.targetLinks,
+            value: valueFn({
+              incoming: incoming4,
+              outgoing: outgoing4
+            })
           };
-        })(0)(filter(function(l) {
-          return eq13(l.sourceIndex)(n.index);
-        })(links));
-        var totalIn = foldl2(function(sum3) {
-          return function(link3) {
-            return sum3 + link3.value;
-          };
-        })(0)(filter(function(l) {
-          return eq13(l.targetIndex)(n.index);
-        })(links));
-        return {
-          name: n.name,
-          x0: n.x0,
-          y0: n.y0,
-          x1: n.x1,
-          y1: n.y1,
-          depth: n.depth,
-          nodeHeight: n.nodeHeight,
-          layer: n.layer,
-          index: n.index,
-          color: n.color,
-          sourceLinks: n.sourceLinks,
-          targetLinks: n.targetLinks,
-          value: max12(totalIn)(totalOut)
         };
       };
     };
     return bind6(get4)(function(model) {
-      var updatedNodes = map28(setNodeValue2(model.sankeyLinks))(model.sankeyNodes);
+      var updatedNodes = map28(setNodeValue2(model.config.nodeValueStrategy)(model.sankeyLinks))(model.sankeyNodes);
       return modify_3(function(v) {
-        var $193 = {};
-        for (var $194 in v) {
-          if ({}.hasOwnProperty.call(v, $194)) {
-            $193[$194] = v[$194];
+        var $196 = {};
+        for (var $197 in v) {
+          if ({}.hasOwnProperty.call(v, $197)) {
+            $196[$197] = v[$197];
           }
           ;
         }
         ;
-        $193.sankeyNodes = updatedNodes;
-        return $193;
+        $196.sankeyNodes = updatedNodes;
+        return $196;
       });
     });
   })();
@@ -12020,8 +12028,8 @@
               ;
               if (otherwise) {
                 var nodesWithHeight = map28(function(node) {
-                  var $200 = member3(node.index)(current);
-                  if ($200) {
+                  var $203 = member3(node.index)(current);
+                  if ($203) {
                     return {
                       index: node.index,
                       color: node.color,
@@ -12043,8 +12051,8 @@
                 })(nodes2);
                 var next = foldl2(function(acc) {
                   return function(node) {
-                    var $201 = member3(node.index)(current);
-                    if ($201) {
+                    var $204 = member3(node.index)(current);
+                    if ($204) {
                       return union4(acc)(node.targetLinks);
                     }
                     ;
@@ -12080,16 +12088,16 @@
       })(sinkNodes));
       var result = bfsHeight(model.sankeyNodes)(0)(initialCurrent)(n);
       return modify_3(function(v) {
-        var $202 = {};
-        for (var $203 in v) {
-          if ({}.hasOwnProperty.call(v, $203)) {
-            $202[$203] = v[$203];
+        var $205 = {};
+        for (var $206 in v) {
+          if ({}.hasOwnProperty.call(v, $206)) {
+            $205[$206] = v[$206];
           }
           ;
         }
         ;
-        $202.sankeyNodes = result;
-        return $202;
+        $205.sankeyNodes = result;
+        return $205;
       });
     });
   })();
@@ -12116,8 +12124,8 @@
               ;
               if (otherwise) {
                 var nodesWithDepth = map28(function(node) {
-                  var $209 = member3(node.index)(current);
-                  if ($209) {
+                  var $212 = member3(node.index)(current);
+                  if ($212) {
                     return {
                       index: node.index,
                       color: node.color,
@@ -12139,8 +12147,8 @@
                 })(nodes2);
                 var next = foldl2(function(acc) {
                   return function(node) {
-                    var $210 = member3(node.index)(current);
-                    if ($210) {
+                    var $213 = member3(node.index)(current);
+                    if ($213) {
                       return union4(acc)(node.sourceLinks);
                     }
                     ;
@@ -12176,16 +12184,16 @@
       })(sourceNodes));
       var result = bfsDepth(model.sankeyNodes)(0)(initialCurrent)(n);
       return modify_3(function(v) {
-        var $211 = {};
-        for (var $212 in v) {
-          if ({}.hasOwnProperty.call(v, $212)) {
-            $211[$212] = v[$212];
+        var $214 = {};
+        for (var $215 in v) {
+          if ({}.hasOwnProperty.call(v, $215)) {
+            $214[$215] = v[$215];
           }
           ;
         }
         ;
-        $211.sankeyNodes = result;
-        return $211;
+        $214.sankeyNodes = result;
+        return $214;
       });
     });
   })();
@@ -12323,8 +12331,8 @@
               })(0)(layerNodes);
               var numNodes = toNumber(length(layerNodes));
               var availableHeight = y1 - y0 - (numNodes - 1) * padding2;
-              var $226 = totalValue > 0;
-              if ($226) {
+              var $229 = totalValue > 0;
+              if ($229) {
                 return availableHeight / totalValue;
               }
               ;
@@ -12332,7 +12340,7 @@
             };
             var maxLayer = foldl2(function(acc) {
               return function(node) {
-                return max7(acc)(node.layer);
+                return max8(acc)(node.layer);
               };
             })(0)(nodes2);
             var layers = map28(function(layerIdx) {
@@ -12374,16 +12382,16 @@
       })(model.sankeyLinks);
       var linksWithY = calculateLinkYPositions(model.sankeyNodes)(linksWithWidth);
       return modify_3(function(v) {
-        var $229 = {};
-        for (var $230 in v) {
-          if ({}.hasOwnProperty.call(v, $230)) {
-            $229[$230] = v[$230];
+        var $232 = {};
+        for (var $233 in v) {
+          if ({}.hasOwnProperty.call(v, $233)) {
+            $232[$233] = v[$233];
           }
           ;
         }
         ;
-        $229.sankeyLinks = linksWithY;
-        return $229;
+        $232.sankeyLinks = linksWithY;
+        return $232;
       });
     });
   })();
@@ -12399,8 +12407,8 @@
             })(0)(layerNodes);
             var numNodes = toNumber(length(layerNodes));
             var availableHeight = y1 - y0 - (numNodes - 1) * padding2;
-            var $232 = totalValue > 0;
-            if ($232) {
+            var $235 = totalValue > 0;
+            if ($235) {
               return availableHeight / totalValue;
             }
             ;
@@ -12408,7 +12416,7 @@
           };
           var maxLayer = foldl2(function(acc) {
             return function(node) {
-              return max7(acc)(node.layer);
+              return max8(acc)(node.layer);
             };
           })(0)(nodes2);
           var layers = map28(function(layerIdx) {
@@ -12526,17 +12534,17 @@
     };
     var linksWithColor = map28(assignLinkColor(nodesWithColor)(model.config.linkColorMode))(model.sankeyLinks);
     return modify_3(function(v) {
-      var $238 = {};
-      for (var $239 in v) {
-        if ({}.hasOwnProperty.call(v, $239)) {
-          $238[$239] = v[$239];
+      var $241 = {};
+      for (var $242 in v) {
+        if ({}.hasOwnProperty.call(v, $242)) {
+          $241[$242] = v[$242];
         }
         ;
       }
       ;
-      $238.sankeyNodes = nodesWithColor;
-      $238.sankeyLinks = linksWithColor;
-      return $238;
+      $241.sankeyNodes = nodesWithColor;
+      $241.sankeyLinks = linksWithColor;
+      return $241;
     });
   });
   var alignNodeToLayer = function(alignment) {
@@ -12547,12 +12555,12 @@
         }
         ;
         if (alignment instanceof Right2) {
-          return max7(0)((numLayers - 1 | 0) - node.nodeHeight | 0);
+          return max8(0)((numLayers - 1 | 0) - node.nodeHeight | 0);
         }
         ;
         if (alignment instanceof Justify) {
-          var $242 = isEmpty2(node.sourceLinks);
-          if ($242) {
+          var $245 = isEmpty2(node.sourceLinks);
+          if ($245) {
             return numLayers - 1 | 0;
           }
           ;
@@ -12560,8 +12568,8 @@
         }
         ;
         if (alignment instanceof Center) {
-          var $243 = !isEmpty2(node.targetLinks);
-          if ($243) {
+          var $246 = !isEmpty2(node.targetLinks);
+          if ($246) {
             return node.depth;
           }
           ;
@@ -12578,7 +12586,7 @@
         return function(x1) {
           var maxDepth = foldl2(function(acc) {
             return function(node) {
-              return max7(acc)(node.depth);
+              return max8(acc)(node.depth);
             };
           })(0)(nodes2);
           var numLayers = maxDepth + 1 | 0;
@@ -12629,7 +12637,7 @@
     var totalHeight = model.config.extent.y1 - model.config.extent.y0;
     var maxLayer = foldl2(function(acc) {
       return function(node) {
-        return max7(acc)(node.layer);
+        return max8(acc)(node.layer);
       };
     })(0)(nodesWithLayers);
     var layers = map28(function(layerIdx) {
@@ -12639,12 +12647,12 @@
     })(range2(0)(maxLayer));
     var maxNodesInLayer = foldl2(function(acc) {
       return function(layer) {
-        return max7(acc)(length(layer));
+        return max8(acc)(length(layer));
       };
     })(0)(layers);
     var adjustedPadding = (function() {
-      var $244 = maxNodesInLayer > 1;
-      if ($244) {
+      var $247 = maxNodesInLayer > 1;
+      if ($247) {
         return min6(model.config.nodePadding)(totalHeight / (toNumber(maxNodesInLayer) - 1));
       }
       ;
@@ -12666,17 +12674,17 @@
     })(model.sankeyLinks);
     var relaxedNodes = relaxation(nodesWithY)(linksWithWidth)(model.config)(adjustedPadding)(model.config.extent.y0)(model.config.extent.y1);
     return modify_3(function(v) {
-      var $245 = {};
-      for (var $246 in v) {
-        if ({}.hasOwnProperty.call(v, $246)) {
-          $245[$246] = v[$246];
+      var $248 = {};
+      for (var $249 in v) {
+        if ({}.hasOwnProperty.call(v, $249)) {
+          $248[$249] = v[$249];
         }
         ;
       }
       ;
-      $245.sankeyNodes = relaxedNodes;
-      $245.sankeyLinks = linksWithWidth;
-      return $245;
+      $248.sankeyNodes = relaxedNodes;
+      $248.sankeyLinks = linksWithWidth;
+      return $248;
     });
   });
   var computeLayoutWithConfig = function(linkInputs) {
@@ -12829,7 +12837,7 @@
     return SimulationDragNested2;
   })();
 
-  // output/Hylograph.Internal.Selection.Types/index.js
+  // output/Hylograph.Internal.Element.Types/index.js
   var SVGContext = /* @__PURE__ */ (function() {
     function SVGContext2() {
     }
@@ -12984,6 +12992,132 @@
     Thead2.value = new Thead2();
     return Thead2;
   })();
+  var Code = /* @__PURE__ */ (function() {
+    function Code2() {
+    }
+    ;
+    Code2.value = new Code2();
+    return Code2;
+  })();
+  var Var = /* @__PURE__ */ (function() {
+    function Var2() {
+    }
+    ;
+    Var2.value = new Var2();
+    return Var2;
+  })();
+  var Dfn = /* @__PURE__ */ (function() {
+    function Dfn2() {
+    }
+    ;
+    Dfn2.value = new Dfn2();
+    return Dfn2;
+  })();
+  var Dl = /* @__PURE__ */ (function() {
+    function Dl2() {
+    }
+    ;
+    Dl2.value = new Dl2();
+    return Dl2;
+  })();
+  var Dt = /* @__PURE__ */ (function() {
+    function Dt2() {
+    }
+    ;
+    Dt2.value = new Dt2();
+    return Dt2;
+  })();
+  var Dd = /* @__PURE__ */ (function() {
+    function Dd2() {
+    }
+    ;
+    Dd2.value = new Dd2();
+    return Dd2;
+  })();
+  var Ol = /* @__PURE__ */ (function() {
+    function Ol2() {
+    }
+    ;
+    Ol2.value = new Ol2();
+    return Ol2;
+  })();
+  var Ul = /* @__PURE__ */ (function() {
+    function Ul2() {
+    }
+    ;
+    Ul2.value = new Ul2();
+    return Ul2;
+  })();
+  var Li = /* @__PURE__ */ (function() {
+    function Li2() {
+    }
+    ;
+    Li2.value = new Li2();
+    return Li2;
+  })();
+  var Small = /* @__PURE__ */ (function() {
+    function Small2() {
+    }
+    ;
+    Small2.value = new Small2();
+    return Small2;
+  })();
+  var Em = /* @__PURE__ */ (function() {
+    function Em2() {
+    }
+    ;
+    Em2.value = new Em2();
+    return Em2;
+  })();
+  var Strong = /* @__PURE__ */ (function() {
+    function Strong2() {
+    }
+    ;
+    Strong2.value = new Strong2();
+    return Strong2;
+  })();
+  var Anchor = /* @__PURE__ */ (function() {
+    function Anchor2() {
+    }
+    ;
+    Anchor2.value = new Anchor2();
+    return Anchor2;
+  })();
+  var P = /* @__PURE__ */ (function() {
+    function P2() {
+    }
+    ;
+    P2.value = new P2();
+    return P2;
+  })();
+  var Pre = /* @__PURE__ */ (function() {
+    function Pre2() {
+    }
+    ;
+    Pre2.value = new Pre2();
+    return Pre2;
+  })();
+  var Section = /* @__PURE__ */ (function() {
+    function Section2() {
+    }
+    ;
+    Section2.value = new Section2();
+    return Section2;
+  })();
+  var Mark = /* @__PURE__ */ (function() {
+    function Mark2() {
+    }
+    ;
+    Mark2.value = new Mark2();
+    return Mark2;
+  })();
+  var Abbr = /* @__PURE__ */ (function() {
+    function Abbr2() {
+    }
+    ;
+    Abbr2.value = new Abbr2();
+    return Abbr2;
+  })();
   var eqElementType = {
     eq: function(x2) {
       return function(y2) {
@@ -13064,6 +13198,78 @@
         }
         ;
         if (x2 instanceof Thead && y2 instanceof Thead) {
+          return true;
+        }
+        ;
+        if (x2 instanceof Code && y2 instanceof Code) {
+          return true;
+        }
+        ;
+        if (x2 instanceof Var && y2 instanceof Var) {
+          return true;
+        }
+        ;
+        if (x2 instanceof Dfn && y2 instanceof Dfn) {
+          return true;
+        }
+        ;
+        if (x2 instanceof Dl && y2 instanceof Dl) {
+          return true;
+        }
+        ;
+        if (x2 instanceof Dt && y2 instanceof Dt) {
+          return true;
+        }
+        ;
+        if (x2 instanceof Dd && y2 instanceof Dd) {
+          return true;
+        }
+        ;
+        if (x2 instanceof Ol && y2 instanceof Ol) {
+          return true;
+        }
+        ;
+        if (x2 instanceof Ul && y2 instanceof Ul) {
+          return true;
+        }
+        ;
+        if (x2 instanceof Li && y2 instanceof Li) {
+          return true;
+        }
+        ;
+        if (x2 instanceof Small && y2 instanceof Small) {
+          return true;
+        }
+        ;
+        if (x2 instanceof Em && y2 instanceof Em) {
+          return true;
+        }
+        ;
+        if (x2 instanceof Strong && y2 instanceof Strong) {
+          return true;
+        }
+        ;
+        if (x2 instanceof Anchor && y2 instanceof Anchor) {
+          return true;
+        }
+        ;
+        if (x2 instanceof P && y2 instanceof P) {
+          return true;
+        }
+        ;
+        if (x2 instanceof Pre && y2 instanceof Pre) {
+          return true;
+        }
+        ;
+        if (x2 instanceof Section && y2 instanceof Section) {
+          return true;
+        }
+        ;
+        if (x2 instanceof Mark && y2 instanceof Mark) {
+          return true;
+        }
+        ;
+        if (x2 instanceof Abbr && y2 instanceof Abbr) {
           return true;
         }
         ;
@@ -13152,7 +13358,79 @@
       return HTMLContext.value;
     }
     ;
-    throw new Error("Failed pattern match at Hylograph.Internal.Selection.Types (line 218, column 1 - line 218, column 47): " + [v.constructor.name]);
+    if (v instanceof Code) {
+      return HTMLContext.value;
+    }
+    ;
+    if (v instanceof Var) {
+      return HTMLContext.value;
+    }
+    ;
+    if (v instanceof Dfn) {
+      return HTMLContext.value;
+    }
+    ;
+    if (v instanceof Dl) {
+      return HTMLContext.value;
+    }
+    ;
+    if (v instanceof Dt) {
+      return HTMLContext.value;
+    }
+    ;
+    if (v instanceof Dd) {
+      return HTMLContext.value;
+    }
+    ;
+    if (v instanceof Ol) {
+      return HTMLContext.value;
+    }
+    ;
+    if (v instanceof Ul) {
+      return HTMLContext.value;
+    }
+    ;
+    if (v instanceof Li) {
+      return HTMLContext.value;
+    }
+    ;
+    if (v instanceof Small) {
+      return HTMLContext.value;
+    }
+    ;
+    if (v instanceof Em) {
+      return HTMLContext.value;
+    }
+    ;
+    if (v instanceof Strong) {
+      return HTMLContext.value;
+    }
+    ;
+    if (v instanceof Anchor) {
+      return HTMLContext.value;
+    }
+    ;
+    if (v instanceof P) {
+      return HTMLContext.value;
+    }
+    ;
+    if (v instanceof Pre) {
+      return HTMLContext.value;
+    }
+    ;
+    if (v instanceof Section) {
+      return HTMLContext.value;
+    }
+    ;
+    if (v instanceof Mark) {
+      return HTMLContext.value;
+    }
+    ;
+    if (v instanceof Abbr) {
+      return HTMLContext.value;
+    }
+    ;
+    throw new Error("Failed pattern match at Hylograph.Internal.Element.Types (line 82, column 1 - line 82, column 47): " + [v.constructor.name]);
   };
 
   // output/Hylograph.HATS/index.js
@@ -13215,6 +13493,19 @@
     };
     return ThunkedClick2;
   })();
+  var ThunkedClickWithModifier = /* @__PURE__ */ (function() {
+    function ThunkedClickWithModifier2(value0, value1) {
+      this.value0 = value0;
+      this.value1 = value1;
+    }
+    ;
+    ThunkedClickWithModifier2.create = function(value0) {
+      return function(value1) {
+        return new ThunkedClickWithModifier2(value0, value1);
+      };
+    };
+    return ThunkedClickWithModifier2;
+  })();
   var ThunkedDrag = /* @__PURE__ */ (function() {
     function ThunkedDrag2(value0) {
       this.value0 = value0;
@@ -13265,6 +13556,16 @@
     };
     return ThunkedBrush2;
   })();
+  var ThunkedPointerDown = /* @__PURE__ */ (function() {
+    function ThunkedPointerDown2(value0) {
+      this.value0 = value0;
+    }
+    ;
+    ThunkedPointerDown2.create = function(value0) {
+      return new ThunkedPointerDown2(value0);
+    };
+    return ThunkedPointerDown2;
+  })();
   var FromArray = /* @__PURE__ */ (function() {
     function FromArray2(value0) {
       this.value0 = value0;
@@ -13296,17 +13597,17 @@
     return WithContext2;
   })();
   var StaticAttr = /* @__PURE__ */ (function() {
-    function StaticAttr3(value0, value1) {
+    function StaticAttr2(value0, value1) {
       this.value0 = value0;
       this.value1 = value1;
     }
     ;
-    StaticAttr3.create = function(value0) {
+    StaticAttr2.create = function(value0) {
       return function(value1) {
-        return new StaticAttr3(value0, value1);
+        return new StaticAttr2(value0, value1);
       };
     };
-    return StaticAttr3;
+    return StaticAttr2;
   })();
   var ThunkedAttr = /* @__PURE__ */ (function() {
     function ThunkedAttr2(value0, value1) {
@@ -13376,13 +13677,13 @@
           return [t];
         };
         if (t instanceof Elem) {
-          var $41 = eq5(t.value0.elemType)(Group.value);
-          if ($41) {
-            var $42 = $$null(t.value0.attrs);
-            if ($42) {
-              var $43 = $$null(t.value0.behaviors);
-              if ($43) {
-                return $lazy_flatten(299)(t.value0.children);
+          var $44 = eq5(t.value0.elemType)(Group.value);
+          if ($44) {
+            var $45 = $$null(t.value0.attrs);
+            if ($45) {
+              var $46 = $$null(t.value0.behaviors);
+              if ($46) {
+                return $lazy_flatten(306)(t.value0.children);
               }
               ;
               return v2(true);
@@ -13397,7 +13698,7 @@
         return v2(true);
       });
     });
-    var flatten = $lazy_flatten(292);
+    var flatten = $lazy_flatten(299);
     var v = flatten(trees);
     if (v.length === 0) {
       return Empty.value;
@@ -13481,7 +13782,7 @@
         return Empty.value;
       }
       ;
-      throw new Error("Failed pattern match at Hylograph.HATS (line 489, column 20 - line 494, column 17): " + [v.constructor.name]);
+      throw new Error("Failed pattern match at Hylograph.HATS (line 496, column 20 - line 501, column 17): " + [v.constructor.name]);
     };
   };
   var forEach = function(name16) {
@@ -14096,6 +14397,9 @@
       el.parentNode.removeChild(el);
     }
   };
+  var setCursorPointer = (el) => () => {
+    el.style.cursor = "pointer";
+  };
   var attachMouseEnterThunked = (el) => (handler3) => () => {
     el.addEventListener("mouseenter", function(event) {
       handler3()();
@@ -14112,6 +14416,12 @@
       handler3()();
     });
     el.style.cursor = "pointer";
+  };
+  var attachPointerDownThunked = (el) => (handler3) => () => {
+    el.addEventListener("pointerdown", function(event) {
+      event.stopPropagation();
+      handler3()();
+    });
   };
   var attachZoom = (el) => (scaleMin) => (scaleMax) => (targetSelector) => () => {
     attachZoomNative_(el)(scaleMin)(scaleMax)(targetSelector)();
@@ -15112,13 +15422,6 @@
     return ClearTrigger2;
   })();
 
-  // output/Effect.Console/foreign.js
-  var warn = function(s) {
-    return function() {
-      console.warn(s);
-    };
-  };
-
   // output/Web.DOM.Document/foreign.js
   var getEffProp = function(name16) {
     return function(doc) {
@@ -15151,9 +15454,209 @@
     };
   }
 
+  // output/Web.Internal.FFI/foreign.js
+  function _unsafeReadProtoTagged(nothing, just, name16, value13) {
+    if (typeof window !== "undefined") {
+      var ty = window[name16];
+      if (ty != null && value13 instanceof ty) {
+        return just(value13);
+      }
+    }
+    var obj = value13;
+    while (obj != null) {
+      var proto = Object.getPrototypeOf(obj);
+      var constructorName = proto.constructor.name;
+      if (constructorName === name16) {
+        return just(value13);
+      } else if (constructorName === "Object") {
+        return nothing;
+      }
+      obj = proto;
+    }
+    return nothing;
+  }
+
+  // output/Web.Internal.FFI/index.js
+  var unsafeReadProtoTagged = function(name16) {
+    return function(value13) {
+      return _unsafeReadProtoTagged(Nothing.value, Just.create, name16, value13);
+    };
+  };
+
   // output/Web.DOM.Document/index.js
   var createElementNS = function($6) {
     return _createElementNS(toNullable($6));
+  };
+
+  // output/Hylograph.Internal.Element.Operations/index.js
+  var elementTypeToString = function(v) {
+    if (v instanceof Circle) {
+      return "circle";
+    }
+    ;
+    if (v instanceof Rect) {
+      return "rect";
+    }
+    ;
+    if (v instanceof Path) {
+      return "path";
+    }
+    ;
+    if (v instanceof Line) {
+      return "line";
+    }
+    ;
+    if (v instanceof Polygon) {
+      return "polygon";
+    }
+    ;
+    if (v instanceof Text) {
+      return "text";
+    }
+    ;
+    if (v instanceof Group) {
+      return "g";
+    }
+    ;
+    if (v instanceof SVG) {
+      return "svg";
+    }
+    ;
+    if (v instanceof Defs) {
+      return "defs";
+    }
+    ;
+    if (v instanceof LinearGradient) {
+      return "linearGradient";
+    }
+    ;
+    if (v instanceof Stop) {
+      return "stop";
+    }
+    ;
+    if (v instanceof PatternFill) {
+      return "pattern";
+    }
+    ;
+    if (v instanceof Div) {
+      return "div";
+    }
+    ;
+    if (v instanceof Span) {
+      return "span";
+    }
+    ;
+    if (v instanceof Table) {
+      return "table";
+    }
+    ;
+    if (v instanceof Tr) {
+      return "tr";
+    }
+    ;
+    if (v instanceof Td) {
+      return "td";
+    }
+    ;
+    if (v instanceof Th) {
+      return "th";
+    }
+    ;
+    if (v instanceof Tbody) {
+      return "tbody";
+    }
+    ;
+    if (v instanceof Thead) {
+      return "thead";
+    }
+    ;
+    if (v instanceof Code) {
+      return "code";
+    }
+    ;
+    if (v instanceof Var) {
+      return "var";
+    }
+    ;
+    if (v instanceof Dfn) {
+      return "dfn";
+    }
+    ;
+    if (v instanceof Dl) {
+      return "dl";
+    }
+    ;
+    if (v instanceof Dt) {
+      return "dt";
+    }
+    ;
+    if (v instanceof Dd) {
+      return "dd";
+    }
+    ;
+    if (v instanceof Ol) {
+      return "ol";
+    }
+    ;
+    if (v instanceof Ul) {
+      return "ul";
+    }
+    ;
+    if (v instanceof Li) {
+      return "li";
+    }
+    ;
+    if (v instanceof Small) {
+      return "small";
+    }
+    ;
+    if (v instanceof Em) {
+      return "em";
+    }
+    ;
+    if (v instanceof Strong) {
+      return "strong";
+    }
+    ;
+    if (v instanceof Anchor) {
+      return "a";
+    }
+    ;
+    if (v instanceof P) {
+      return "p";
+    }
+    ;
+    if (v instanceof Pre) {
+      return "pre";
+    }
+    ;
+    if (v instanceof Section) {
+      return "section";
+    }
+    ;
+    if (v instanceof Mark) {
+      return "mark";
+    }
+    ;
+    if (v instanceof Abbr) {
+      return "abbr";
+    }
+    ;
+    throw new Error("Failed pattern match at Hylograph.Internal.Element.Operations (line 31, column 1 - line 31, column 45): " + [v.constructor.name]);
+  };
+  var createElementWithNS = function(elemType) {
+    return function(doc) {
+      var v = elementContext(elemType);
+      if (v instanceof SVGContext) {
+        return createElementNS(new Just("http://www.w3.org/2000/svg"))(elementTypeToString(elemType))(doc);
+      }
+      ;
+      if (v instanceof HTMLContext) {
+        return createElement(elementTypeToString(elemType))(doc);
+      }
+      ;
+      throw new Error("Failed pattern match at Hylograph.Internal.Element.Operations (line 24, column 3 - line 28, column 64): " + [v.constructor.name]);
+    };
   };
 
   // output/Web.DOM.Element/foreign.js
@@ -15199,6 +15702,7 @@
 
   // output/Web.DOM.Element/index.js
   var toNode = unsafeCoerce2;
+  var toEventTarget = unsafeCoerce2;
 
   // output/Web.DOM.Node/foreign.js
   var getEffProp3 = function(name16) {
@@ -15257,6 +15761,44 @@
       return $15(_nextSibling($16));
     };
   })();
+
+  // output/Web.Event.Event/foreign.js
+  function stopPropagation(e) {
+    return function() {
+      return e.stopPropagation();
+    };
+  }
+
+  // output/Web.Event.EventTarget/foreign.js
+  function eventListener(fn) {
+    return function() {
+      return function(event) {
+        return fn(event)();
+      };
+    };
+  }
+  function addEventListener(type) {
+    return function(listener) {
+      return function(useCapture) {
+        return function(target6) {
+          return function() {
+            return target6.addEventListener(type, listener, useCapture);
+          };
+        };
+      };
+    };
+  }
+  function removeEventListener(type) {
+    return function(listener) {
+      return function(useCapture) {
+        return function(target6) {
+          return function() {
+            return target6.removeEventListener(type, listener, useCapture);
+          };
+        };
+      };
+    };
+  }
 
   // output/Web.HTML/foreign.js
   var windowImpl = function() {
@@ -15345,113 +15887,28 @@
   }
 
   // output/Web.HTML.Window/index.js
-  var toEventTarget = unsafeCoerce2;
+  var toEventTarget2 = unsafeCoerce2;
 
-  // output/Hylograph.Internal.Selection.Operations/index.js
-  var elementTypeToString = function(v) {
-    if (v instanceof Circle) {
-      return "circle";
-    }
-    ;
-    if (v instanceof Rect) {
-      return "rect";
-    }
-    ;
-    if (v instanceof Path) {
-      return "path";
-    }
-    ;
-    if (v instanceof Line) {
-      return "line";
-    }
-    ;
-    if (v instanceof Polygon) {
-      return "polygon";
-    }
-    ;
-    if (v instanceof Text) {
-      return "text";
-    }
-    ;
-    if (v instanceof Group) {
-      return "g";
-    }
-    ;
-    if (v instanceof SVG) {
-      return "svg";
-    }
-    ;
-    if (v instanceof Defs) {
-      return "defs";
-    }
-    ;
-    if (v instanceof LinearGradient) {
-      return "linearGradient";
-    }
-    ;
-    if (v instanceof Stop) {
-      return "stop";
-    }
-    ;
-    if (v instanceof PatternFill) {
-      return "pattern";
-    }
-    ;
-    if (v instanceof Div) {
-      return "div";
-    }
-    ;
-    if (v instanceof Span) {
-      return "span";
-    }
-    ;
-    if (v instanceof Table) {
-      return "table";
-    }
-    ;
-    if (v instanceof Tr) {
-      return "tr";
-    }
-    ;
-    if (v instanceof Td) {
-      return "td";
-    }
-    ;
-    if (v instanceof Th) {
-      return "th";
-    }
-    ;
-    if (v instanceof Tbody) {
-      return "tbody";
-    }
-    ;
-    if (v instanceof Thead) {
-      return "thead";
-    }
-    ;
-    throw new Error("Failed pattern match at Hylograph.Internal.Selection.Operations (line 1165, column 1 - line 1165, column 45): " + [v.constructor.name]);
-  };
-  var createElementWithNS = function(elemType) {
-    return function(doc) {
-      var v = elementContext(elemType);
-      if (v instanceof SVGContext) {
-        return createElementNS(new Just("http://www.w3.org/2000/svg"))(elementTypeToString(elemType))(doc);
-      }
-      ;
-      if (v instanceof HTMLContext) {
-        return createElement(elementTypeToString(elemType))(doc);
-      }
-      ;
-      throw new Error("Failed pattern match at Hylograph.Internal.Selection.Operations (line 970, column 3 - line 976, column 64): " + [v.constructor.name]);
-    };
-  };
+  // output/Web.UIEvent.MouseEvent/foreign.js
+  function ctrlKey(e) {
+    return e.ctrlKey;
+  }
+  function shiftKey(e) {
+    return e.shiftKey;
+  }
+  function metaKey(e) {
+    return e.metaKey;
+  }
+
+  // output/Web.UIEvent.MouseEvent/index.js
+  var fromEvent = /* @__PURE__ */ unsafeReadProtoTagged("MouseEvent");
 
   // output/Hylograph.HATS.InterpreterTick/index.js
   var append8 = /* @__PURE__ */ append(semigroupArray);
   var map32 = /* @__PURE__ */ map(functorArray);
   var bind7 = /* @__PURE__ */ bind(bindEffect);
-  var pure8 = /* @__PURE__ */ pure(applicativeEffect);
   var traverse_2 = /* @__PURE__ */ traverse_(applicativeEffect)(foldableArray);
+  var pure8 = /* @__PURE__ */ pure(applicativeEffect);
   var unwrap4 = /* @__PURE__ */ unwrap();
   var map113 = /* @__PURE__ */ map(functorMaybe);
   var map210 = /* @__PURE__ */ map(functorEffect);
@@ -15478,7 +15935,7 @@
       return 2;
     }
     ;
-    throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 656, column 23 - line 659, column 19): " + [v.constructor.name]);
+    throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 715, column 23 - line 718, column 19): " + [v.constructor.name]);
   };
   var interactionStateToInt = function(v) {
     if (v instanceof Primary2) {
@@ -15501,7 +15958,7 @@
       return 4;
     }
     ;
-    throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 663, column 25 - line 668, column 18): " + [v.constructor.name]);
+    throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 722, column 25 - line 727, column 18): " + [v.constructor.name]);
   };
   var highlightClassToInt = function(v) {
     if (v instanceof Primary) {
@@ -15528,7 +15985,7 @@
       return 5;
     }
     ;
-    throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 645, column 23 - line 651, column 21): " + [v.constructor.name]);
+    throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 704, column 23 - line 710, column 21): " + [v.constructor.name]);
   };
   var enumerateDFS = function(root) {
     return function(getChildren2) {
@@ -15537,8 +15994,8 @@
           var children2 = getChildren2(node);
           var isLeaf2 = $$null(children2);
           var childResults = concatMap(go2)(children2);
-          var $76 = isLeaf2 || includeInternal;
-          if ($76) {
+          var $77 = isLeaf2 || includeInternal;
+          if ($77) {
             return append8([node])(childResults);
           }
           ;
@@ -15571,7 +16028,7 @@
             return append8(thisNode)(go2(append8(v.value0.tail)(children2)));
           }
           ;
-          throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 550, column 14 - line 557, column 43): " + [v.constructor.name]);
+          throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 556, column 14 - line 563, column 43): " + [v.constructor.name]);
         };
         return go2([root]);
       };
@@ -15591,7 +16048,7 @@
         return enumerateBFS(v.value0.root)(v.value0.children)(v.value0.includeInternal);
       }
       ;
-      throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 531, column 5 - line 533, column 80): " + [v.value0.order.constructor.name]);
+      throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 537, column 5 - line 539, column 80): " + [v.value0.order.constructor.name]);
     }
     ;
     if (v instanceof WithContext) {
@@ -15600,7 +16057,7 @@
       })(v.value0);
     }
     ;
-    throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 528, column 18 - line 534, column 41): " + [v.constructor.name]);
+    throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 534, column 18 - line 540, column 41): " + [v.constructor.name]);
   };
   var elementTypeToTagName = function(v) {
     if (v instanceof Circle) {
@@ -15683,12 +16140,114 @@
       return "thead";
     }
     ;
-    throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 587, column 24 - line 607, column 19): " + [v.constructor.name]);
+    if (v instanceof Code) {
+      return "code";
+    }
+    ;
+    if (v instanceof Var) {
+      return "var";
+    }
+    ;
+    if (v instanceof Dfn) {
+      return "dfn";
+    }
+    ;
+    if (v instanceof Dl) {
+      return "dl";
+    }
+    ;
+    if (v instanceof Dt) {
+      return "dt";
+    }
+    ;
+    if (v instanceof Dd) {
+      return "dd";
+    }
+    ;
+    if (v instanceof Ol) {
+      return "ol";
+    }
+    ;
+    if (v instanceof Ul) {
+      return "ul";
+    }
+    ;
+    if (v instanceof Li) {
+      return "li";
+    }
+    ;
+    if (v instanceof Small) {
+      return "small";
+    }
+    ;
+    if (v instanceof Em) {
+      return "em";
+    }
+    ;
+    if (v instanceof Strong) {
+      return "strong";
+    }
+    ;
+    if (v instanceof Anchor) {
+      return "a";
+    }
+    ;
+    if (v instanceof P) {
+      return "p";
+    }
+    ;
+    if (v instanceof Pre) {
+      return "pre";
+    }
+    ;
+    if (v instanceof Section) {
+      return "section";
+    }
+    ;
+    if (v instanceof Mark) {
+      return "mark";
+    }
+    ;
+    if (v instanceof Abbr) {
+      return "abbr";
+    }
+    ;
+    throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 593, column 24 - line 631, column 17): " + [v.constructor.name]);
   };
   var clearChildren = function(el) {
     return function __do3() {
       var children2 = getChildElements(el)();
       return traverse_2(removeElement)(children2)();
+    };
+  };
+  var attachClickWithModifierPurs = function(el) {
+    return function(plainHandler) {
+      return function(modifierHandler) {
+        return function __do3() {
+          var listener = eventListener(function(event) {
+            return function __do4() {
+              stopPropagation(event)();
+              var v = fromEvent(event);
+              if (v instanceof Just) {
+                var hasModifier = metaKey(v.value0) || (ctrlKey(v.value0) || shiftKey(v.value0));
+                if (hasModifier) {
+                  return modifierHandler(unit)();
+                }
+                ;
+                return plainHandler(unit)();
+              }
+              ;
+              if (v instanceof Nothing) {
+                return plainHandler(unit)();
+              }
+              ;
+              throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 688, column 5 - line 697, column 26): " + [v.constructor.name]);
+            };
+          })();
+          addEventListener("click")(listener)(false)(toEventTarget(el))();
+          return setCursorPointer(el)();
+        };
+      };
     };
   };
   var appendTo = function(p2) {
@@ -15710,15 +16269,15 @@
                   if (v instanceof StaticAttr) {
                     return function __do3() {
                       var fromStr = getAttribute(el)(v.value0)();
-                      var $89 = {
+                      var $93 = {
                         from: fromString(fromStr),
                         to: fromString(v.value1)
                       };
-                      if ($89.from instanceof Just && ($89.to instanceof Just && $89.from.value0 !== $89.to.value0)) {
+                      if ($93.from instanceof Just && ($93.to instanceof Just && $93.from.value0 !== $93.to.value0)) {
                         return new Just({
                           attrName: v.value0,
-                          from: $89.from.value0,
-                          to: $89.to.value0,
+                          from: $93.from.value0,
+                          to: $93.to.value0,
                           elapsed: 0,
                           duration: duration2,
                           delay,
@@ -15734,15 +16293,15 @@
                     return function __do3() {
                       var fromStr = getAttribute(el)(v.value0)();
                       var toNum = fromString(v.value1(unit));
-                      var $96 = {
+                      var $100 = {
                         from: fromString(fromStr),
                         to: toNum
                       };
-                      if ($96.from instanceof Just && ($96.to instanceof Just && $96.from.value0 !== $96.to.value0)) {
+                      if ($100.from instanceof Just && ($100.to instanceof Just && $100.from.value0 !== $100.to.value0)) {
                         return new Just({
                           attrName: v.value0,
-                          from: $96.from.value0,
-                          to: $96.to.value0,
+                          from: $100.from.value0,
+                          to: $100.to.value0,
                           elapsed: 0,
                           duration: duration2,
                           delay,
@@ -15754,7 +16313,7 @@
                     };
                   }
                   ;
-                  throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 458, column 49 - line 471, column 26): " + [v.constructor.name]);
+                  throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 464, column 49 - line 477, column 26): " + [v.constructor.name]);
                 };
               };
             };
@@ -15768,15 +16327,15 @@
                   if (v instanceof StaticAttr) {
                     return function __do3() {
                       var fromStr = getAttribute(el)(v.value0)();
-                      var $104 = {
+                      var $108 = {
                         from: fromString(fromStr),
                         to: fromString(v.value1)
                       };
-                      if ($104.from instanceof Just && $104.to instanceof Just) {
+                      if ($108.from instanceof Just && $108.to instanceof Just) {
                         return new Just({
                           attrName: v.value0,
-                          from: $104.from.value0,
-                          to: $104.to.value0,
+                          from: $108.from.value0,
+                          to: $108.to.value0,
                           elapsed: 0,
                           duration: duration2,
                           delay,
@@ -15792,15 +16351,15 @@
                     return function __do3() {
                       var fromStr = getAttribute(el)(v.value0)();
                       var toVal = v.value1(unit);
-                      var $111 = {
+                      var $115 = {
                         from: fromString(fromStr),
                         to: fromString(toVal)
                       };
-                      if ($111.from instanceof Just && $111.to instanceof Just) {
+                      if ($115.from instanceof Just && $115.to instanceof Just) {
                         return new Just({
                           attrName: v.value0,
-                          from: $111.from.value0,
-                          to: $111.to.value0,
+                          from: $115.from.value0,
+                          to: $115.to.value0,
                           elapsed: 0,
                           duration: duration2,
                           delay,
@@ -15812,7 +16371,7 @@
                     };
                   }
                   ;
-                  throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 491, column 47 - line 504, column 26): " + [v.constructor.name]);
+                  throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 497, column 47 - line 510, column 26): " + [v.constructor.name]);
                 };
               };
             };
@@ -15843,15 +16402,15 @@
                 return function(v) {
                   if (v instanceof StaticAttr) {
                     var toVal = findAttrValue(v.value0)(templateAttrs);
-                    var $124 = {
+                    var $128 = {
                       from: fromString(v.value1),
                       to: toVal
                     };
-                    if ($124.from instanceof Just && $124.to instanceof Just) {
+                    if ($128.from instanceof Just && $128.to instanceof Just) {
                       return pure8(new Just({
                         attrName: v.value0,
-                        from: $124.from.value0,
-                        to: $124.to.value0,
+                        from: $128.from.value0,
+                        to: $128.to.value0,
                         elapsed: 0,
                         duration: duration2,
                         delay,
@@ -15865,15 +16424,15 @@
                   if (v instanceof ThunkedAttr) {
                     var fromNum = fromString(v.value1(unit));
                     var toVal = findAttrValue(v.value0)(templateAttrs);
-                    var $131 = {
+                    var $135 = {
                       from: fromNum,
                       to: toVal
                     };
-                    if ($131.from instanceof Just && $131.to instanceof Just) {
+                    if ($135.from instanceof Just && $135.to instanceof Just) {
                       return pure8(new Just({
                         attrName: v.value0,
-                        from: $131.from.value0,
-                        to: $131.to.value0,
+                        from: $135.from.value0,
+                        to: $135.to.value0,
                         elapsed: 0,
                         duration: duration2,
                         delay,
@@ -15884,7 +16443,7 @@
                     return pure8(Nothing.value);
                   }
                   ;
-                  throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 424, column 59 - line 437, column 26): " + [v.constructor.name]);
+                  throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 430, column 59 - line 443, column 26): " + [v.constructor.name]);
                 };
               };
             };
@@ -15913,7 +16472,7 @@
                   return map210(catMaybes)(traverse3(mkUpdateTransition(el)(duration2)(delay)(easing))(templateAttrs));
                 }
                 ;
-                throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 446, column 5 - line 454, column 97): " + [phaseSpec.transition.constructor.name]);
+                throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 452, column 5 - line 460, column 97): " + [phaseSpec.transition.constructor.name]);
               };
             };
           };
@@ -15934,7 +16493,7 @@
                 return map210(catMaybes)(traverse3(mkExitTransition(el)(duration2)(delay)(easing))(phaseSpec.attrs));
               }
               ;
-              throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 479, column 5 - line 487, column 97): " + [phaseSpec.transition.constructor.name]);
+              throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 485, column 5 - line 493, column 97): " + [phaseSpec.transition.constructor.name]);
             };
           };
         };
@@ -15955,7 +16514,7 @@
                   return map210(catMaybes)(traverse3(mkEnterTransition(duration2)(delay)(easing)(templateAttrs))(phaseSpec.attrs));
                 }
                 ;
-                throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 412, column 5 - line 420, column 109): " + [phaseSpec.transition.constructor.name]);
+                throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 418, column 5 - line 426, column 109): " + [phaseSpec.transition.constructor.name]);
               };
             };
           };
@@ -15982,7 +16541,7 @@
                 return setAttribute(el)(v.value0)(v.value1);
               }
               ;
-              throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 347, column 7 - line 349, column 46): " + [v1.constructor.name]);
+              throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 350, column 7 - line 352, column 46): " + [v1.constructor.name]);
             }
             ;
             if (v instanceof ThunkedAttr) {
@@ -15996,10 +16555,10 @@
                 return setAttribute(el)(v.value0)(value13);
               }
               ;
-              throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 352, column 10 - line 354, column 46): " + [v1.constructor.name]);
+              throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 355, column 10 - line 357, column 46): " + [v1.constructor.name]);
             }
             ;
-            throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 345, column 26 - line 354, column 46): " + [v.constructor.name]);
+            throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 348, column 26 - line 357, column 46): " + [v.constructor.name]);
           };
         };
         var applyNonNumericAttrs = function(el) {
@@ -16022,6 +16581,10 @@
             ;
             if (v instanceof ThunkedClick) {
               return attachClickThunked(el)(v.value0);
+            }
+            ;
+            if (v instanceof ThunkedClickWithModifier) {
+              return attachClickWithModifierPurs(el)(v.value0)(v.value1);
             }
             ;
             if (v instanceof ThunkedDrag && v.value0 instanceof SimpleDrag) {
@@ -16065,7 +16628,11 @@
               return $$void5(attachCoordinatedBrushThunked(el)(v.value0.extent)(toNullable(v.value0.group)));
             }
             ;
-            throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 366, column 22 - line 399, column 86): " + [v.constructor.name]);
+            if (v instanceof ThunkedPointerDown) {
+              return attachPointerDownThunked(el)(v.value0);
+            }
+            ;
+            throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 369, column 22 - line 405, column 70): " + [v.constructor.name]);
           };
         };
         var applyBehaviors = function(el) {
@@ -16086,7 +16653,7 @@
               return setAttribute(el)(v.value0)(v.value1(unit));
             }
             ;
-            throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 335, column 18 - line 337, column 64): " + [v.constructor.name]);
+            throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 338, column 18 - line 340, column 64): " + [v.constructor.name]);
           };
         };
         var applyAttrs = function(el) {
@@ -16129,14 +16696,14 @@
                                 return Nothing.value;
                               }
                               ;
-                              throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 282, column 22 - line 287, column 36): " + [gupSpec.value0.enter.constructor.name]);
+                              throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 285, column 22 - line 290, column 36): " + [gupSpec.value0.enter.constructor.name]);
                             }
                             ;
                             if (gupSpec instanceof Nothing) {
                               return Nothing.value;
                             }
                             ;
-                            throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 281, column 24 - line 288, column 34): " + [gupSpec.constructor.name]);
+                            throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 284, column 24 - line 291, column 34): " + [gupSpec.constructor.name]);
                           })();
                           applyBehaviors(el)(itemTree.value0.behaviors)();
                           var childMaps = traverse3(goWithDatum(el))(itemTree.value0.children)();
@@ -16205,7 +16772,7 @@
               });
             }
             ;
-            throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 304, column 19 - line 323, column 10): " + [v.constructor.name]);
+            throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 307, column 19 - line 326, column 10): " + [v.constructor.name]);
           };
         };
         var processChildren = function(p2) {
@@ -16259,7 +16826,7 @@
                       return el2;
                     }
                     ;
-                    throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 137, column 13 - line 147, column 18): " + [v1.constructor.name]);
+                    throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 140, column 13 - line 150, column 18): " + [v1.constructor.name]);
                   })();
                   var childResult = processChildren(el)(v.value0.children)();
                   return {
@@ -16293,8 +16860,8 @@
                     var exitKeys = difference4(existingKeys)(newKeys);
                     var exitTransitions = traverseWithIndex2(function(exitIdx) {
                       return function(v1) {
-                        var $197 = member4(v1.key)(exitKeys);
-                        if ($197) {
+                        var $204 = member4(v1.key)(exitKeys);
+                        if ($204) {
                           if (spec.gup instanceof Just) {
                             if (spec.gup.value0.exit instanceof Just) {
                               return function __do4() {
@@ -16314,7 +16881,7 @@
                               };
                             }
                             ;
-                            throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 172, column 29 - line 181, column 29): " + [spec.gup.value0.exit.constructor.name]);
+                            throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 175, column 29 - line 184, column 29): " + [spec.gup.value0.exit.constructor.name]);
                           }
                           ;
                           if (spec.gup instanceof Nothing) {
@@ -16324,7 +16891,7 @@
                             };
                           }
                           ;
-                          throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 171, column 16 - line 184, column 27): " + [spec.gup.constructor.name]);
+                          throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 174, column 16 - line 187, column 27): " + [spec.gup.constructor.name]);
                         }
                         ;
                         return pure8(Nothing.value);
@@ -16332,8 +16899,8 @@
                     })(existingKeysAndEls)();
                     var updateTransitions = traverseWithIndex2(function(updateIdx) {
                       return function(v1) {
-                        var $205 = member4(v1.key)(updateKeys);
-                        if ($205) {
+                        var $212 = member4(v1.key)(updateKeys);
+                        if ($212) {
                           var v2 = find2(function(d2) {
                             return spec.keyFn(d2) === v1.key;
                           })(items2);
@@ -16374,7 +16941,7 @@
                                   return Nothing.value;
                                 }
                                 ;
-                                throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 204, column 33 - line 217, column 33): " + [spec.gup.value0.update.constructor.name]);
+                                throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 207, column 33 - line 220, column 33): " + [spec.gup.value0.update.constructor.name]);
                               }
                               ;
                               if (spec.gup instanceof Nothing) {
@@ -16384,7 +16951,7 @@
                                 return Nothing.value;
                               }
                               ;
-                              throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 203, column 15 - line 223, column 31): " + [spec.gup.constructor.name]);
+                              throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 206, column 15 - line 226, column 31): " + [spec.gup.constructor.name]);
                             };
                           }
                           ;
@@ -16392,7 +16959,7 @@
                             return pure8(Nothing.value);
                           }
                           ;
-                          throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 191, column 16 - line 224, column 36): " + [v2.constructor.name]);
+                          throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 194, column 16 - line 227, column 36): " + [v2.constructor.name]);
                         }
                         ;
                         return pure8(Nothing.value);
@@ -16430,7 +16997,7 @@
                 });
               }
               ;
-              throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 132, column 27 - line 248, column 10): " + [v.constructor.name]);
+              throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 135, column 27 - line 251, column 10): " + [v.constructor.name]);
             };
           };
         };
@@ -16462,8 +17029,8 @@
     return function(tree2) {
       return function __do3() {
         var doc = (function __do4() {
-          var $229 = bind7(windowImpl)(document2)();
-          return toDocument($229);
+          var $235 = bind7(windowImpl)(document2)();
+          return toDocument($235);
         })();
         var container = selectElement(selector)(doc)();
         return rerenderTree(doc)(container)(tree2)();
@@ -16473,8 +17040,8 @@
 
   // output/Gallery.RenderHATS/index.js
   var map33 = /* @__PURE__ */ map(functorArray);
-  var foldl13 = /* @__PURE__ */ foldl(foldableArray);
-  var max11 = /* @__PURE__ */ max(ordInt);
+  var foldl14 = /* @__PURE__ */ foldl(foldableArray);
+  var max13 = /* @__PURE__ */ max(ordInt);
   var mod4 = /* @__PURE__ */ mod(euclideanRingInt);
   var bind8 = /* @__PURE__ */ bind(bindArray);
   var append17 = /* @__PURE__ */ append(semigroupArray);
@@ -16505,7 +17072,7 @@
           ;
           throw new Error("Failed pattern match at Gallery.RenderHATS (line 621, column 14 - line 623, column 55): " + [v.children.constructor.name]);
         })();
-        var childValues = foldl13(function(acc) {
+        var childValues = foldl14(function(acc) {
           return function(v1) {
             return acc + v1.value0.value;
           };
@@ -16529,7 +17096,7 @@
         var childHeights = map33(function(v1) {
           return v1.value0.height;
         })(kids);
-        var maxChildHeight = foldl13(max11)(0)(childHeights);
+        var maxChildHeight = foldl14(max13)(0)(childHeights);
         var height9 = (function() {
           var $78 = $$null(kids);
           if ($78) {
@@ -16784,8 +17351,8 @@
       };
     };
   };
-  var buildTreeVertical = function(offsetX2) {
-    return function(offsetY2) {
+  var buildTreeVertical = function(offsetX) {
+    return function(offsetY) {
       return function(color) {
         return function(nodes2) {
           return function(links) {
@@ -16816,7 +17383,7 @@
                 group: Nothing.value
               })])(elem4(Path.value)([d(pathD), fill("none"), stroke(color), strokeWidth(1), opacity("0.6"), class_("link")])([]));
             });
-            return elem4(SVG.value)([viewBox(0)(0)(400)(400), preserveAspectRatio("xMidYMid meet")])([elem4(Group.value)([transform("translate(" + (show9(offsetX2) + ("," + (show9(offsetY2) + ")"))))])([append22(linksLayer)(nodesLayer)])]);
+            return elem4(SVG.value)([viewBox(0)(0)(400)(400), preserveAspectRatio("xMidYMid meet")])([elem4(Group.value)([transform("translate(" + (show9(offsetX) + ("," + (show9(offsetY) + ")"))))])([append22(linksLayer)(nodesLayer)])]);
           };
         };
       };
@@ -16941,8 +17508,8 @@
       };
     };
   };
-  var buildTreeHorizontal = function(offsetX2) {
-    return function(offsetY2) {
+  var buildTreeHorizontal = function(offsetX) {
+    return function(offsetY) {
       return function(color) {
         return function(nodes2) {
           return function(links) {
@@ -16973,7 +17540,7 @@
                 group: Nothing.value
               })])(elem4(Path.value)([d(pathD), fill("none"), stroke(color), strokeWidth(1), opacity("0.6"), class_("link")])([]));
             });
-            return elem4(SVG.value)([viewBox(0)(0)(400)(400), preserveAspectRatio("xMidYMid meet")])([elem4(Group.value)([transform("translate(" + (show9(offsetX2) + ("," + (show9(offsetY2) + ")"))))])([append22(linksLayer)(nodesLayer)])]);
+            return elem4(SVG.value)([viewBox(0)(0)(400)(400), preserveAspectRatio("xMidYMid meet")])([elem4(Group.value)([transform("translate(" + (show9(offsetX) + ("," + (show9(offsetY) + ")"))))])([append22(linksLayer)(nodesLayer)])]);
           };
         };
       };
@@ -18172,10 +18739,10 @@
       return el.hasAttribute(attr4);
     }
   }
-  function addEventListener(ev, listener, el) {
+  function addEventListener2(ev, listener, el) {
     el.addEventListener(ev, listener, false);
   }
-  function removeEventListener(ev, listener, el) {
+  function removeEventListener2(ev, listener, el) {
     el.removeEventListener(ev, listener, false);
   }
   var jsUndefined = void 0;
@@ -18483,37 +19050,6 @@
     return build;
   };
 
-  // output/Web.Event.EventTarget/foreign.js
-  function eventListener(fn) {
-    return function() {
-      return function(event) {
-        return fn(event)();
-      };
-    };
-  }
-  function addEventListener2(type) {
-    return function(listener) {
-      return function(useCapture) {
-        return function(target6) {
-          return function() {
-            return target6.addEventListener(type, listener, useCapture);
-          };
-        };
-      };
-    };
-  }
-  function removeEventListener2(type) {
-    return function(listener) {
-      return function(useCapture) {
-        return function(target6) {
-          return function() {
-            return target6.removeEventListener(type, listener, useCapture);
-          };
-        };
-      };
-    };
-  }
-
   // output/Halogen.VDom.DOM.Prop/index.js
   var $runtime_lazy8 = function(name16, moduleName, init3) {
     var state3 = 0;
@@ -18660,7 +19196,7 @@
           ;
           if (v1 instanceof Handler) {
             var handler3 = unsafeLookup(v1.value0, prevEvents);
-            return removeEventListener(v1.value0, fst(handler3), el);
+            return removeEventListener2(v1.value0, fst(handler3), el);
           }
           ;
           if (v1 instanceof Ref) {
@@ -18755,7 +19291,7 @@
               };
             })();
             pokeMutMap(v2.value0, new Tuple(listener, ref2), events);
-            addEventListener(v2.value0, listener, el);
+            addEventListener2(v2.value0, listener, el);
             return v2;
           }
           ;
@@ -19198,18 +19734,18 @@
     };
     return Fork2;
   })();
-  var Join2 = /* @__PURE__ */ (function() {
-    function Join3(value0, value1) {
+  var Join = /* @__PURE__ */ (function() {
+    function Join2(value0, value1) {
       this.value0 = value0;
       this.value1 = value1;
     }
     ;
-    Join3.create = function(value0) {
+    Join2.create = function(value0) {
       return function(value1) {
-        return new Join3(value0, value1);
+        return new Join2(value0, value1);
       };
     };
-    return Join3;
+    return Join2;
   })();
   var Kill = /* @__PURE__ */ (function() {
     function Kill2(value0, value1) {
@@ -20198,11 +20734,11 @@
   };
 
   // output/DataViz.Layout.Pattern/index.js
-  var foldl14 = /* @__PURE__ */ foldl(foldableArray);
+  var foldl15 = /* @__PURE__ */ foldl(foldableArray);
   var append10 = /* @__PURE__ */ append(semigroupArray);
   var min9 = /* @__PURE__ */ min(ordNumber);
-  var max13 = /* @__PURE__ */ max(ordNumber);
-  var max14 = /* @__PURE__ */ max(ordInt);
+  var max14 = /* @__PURE__ */ max(ordNumber);
+  var max15 = /* @__PURE__ */ max(ordInt);
   var div12 = /* @__PURE__ */ div(euclideanRingInt);
   var mod5 = /* @__PURE__ */ mod(euclideanRingInt);
   var map37 = /* @__PURE__ */ map(functorArray);
@@ -20218,15 +20754,15 @@
     return function(gap) {
       return function(vp) {
         return function(deltas) {
-          var runningTotals = foldl14(function(acc) {
+          var runningTotals = foldl15(function(acc) {
             return function(d2) {
               var prev = fromMaybe(0)(last(acc));
               return append10(acc)([prev + d2]);
             };
           })([0])(deltas);
           var n = length(deltas);
-          var minVal = foldl14(min9)(0)(runningTotals);
-          var maxVal = foldl14(max13)(0)(runningTotals);
+          var minVal = foldl15(min9)(0)(runningTotals);
+          var maxVal = foldl15(max14)(0)(runningTotals);
           var range3 = maxVal - minVal;
           var area2 = usableArea(vp);
           var scale = (function() {
@@ -20246,7 +20782,7 @@
               return 0;
             }
             ;
-            return (area2.width - gap * toNumber(max14(0)(n - 1 | 0))) / toNumber(n);
+            return (area2.width - gap * toNumber(max15(0)(n - 1 | 0))) / toNumber(n);
           })());
           return mapWithIndex2(function(i2) {
             return function(delta) {
@@ -20254,14 +20790,14 @@
               var prevTotal = fromMaybe(0)(index(runningTotals)(i2));
               var currTotal = prevTotal + delta;
               var top3 = min9(prevTotal)(currTotal);
-              var bottom3 = max13(prevTotal)(currTotal);
+              var bottom3 = max14(prevTotal)(currTotal);
               var h = (bottom3 - top3) * scale;
               var y2 = valueToY(bottom3);
               return {
                 x: x2,
                 y: y2,
                 width: actualBarWidth,
-                height: max13(0)(h)
+                height: max14(0)(h)
               };
             };
           })(deltas);
@@ -20273,7 +20809,7 @@
     return function(cols2) {
       return function(vp) {
         return function(categoryCounts) {
-          var totalCells = max14(1)(rows4) * max14(1)(cols2) | 0;
+          var totalCells = max15(1)(rows4) * max15(1)(cols2) | 0;
           var expandCategories = function(counts) {
             return concat(mapWithIndex2(function(catIdx) {
               return function(count) {
@@ -20283,9 +20819,9 @@
           };
           var categories = take(totalCells)(expandCategories(categoryCounts));
           var area2 = usableArea(vp);
-          var actualRows = max14(1)(rows4);
+          var actualRows = max15(1)(rows4);
           var cellH = area2.height / toNumber(actualRows);
-          var actualCols = max14(1)(cols2);
+          var actualCols = max15(1)(cols2);
           var cellW = area2.width / toNumber(actualCols);
           return mapWithIndex2(function(i2) {
             return function(catIdx) {
@@ -20312,17 +20848,17 @@
       return function(vp) {
         return function(items2) {
           var area2 = usableArea(vp);
-          var actualLanes = max14(1)(numLanes);
-          var laneHeight = (area2.height - gap * toNumber(max14(0)(actualLanes - 1 | 0))) / toNumber(actualLanes);
+          var actualLanes = max15(1)(numLanes);
+          var laneHeight = (area2.height - gap * toNumber(max15(0)(actualLanes - 1 | 0))) / toNumber(actualLanes);
           return map37(function(item) {
             var x2 = area2.x + item.start * area2.width;
             var w = (item.end - item.start) * area2.width;
-            var lane = max14(0)(min1(actualLanes - 1 | 0)(item.lane));
+            var lane = max15(0)(min1(actualLanes - 1 | 0)(item.lane));
             var y2 = area2.y + toNumber(lane) * (laneHeight + gap);
             return {
               x: x2,
               y: y2,
-              width: max13(0)(w),
+              width: max14(0)(w),
               height: laneHeight
             };
           })(items2);
@@ -20334,9 +20870,9 @@
     return function(vp) {
       return function(groups) {
         var numGroups = length(groups);
-        var maxTotal = foldl14(function(acc) {
+        var maxTotal = foldl15(function(acc) {
           return function(g) {
-            return max13(acc)(sum2(g));
+            return max14(acc)(sum2(g));
           };
         })(0)(groups);
         var area2 = usableArea(vp);
@@ -20346,7 +20882,7 @@
             return 0;
           }
           ;
-          return (area2.height - gap * toNumber(max14(0)(numGroups - 1 | 0))) / toNumber(numGroups);
+          return (area2.height - gap * toNumber(max15(0)(numGroups - 1 | 0))) / toNumber(numGroups);
         })();
         var scale = (function() {
           var $71 = maxTotal === 0;
@@ -20359,7 +20895,7 @@
         return mapWithIndex2(function(groupIdx) {
           return function(segments) {
             var barY = area2.y + toNumber(groupIdx) * (barHeight + gap);
-            var result = foldl14(function(acc) {
+            var result = foldl15(function(acc) {
               return function(segValue) {
                 var segWidth = segValue * scale;
                 var rect = {
@@ -20387,9 +20923,9 @@
     return function(vp) {
       return function(groups) {
         var numGroups = length(groups);
-        var maxExtent = foldl14(function(acc) {
+        var maxExtent = foldl15(function(acc) {
           return function(segments) {
-            var result = foldl14(function(innerAcc) {
+            var result = foldl15(function(innerAcc) {
               return function(v) {
                 var $72 = v >= 0;
                 if ($72) {
@@ -20409,8 +20945,8 @@
               neg: 0
             })(segments);
             return {
-              pos: max13(acc.pos)(result.pos),
-              neg: max13(acc.neg)(result.neg)
+              pos: max14(acc.pos)(result.pos),
+              neg: max14(acc.neg)(result.neg)
             };
           };
         })({
@@ -20425,7 +20961,7 @@
             return 0;
           }
           ;
-          return (area2.width - gap * toNumber(max14(0)(numGroups - 1 | 0))) / toNumber(numGroups);
+          return (area2.width - gap * toNumber(max15(0)(numGroups - 1 | 0))) / toNumber(numGroups);
         })();
         var scale = (function() {
           var $74 = totalExtent === 0;
@@ -20439,7 +20975,7 @@
         return mapWithIndex2(function(groupIdx) {
           return function(segments) {
             var barX = area2.x + toNumber(groupIdx) * (barWidth + gap);
-            var result = foldl14(function(acc) {
+            var result = foldl15(function(acc) {
               return function(v) {
                 var $75 = v >= 0;
                 if ($75) {
@@ -20486,9 +21022,9 @@
     return function(vp) {
       return function(groups) {
         var numGroups = length(groups);
-        var maxTotal = foldl14(function(acc) {
+        var maxTotal = foldl15(function(acc) {
           return function(g) {
-            return max13(acc)(sum2(g));
+            return max14(acc)(sum2(g));
           };
         })(0)(groups);
         var area2 = usableArea(vp);
@@ -20498,7 +21034,7 @@
             return 0;
           }
           ;
-          return (area2.width - gap * toNumber(max14(0)(numGroups - 1 | 0))) / toNumber(numGroups);
+          return (area2.width - gap * toNumber(max15(0)(numGroups - 1 | 0))) / toNumber(numGroups);
         })();
         var scale = (function() {
           var $77 = maxTotal === 0;
@@ -20511,7 +21047,7 @@
         return mapWithIndex2(function(groupIdx) {
           return function(segments) {
             var barX = area2.x + toNumber(groupIdx) * (barWidth + gap);
-            var result = foldl14(function(acc) {
+            var result = foldl15(function(acc) {
               return function(segValue) {
                 var segHeight = segValue * scale;
                 var y2 = acc.y - segHeight;
@@ -20540,7 +21076,7 @@
     return function(vp) {
       return function(items2) {
         var area2 = usableArea(vp);
-        var result = foldl14(function(acc) {
+        var result = foldl15(function(acc) {
           return function(item) {
             var needsWrap = acc.x + item.width > area2.x + area2.width && acc.x > area2.x;
             var rowH = (function() {
@@ -20548,7 +21084,7 @@
                 return item.height;
               }
               ;
-              return max13(acc.rowHeight)(item.height);
+              return max14(acc.rowHeight)(item.height);
             })();
             var x2 = (function() {
               if (needsWrap) {
@@ -20617,7 +21153,7 @@
             })(colHeights);
             return fromMaybe(0)(map116(function(v) {
               return v.i;
-            })(foldl14(function(acc) {
+            })(foldl15(function(acc) {
               return function(item) {
                 if (acc instanceof Nothing) {
                   return new Just(item);
@@ -20637,9 +21173,9 @@
             })(Nothing.value)(indexed)));
           };
           var area2 = usableArea(vp);
-          var actualCols = max14(1)(cols2);
+          var actualCols = max15(1)(cols2);
           var colWidth = (area2.width - gap * toNumber(actualCols - 1 | 0)) / toNumber(actualCols);
-          var result = foldl14(function(acc) {
+          var result = foldl15(function(acc) {
             return function(itemHeight) {
               var col2 = shortestCol(acc.colHeights);
               var colH = fromMaybe(0)(index(acc.colHeights)(col2));
@@ -20689,15 +21225,15 @@
                 };
               };
             })(aspects);
-            var result = foldl14(function(acc) {
+            var result = foldl15(function(acc) {
               return function(item) {
                 var currentRow = append10(acc.currentRow)([item]);
-                var sumAspects = foldl14(function(s) {
+                var sumAspects = foldl15(function(s) {
                   return function(it) {
                     return s + it.aspect;
                   };
                 })(0)(currentRow);
-                var rowH = (area2.width - gap * toNumber(max14(0)(length(currentRow) - 1 | 0))) / sumAspects;
+                var rowH = (area2.width - gap * toNumber(max15(0)(length(currentRow) - 1 | 0))) / sumAspects;
                 var $87 = rowH < minRowHeight && length(currentRow) > 1;
                 if ($87) {
                   return {
@@ -20728,12 +21264,12 @@
             return function(row) {
               return function(isLast) {
                 return function(acc) {
-                  var sumAspects = foldl14(function(s) {
+                  var sumAspects = foldl15(function(s) {
                     return function(it) {
                       return s + it.aspect;
                     };
                   })(0)(row);
-                  var gapTotal = gap * toNumber(max14(0)(length(row) - 1 | 0));
+                  var gapTotal = gap * toNumber(max15(0)(length(row) - 1 | 0));
                   var rowH = (function() {
                     if (isLast) {
                       return targetRowHeight;
@@ -20741,7 +21277,7 @@
                     ;
                     return (area2.width - gapTotal) / sumAspects;
                   })();
-                  var rowRects = foldl14(function(inner) {
+                  var rowRects = foldl15(function(inner) {
                     return function(item) {
                       var w = (function() {
                         if (isLast) {
@@ -20776,7 +21312,7 @@
               };
             };
           };
-          var laidOut = foldl14(function(acc) {
+          var laidOut = foldl15(function(acc) {
             return function(rowWithIdx) {
               var isLast = rowWithIdx.idx === (numRows - 1 | 0);
               return layoutRow(acc.y)(rowWithIdx.row)(isLast)(acc);
@@ -20806,8 +21342,8 @@
     return function(numDays) {
       return function(gap) {
         return function(vp) {
-          var offset = max14(0)(min1(6)(startDayOfWeekOffset));
-          var totalWeeks = max14(1)(ceil2(toNumber(offset + numDays | 0) / 7));
+          var offset = max15(0)(min1(6)(startDayOfWeekOffset));
+          var totalWeeks = max15(1)(ceil2(toNumber(offset + numDays | 0) / 7));
           var area2 = usableArea(vp);
           var cellH = (area2.height - gap * toNumber(totalWeeks - 1 | 0)) / toNumber(totalWeeks);
           var cellW = (area2.width - gap * 6) / 7;
@@ -20847,13 +21383,13 @@
       var findMaxY = function(skyline) {
         return function(x2) {
           return function(w) {
-            return foldl14(function(maxH) {
+            return foldl15(function(maxH) {
               return function(seg) {
                 var segRight = seg.x + seg.segWidth;
                 var itemRight = x2 + w;
                 var overlaps = seg.x < itemRight && segRight > x2;
                 if (overlaps) {
-                  return max13(maxH)(seg.y);
+                  return max14(maxH)(seg.y);
                 }
                 ;
                 return maxH;
@@ -20865,7 +21401,7 @@
       var findPosition = function(skyline) {
         return function(itemW) {
           return function(_itemH) {
-            return foldl14(function(best) {
+            return foldl15(function(best) {
               return function(segWithIdx) {
                 var fits = segWithIdx.seg.x + itemW <= area2.x + area2.width;
                 var maxY = (function() {
@@ -20954,15 +21490,15 @@
                       return [];
                     })();
                     return append10(leftPart)(append10([{
-                      x: max13(seg.x)(px),
+                      x: max14(seg.x)(px),
                       y: newY,
-                      segWidth: min9(segRight)(itemRight) - max13(seg.x)(px)
+                      segWidth: min9(segRight)(itemRight) - max14(seg.x)(px)
                     }])(rightPart));
                   }
                   ;
                   return [seg];
                 })(skyline));
-                var merged = foldl14(function(acc) {
+                var merged = foldl15(function(acc) {
                   return function(seg) {
                     var v = last(acc);
                     if (v instanceof Just && (v.value0.y === seg.y && v.value0.x + v.value0.segWidth === seg.x)) {
@@ -20991,13 +21527,13 @@
           };
         };
       };
-      var packResult = foldl14(function(acc) {
+      var packResult = foldl15(function(acc) {
         return function(entry) {
           var v = findPosition(acc.skyline)(entry.item.width)(entry.item.height);
           if (v instanceof Nothing) {
-            var y2 = foldl14(function(m) {
+            var y2 = foldl15(function(m) {
               return function(seg) {
-                return max13(m)(seg.y);
+                return max14(m)(seg.y);
               };
             })(area2.y)(acc.skyline);
             return {
@@ -21318,8 +21854,8 @@
   var modify_7 = /* @__PURE__ */ modify_2(monadStateHalogenM);
   var mod7 = /* @__PURE__ */ mod(euclideanRingInt);
   var show11 = /* @__PURE__ */ show(showNumber);
-  var foldl15 = /* @__PURE__ */ foldl(foldableArray);
-  var max15 = /* @__PURE__ */ max(ordNumber);
+  var foldl16 = /* @__PURE__ */ foldl(foldableArray);
+  var max16 = /* @__PURE__ */ max(ordNumber);
   var Initialize5 = /* @__PURE__ */ (function() {
     function Initialize14() {
     }
@@ -21411,19 +21947,19 @@
     };
   };
   var renderViewport = function(state3) {
-    var bounds = foldl15(function(acc) {
+    var bounds = foldl16(function(acc) {
       return function(r2) {
         return {
-          maxX: max15(acc.maxX)(r2.x + r2.width),
-          maxY: max15(acc.maxY)(r2.y + r2.height)
+          maxX: max16(acc.maxX)(r2.x + r2.width),
+          maxY: max16(acc.maxY)(r2.y + r2.height)
         };
       };
     })({
       maxX: 0,
       maxY: 0
     })(state3.rects);
-    var svgH = max15(100)(bounds.maxY);
-    var svgW = max15(100)(bounds.maxX);
+    var svgH = max16(100)(bounds.maxY);
+    var svgW = max16(100)(bounds.maxX);
     var vb = "0 0 " + (show11(svgW) + (" " + show11(svgH)));
     return div2([class_2("masonry-viewport")])([svgElem2([attr3("viewBox")(vb), attr3("preserveAspectRatio")("xMidYMin meet"), attr3("width")("100%")])(mapWithIndex2(renderRect)(state3.rects))]);
   };
@@ -21630,8 +22166,8 @@
   var modify_9 = /* @__PURE__ */ modify_2(monadStateHalogenM);
   var discard7 = /* @__PURE__ */ discard(discardUnit)(bindHalogenM);
   var mod8 = /* @__PURE__ */ mod(euclideanRingInt);
-  var foldl16 = /* @__PURE__ */ foldl(foldableArray);
-  var max16 = /* @__PURE__ */ max(ordNumber);
+  var foldl17 = /* @__PURE__ */ foldl(foldableArray);
+  var max17 = /* @__PURE__ */ max(ordNumber);
   var Initialize7 = /* @__PURE__ */ (function() {
     function Initialize14() {
     }
@@ -21766,19 +22302,19 @@
     };
   };
   var renderViewport3 = function(state3) {
-    var bounds = foldl16(function(acc) {
+    var bounds = foldl17(function(acc) {
       return function(r2) {
         return {
-          maxX: max16(acc.maxX)(r2.x + r2.width),
-          maxY: max16(acc.maxY)(r2.y + r2.height)
+          maxX: max17(acc.maxX)(r2.x + r2.width),
+          maxY: max17(acc.maxY)(r2.y + r2.height)
         };
       };
     })({
       maxX: 0,
       maxY: 0
     })(state3.rects);
-    var svgH = max16(100)(bounds.maxY);
-    var svgW = max16(100)(bounds.maxX);
+    var svgH = max17(100)(bounds.maxY);
+    var svgW = max17(100)(bounds.maxX);
     var vb = "0 0 " + (show15(svgW) + (" " + show15(svgH)));
     return div2([class_2("masonry-viewport")])([svgElem4([attr3("viewBox")(vb), attr3("preserveAspectRatio")("xMidYMin meet"), attr3("width")("100%")])(mapWithIndex2(renderRect2)(state3.rects))]);
   };
@@ -21808,8 +22344,8 @@
   var discard8 = /* @__PURE__ */ discard(discardUnit)(bindHalogenM);
   var mod9 = /* @__PURE__ */ mod(euclideanRingInt);
   var show16 = /* @__PURE__ */ show(showNumber);
-  var foldl17 = /* @__PURE__ */ foldl(foldableArray);
-  var max17 = /* @__PURE__ */ max(ordNumber);
+  var foldl18 = /* @__PURE__ */ foldl(foldableArray);
+  var max18 = /* @__PURE__ */ max(ordNumber);
   var mapFlipped7 = /* @__PURE__ */ mapFlipped(functorArray);
   var append19 = /* @__PURE__ */ append(semigroupArray);
   var show17 = /* @__PURE__ */ show(showInt);
@@ -21930,19 +22466,19 @@
     };
   };
   var renderViewport4 = function(state3) {
-    var bounds = foldl17(function(acc) {
+    var bounds = foldl18(function(acc) {
       return function(r2) {
         return {
-          maxX: max17(acc.maxX)(r2.x + r2.width),
-          maxY: max17(acc.maxY)(r2.y + r2.height)
+          maxX: max18(acc.maxX)(r2.x + r2.width),
+          maxY: max18(acc.maxY)(r2.y + r2.height)
         };
       };
     })({
       maxX: 0,
       maxY: 0
     })(state3.rects);
-    var svgH = max17(100)(bounds.maxY);
-    var svgW = max17(100)(bounds.maxX);
+    var svgH = max18(100)(bounds.maxY);
+    var svgW = max18(100)(bounds.maxX);
     var vb = "0 0 " + (show16(svgW) + (" " + show16(svgH)));
     return div2([class_2("masonry-viewport")])([svgElem5([attr3("viewBox")(vb), attr3("preserveAspectRatio")("xMidYMin meet"), attr3("width")("100%")])(mapWithIndex2(renderRect3)(state3.rects))]);
   };
@@ -21991,8 +22527,8 @@
   var discard9 = /* @__PURE__ */ discard(discardUnit)(bindHalogenM);
   var mod10 = /* @__PURE__ */ mod(euclideanRingInt);
   var show18 = /* @__PURE__ */ show(showNumber);
-  var foldl18 = /* @__PURE__ */ foldl(foldableArray);
-  var max18 = /* @__PURE__ */ max(ordNumber);
+  var foldl19 = /* @__PURE__ */ foldl(foldableArray);
+  var max19 = /* @__PURE__ */ max(ordNumber);
   var VariedSizes = /* @__PURE__ */ (function() {
     function VariedSizes2() {
     }
@@ -22183,19 +22719,19 @@
     };
   };
   var renderViewport5 = function(state3) {
-    var bounds = foldl18(function(acc) {
+    var bounds = foldl19(function(acc) {
       return function(r2) {
         return {
-          maxX: max18(acc.maxX)(r2.x + r2.width),
-          maxY: max18(acc.maxY)(r2.y + r2.height)
+          maxX: max19(acc.maxX)(r2.x + r2.width),
+          maxY: max19(acc.maxY)(r2.y + r2.height)
         };
       };
     })({
       maxX: 0,
       maxY: 0
     })(state3.rects);
-    var svgH = max18(100)(bounds.maxY);
-    var svgW = max18(100)(bounds.maxX);
+    var svgH = max19(100)(bounds.maxY);
+    var svgW = max19(100)(bounds.maxX);
     var vb = "0 0 " + (show18(svgW) + (" " + show18(svgH)));
     return div2([class_2("masonry-viewport")])([svgElem6([attr3("viewBox")(vb), attr3("preserveAspectRatio")("xMidYMin meet"), attr3("width")("100%")])(mapWithIndex2(renderRect4)(state3.rects))]);
   };
@@ -22220,8 +22756,8 @@
   var mod11 = /* @__PURE__ */ mod(euclideanRingInt);
   var append21 = /* @__PURE__ */ append(semigroupArray);
   var show19 = /* @__PURE__ */ show(showNumber);
-  var foldl19 = /* @__PURE__ */ foldl(foldableArray);
-  var max19 = /* @__PURE__ */ max(ordNumber);
+  var foldl20 = /* @__PURE__ */ foldl(foldableArray);
+  var max20 = /* @__PURE__ */ max(ordNumber);
   var map39 = /* @__PURE__ */ map(functorArray);
   var bind19 = /* @__PURE__ */ bind(bindHalogenM);
   var get12 = /* @__PURE__ */ get(monadStateHalogenM);
@@ -22328,19 +22864,19 @@
   };
   var renderViewport6 = function(state3) {
     var allRects = concat(state3.groups);
-    var bounds = foldl19(function(acc) {
+    var bounds = foldl20(function(acc) {
       return function(r2) {
         return {
-          maxX: max19(acc.maxX)(r2.x + r2.width),
-          maxY: max19(acc.maxY)(r2.y + r2.height)
+          maxX: max20(acc.maxX)(r2.x + r2.width),
+          maxY: max20(acc.maxY)(r2.y + r2.height)
         };
       };
     })({
       maxX: 0,
       maxY: 0
     })(allRects);
-    var svgH = max19(100)(bounds.maxY);
-    var svgW = max19(100)(bounds.maxX);
+    var svgH = max20(100)(bounds.maxY);
+    var svgW = max20(100)(bounds.maxX);
     var vb = "0 0 " + (show19(svgW) + (" " + show19(svgH)));
     return div2([class_2("masonry-viewport")])([svgElem7([attr3("viewBox")(vb), attr3("preserveAspectRatio")("xMidYMin meet"), attr3("width")("100%")])(concat(map39(mapWithIndex2(renderRect5))(state3.groups)))]);
   };
@@ -22435,7 +22971,7 @@
   var show20 = /* @__PURE__ */ show(showInt);
   var traverse8 = /* @__PURE__ */ traverse(traversableArray)(applicativeEffect);
   var min10 = /* @__PURE__ */ min(ordInt);
-  var max20 = /* @__PURE__ */ max(ordInt);
+  var max21 = /* @__PURE__ */ max(ordInt);
   var min12 = /* @__PURE__ */ min(ordNumber);
   var bind110 = /* @__PURE__ */ bind(bindHalogenM);
   var get13 = /* @__PURE__ */ get(monadStateHalogenM);
@@ -22443,7 +22979,7 @@
   var discard11 = /* @__PURE__ */ discard(discardUnit)(bindHalogenM);
   var mod12 = /* @__PURE__ */ mod(euclideanRingInt);
   var show110 = /* @__PURE__ */ show(showNumber);
-  var foldl20 = /* @__PURE__ */ foldl(foldableArray);
+  var foldl21 = /* @__PURE__ */ foldl(foldableArray);
   var max110 = /* @__PURE__ */ max(ordNumber);
   var Initialize11 = /* @__PURE__ */ (function() {
     function Initialize14() {
@@ -22506,7 +23042,7 @@
           var rs = random();
           var rd = random();
           var start$prime = rs * 0.7;
-          var lane = min10(numLanes - 1 | 0)(max20(0)(floor2(rl * toNumber(numLanes))));
+          var lane = min10(numLanes - 1 | 0)(max21(0)(floor2(rl * toNumber(numLanes))));
           var duration2 = 0.1 + rd * 0.3;
           var end$prime = min12(1)(start$prime + duration2);
           return {
@@ -22588,7 +23124,7 @@
     };
   };
   var renderViewport7 = function(state3) {
-    var bounds = foldl20(function(acc) {
+    var bounds = foldl21(function(acc) {
       return function(r2) {
         return {
           maxX: max110(acc.maxX)(r2.x + r2.width),
@@ -22631,7 +23167,7 @@
   var discard12 = /* @__PURE__ */ discard(discardUnit)(bindHalogenM);
   var mod13 = /* @__PURE__ */ mod(euclideanRingInt);
   var show111 = /* @__PURE__ */ show(showNumber);
-  var max21 = /* @__PURE__ */ max(ordNumber);
+  var max22 = /* @__PURE__ */ max(ordNumber);
   var map40 = /* @__PURE__ */ map(functorArray);
   var Initialize12 = /* @__PURE__ */ (function() {
     function Initialize14() {
@@ -22738,7 +23274,7 @@
     throw new Error("Failed pattern match at Gallery.WaffleDemo (line 63, column 24 - line 65, column 20): " + [v.constructor.name]);
   };
   var renderCell = function(wc) {
-    return rectElem9([attr3("x")(show111(wc.rect.x + 1)), attr3("y")(show111(wc.rect.y + 1)), attr3("width")(show111(max21(0)(wc.rect.width - 2))), attr3("height")(show111(max21(0)(wc.rect.height - 2))), attr3("rx")("3"), attr3("ry")("3"), attr3("fill")(colorForCategory(wc.category)), attr3("opacity")("0.85")]);
+    return rectElem9([attr3("x")(show111(wc.rect.x + 1)), attr3("y")(show111(wc.rect.y + 1)), attr3("width")(show111(max22(0)(wc.rect.width - 2))), attr3("height")(show111(max22(0)(wc.rect.height - 2))), attr3("rx")("3"), attr3("ry")("3"), attr3("fill")(colorForCategory(wc.category)), attr3("opacity")("0.85")]);
   };
   var renderViewport8 = function(state3) {
     return div2([class_2("masonry-viewport")])([svgElem9([attr3("viewBox")("0 0 400 400"), attr3("preserveAspectRatio")("xMidYMid meet"), attr3("width")("100%")])(map40(renderCell)(state3.cells))]);
@@ -22767,8 +23303,8 @@
 
   // output/Gallery.WaterfallDemo/index.js
   var show22 = /* @__PURE__ */ show(showNumber);
-  var foldl21 = /* @__PURE__ */ foldl(foldableArray);
-  var max22 = /* @__PURE__ */ max(ordNumber);
+  var foldl22 = /* @__PURE__ */ foldl(foldableArray);
+  var max23 = /* @__PURE__ */ max(ordNumber);
   var traverse9 = /* @__PURE__ */ traverse(traversableArray)(applicativeEffect);
   var bind111 = /* @__PURE__ */ bind(bindHalogenM);
   var modify_15 = /* @__PURE__ */ modify_2(monadStateHalogenM);
@@ -22811,19 +23347,19 @@
     };
   };
   var renderViewport9 = function(state3) {
-    var bounds = foldl21(function(acc) {
+    var bounds = foldl22(function(acc) {
       return function(r2) {
         return {
-          maxX: max22(acc.maxX)(r2.x + r2.width),
-          maxY: max22(acc.maxY)(r2.y + r2.height)
+          maxX: max23(acc.maxX)(r2.x + r2.width),
+          maxY: max23(acc.maxY)(r2.y + r2.height)
         };
       };
     })({
       maxX: 0,
       maxY: 0
     })(state3.rects);
-    var svgH = max22(100)(bounds.maxY);
-    var svgW = max22(100)(bounds.maxX);
+    var svgH = max23(100)(bounds.maxY);
+    var svgW = max23(100)(bounds.maxX);
     var vb = "0 0 " + (show22(svgW) + (" " + show22(svgH)));
     return div2([class_2("masonry-viewport")])([svgElem10([attr3("viewBox")(vb), attr3("preserveAspectRatio")("xMidYMin meet"), attr3("width")("100%")])(mapWithIndex2(renderBar(state3.deltas))(state3.rects))]);
   };
@@ -23036,12 +23572,12 @@
     return function __do3() {
       var rs = bindFlipped5(readyState)(bindFlipped5(document2)(windowImpl))();
       if (rs instanceof Loading) {
-        var et = map42(toEventTarget)(windowImpl)();
+        var et = map42(toEventTarget2)(windowImpl)();
         var listener = eventListener(function(v) {
           return callback(new Right(unit));
         })();
-        addEventListener2(domcontentloaded)(listener)(false)(et)();
-        return effectCanceler(removeEventListener2(domcontentloaded)(listener)(false)(et));
+        addEventListener(domcontentloaded)(listener)(false)(et)();
+        return effectCanceler(removeEventListener(domcontentloaded)(listener)(false)(et));
       }
       ;
       callback(new Right(unit))();
@@ -23068,6 +23604,13 @@
   };
   var fork = function(dict) {
     return dict.fork;
+  };
+
+  // output/Effect.Console/foreign.js
+  var warn = function(s) {
+    return function() {
+      console.warn(s);
+    };
   };
 
   // output/Halogen.Aff.Driver.State/index.js
@@ -23349,7 +23892,7 @@
               });
             }
             ;
-            if (v1 instanceof Join2) {
+            if (v1 instanceof Join) {
               return bind112(liftEffect4(read(ref2)))(function(v2) {
                 return bind112(liftEffect4(read(v2.forks)))(function(forkMap) {
                   return discard1(traverse_32(joinFiber)(lookup12(v1.value0)(forkMap)))(function() {

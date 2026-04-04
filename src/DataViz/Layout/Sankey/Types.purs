@@ -19,6 +19,10 @@ module DataViz.Layout.Sankey.Types
   , SankeyStep
   , Alignment(..)
   , LinkColorMode(..)
+  , FlowContext
+  , NodeValueStrategy(..)
+  , sankeyNodeValue
+  , constantNodeValue
   , defaultSankeyConfig
   , SankeyGraphModel
   , initialSankeyGraphModel
@@ -27,6 +31,7 @@ module DataViz.Layout.Sankey.Types
 
 import Prelude
 
+import Data.Foldable (foldl)
 import Data.Graph.Weighted as WG
 import Data.Graph.Weighted.DAG (DAG)
 import Data.Graph.Weighted.DAG as DAG
@@ -120,6 +125,7 @@ type SankeyConfig =
   , nodePadding :: Number -- Vertical spacing between nodes
   , iterations :: Int -- Number of relaxation iterations (default: 6)
   , extent :: { x0 :: Number, y0 :: Number, x1 :: Number, y1 :: Number }
+  , nodeValueStrategy :: NodeValueStrategy -- How to compute node values from flows
   }
 
 -- | Node alignment strategy
@@ -154,6 +160,28 @@ instance showLinkColorMode :: Show LinkColorMode where
   show SourceTargetGradient = "source-target"
   show (StaticColor c) = "static(" <> c <> ")"
 
+-- | The flows incident on a node, separated by direction
+type FlowContext =
+  { incoming :: Array Number
+  , outgoing :: Array Number
+  }
+
+-- | Strategy for computing a node's value from its incident flows.
+-- | This is the primary parameterization point for generalizing
+-- | beyond Sankey diagrams to arbitrary ribbon layouts.
+newtype NodeValueStrategy = NodeValueStrategy (FlowContext -> Number)
+
+-- | Sankey: node value = max(sum inflows, sum outflows).
+-- | The conservation-of-flow constraint that defines a Sankey diagram.
+sankeyNodeValue :: NodeValueStrategy
+sankeyNodeValue = NodeValueStrategy \{ incoming, outgoing } ->
+  max (foldl (+) 0.0 incoming) (foldl (+) 0.0 outgoing)
+
+-- | Constant node size, ignoring flow values entirely.
+-- | Useful for pure topology/routing diagrams.
+constantNodeValue :: Number -> NodeValueStrategy
+constantNodeValue v = NodeValueStrategy \_ -> v
+
 -- | Default configuration matching D3 defaults
 defaultSankeyConfig :: Number -> Number -> SankeyConfig
 defaultSankeyConfig width height =
@@ -169,6 +197,7 @@ defaultSankeyConfig width height =
       , x1: width - 1.0
       , y1: height - 5.0
       }
+  , nodeValueStrategy: sankeyNodeValue
   }
 
 -- | A captured step for debugging/visualization

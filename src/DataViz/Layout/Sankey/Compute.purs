@@ -24,7 +24,7 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Number (pow)
 import Data.Set as Set
-import DataViz.Layout.Sankey.Types (Alignment(..), LinkCSVRow, LinkColorMode(..), LinkID(..), NodeID(..), SankeyConfig, SankeyGraphModel, SankeyLayoutResult, SankeyLink, SankeyNode, defaultSankeyConfig, initialSankeyGraphModel, initialiseSankeyLink, initialiseSankeyNode)
+import DataViz.Layout.Sankey.Types (Alignment(..), FlowContext, LinkCSVRow, LinkColorMode(..), LinkID(..), NodeID(..), NodeValueStrategy(..), SankeyConfig, SankeyGraphModel, SankeyLayoutResult, SankeyLink, SankeyNode, defaultSankeyConfig, initialSankeyGraphModel, initialiseSankeyLink, initialiseSankeyNode)
 
 -- Constants
 epsilon :: Number
@@ -146,20 +146,20 @@ initialiseSankeyNodes = do
 -- Step 3: computeNodeValues - Calculate node.value (max flow)
 -- ============================================================================
 
--- | For each node, compute value as max of total outgoing and incoming flow (link values)
+-- | For each node, compute value using the configured node value strategy.
+-- | For Sankey diagrams this is max(sum inflows, sum outflows).
 computeNodeValues :: State SankeyGraphModel Unit
 computeNodeValues = do
   model <- get
-  let updatedNodes = (setNodeValue model.sankeyLinks) <$> model.sankeyNodes
+  let (NodeValueStrategy valueFn) = model.config.nodeValueStrategy
+  let updatedNodes = (setNodeValue valueFn model.sankeyLinks) <$> model.sankeyNodes
   modify_ _ { sankeyNodes = updatedNodes }
   where
-  setNodeValue :: Array SankeyLink -> SankeyNode -> SankeyNode
-  setNodeValue links n = n { value = max totalIn totalOut }
+  setNodeValue :: (FlowContext -> Number) -> Array SankeyLink -> SankeyNode -> SankeyNode
+  setNodeValue valueFn links n = n { value = valueFn { incoming, outgoing } }
     where
-    totalIn = foldl (\sum link -> sum + link.value) 0.0 $
-      filter (\l -> l.targetIndex == n.index) links
-    totalOut = foldl (\sum link -> sum + link.value) 0.0 $
-      filter (\l -> l.sourceIndex == n.index) links
+    incoming = map _.value $ filter (\l -> l.targetIndex == n.index) links
+    outgoing = map _.value $ filter (\l -> l.sourceIndex == n.index) links
 
 -- ============================================================================
 -- Step 4: computeNodeDepths - Left-to-right BFS (depth)
