@@ -11286,6 +11286,46 @@
   var bind5 = /* @__PURE__ */ bind(bindMaybe);
   var map28 = /* @__PURE__ */ map(functorArray);
   var pure7 = /* @__PURE__ */ pure(applicativeMaybe);
+  var AcyclicLayout = /* @__PURE__ */ (function() {
+    function AcyclicLayout2(value0) {
+      this.value0 = value0;
+    }
+    ;
+    AcyclicLayout2.create = function(value0) {
+      return new AcyclicLayout2(value0);
+    };
+    return AcyclicLayout2;
+  })();
+  var EndCyclicLayout = /* @__PURE__ */ (function() {
+    function EndCyclicLayout2(value0) {
+      this.value0 = value0;
+    }
+    ;
+    EndCyclicLayout2.create = function(value0) {
+      return new EndCyclicLayout2(value0);
+    };
+    return EndCyclicLayout2;
+  })();
+  var InteriorCyclicLayout = /* @__PURE__ */ (function() {
+    function InteriorCyclicLayout2(value0) {
+      this.value0 = value0;
+    }
+    ;
+    InteriorCyclicLayout2.create = function(value0) {
+      return new InteriorCyclicLayout2(value0);
+    };
+    return InteriorCyclicLayout2;
+  })();
+  var MixedCyclicLayout = /* @__PURE__ */ (function() {
+    function MixedCyclicLayout2(value0) {
+      this.value0 = value0;
+    }
+    ;
+    MixedCyclicLayout2.create = function(value0) {
+      return new MixedCyclicLayout2(value0);
+    };
+    return MixedCyclicLayout2;
+  })();
   var SourceColor = /* @__PURE__ */ (function() {
     function SourceColor2() {
     }
@@ -11373,27 +11413,6 @@
     Center2.value = new Center2();
     return Center2;
   })();
-  var showCycleTopology = {
-    show: function(v) {
-      if (v instanceof Acyclic) {
-        return "Acyclic";
-      }
-      ;
-      if (v instanceof EndCyclic) {
-        return "EndCyclic";
-      }
-      ;
-      if (v instanceof InteriorCyclic) {
-        return "InteriorCyclic";
-      }
-      ;
-      if (v instanceof MixedCyclic) {
-        return "MixedCyclic";
-      }
-      ;
-      throw new Error("Failed pattern match at DataViz.Layout.Sankey.Types (line 176, column 1 - line 180, column 35): " + [v.constructor.name]);
-    }
-  };
   var sankeyNodeValue = function(v) {
     return max7(foldl14(add5)(0)(v.incoming))(foldl14(add5)(0)(v.outgoing));
   };
@@ -11506,6 +11525,41 @@
         nodeValueStrategy: sankeyNodeValue
       };
     };
+  };
+  var classifyLayout = function(result) {
+    if (result.cycleAnalysis.topology instanceof Acyclic) {
+      return new AcyclicLayout({
+        nodes: result.nodes,
+        links: result.links
+      });
+    }
+    ;
+    if (result.cycleAnalysis.topology instanceof EndCyclic) {
+      return new EndCyclicLayout({
+        nodes: result.nodes,
+        links: result.links,
+        endCycles: result.cycleAnalysis.endCycles
+      });
+    }
+    ;
+    if (result.cycleAnalysis.topology instanceof InteriorCyclic) {
+      return new InteriorCyclicLayout({
+        nodes: result.nodes,
+        links: result.links,
+        interiorCycles: result.cycleAnalysis.interiorCycles
+      });
+    }
+    ;
+    if (result.cycleAnalysis.topology instanceof MixedCyclic) {
+      return new MixedCyclicLayout({
+        nodes: result.nodes,
+        links: result.links,
+        endCycles: result.cycleAnalysis.endCycles,
+        interiorCycles: result.cycleAnalysis.interiorCycles
+      });
+    }
+    ;
+    throw new Error("Failed pattern match at DataViz.Layout.Sankey.Types (line 217, column 25 - line 229, column 60): " + [result.cycleAnalysis.topology.constructor.name]);
   };
 
   // output/DataViz.Layout.Sankey.Compute/index.js
@@ -24355,7 +24409,6 @@
   };
 
   // output/Gallery.RibbonPage/index.js
-  var show23 = /* @__PURE__ */ show(showCycleTopology);
   var mapFlipped10 = /* @__PURE__ */ mapFlipped(functorArray);
   var discard13 = /* @__PURE__ */ discard(discardUnit);
   var discard25 = /* @__PURE__ */ discard13(bindHalogenM);
@@ -24367,11 +24420,31 @@
     Initialize15.value = new Initialize15();
     return Initialize15;
   })();
+  var ribbonLayoutLabel = function(v) {
+    if (v instanceof AcyclicLayout) {
+      return "Acyclic";
+    }
+    ;
+    if (v instanceof EndCyclicLayout) {
+      return "EndCyclic";
+    }
+    ;
+    if (v instanceof InteriorCyclicLayout) {
+      return "InteriorCyclic";
+    }
+    ;
+    if (v instanceof MixedCyclicLayout) {
+      return "MixedCyclic";
+    }
+    ;
+    throw new Error("Failed pattern match at Gallery.RibbonPage (line 178, column 21 - line 182, column 39): " + [v.constructor.name]);
+  };
   var renderHeader14 = /* @__PURE__ */ div2([/* @__PURE__ */ class_2("gallery-header")])([/* @__PURE__ */ h1_([/* @__PURE__ */ text5("Ribbon Layouts")]), /* @__PURE__ */ p([/* @__PURE__ */ class_2("subtitle")])([/* @__PURE__ */ text5("4 cycle topologies for flow diagrams \u2014 from acyclic to mixed-cyclic")]), /* @__PURE__ */ p([/* @__PURE__ */ class_2("gallery-nav")])([/* @__PURE__ */ a([/* @__PURE__ */ href4("#")])([/* @__PURE__ */ text5("\u2190 Gallery")]), /* @__PURE__ */ text5(" \xB7 "), /* @__PURE__ */ a([/* @__PURE__ */ href4("#flow")])([/* @__PURE__ */ text5("Flow")]), /* @__PURE__ */ text5(" \xB7 "), /* @__PURE__ */ a([/* @__PURE__ */ href4("#hierarchy")])([/* @__PURE__ */ text5("Hierarchy")]), /* @__PURE__ */ text5(" \xB7 "), /* @__PURE__ */ a([/* @__PURE__ */ href4("#pattern")])([/* @__PURE__ */ text5("Pattern")])])]);
   var renderFooter5 = /* @__PURE__ */ div2([/* @__PURE__ */ class_2("gallery-footer")])([/* @__PURE__ */ p_([/* @__PURE__ */ text5("From the "), /* @__PURE__ */ a([/* @__PURE__ */ href4("https://github.com/afcondon/purescript-d3-layout")])([/* @__PURE__ */ text5("hylograph-layout")]), /* @__PURE__ */ text5(" library")])]);
   var renderDiagramCard = function(spec) {
     var result = computeLayout(spec.links)(800)(300);
-    var topologyLabel = show23(result.cycleAnalysis.topology);
+    var classified = classifyLayout(result);
+    var topologyLabel = ribbonLayoutLabel(classified);
     return div2([class_2("ribbon-card")])([div2([class_2("ribbon-card-header")])([h3_([text5(spec.title)]), span4([class_2("ribbon-topology-badge topology-" + topologyLabel)])([text5(topologyLabel)])]), p([class_2("ribbon-card-description")])([text5(spec.description)]), div2([class_2("ribbon-viewport"), id3(spec.containerId)])([])]);
   };
   var mixedCycleData = [{
@@ -24589,16 +24662,16 @@
     return function(v) {
       return discard25(liftEffect8(renderAllDiagrams))(function() {
         return modify_16(function(v1) {
-          var $17 = {};
-          for (var $18 in v1) {
-            if ({}.hasOwnProperty.call(v1, $18)) {
-              $17[$18] = v1[$18];
+          var $22 = {};
+          for (var $23 in v1) {
+            if ({}.hasOwnProperty.call(v1, $23)) {
+              $22[$23] = v1[$23];
             }
             ;
           }
           ;
-          $17.rendered = true;
-          return $17;
+          $22.rendered = true;
+          return $22;
         });
       });
     };

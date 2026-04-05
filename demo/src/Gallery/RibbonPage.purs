@@ -9,7 +9,7 @@ import Prelude
 
 import Data.Maybe (Maybe(..))
 import DataViz.Layout.Sankey.Compute as Sankey
-import DataViz.Layout.Sankey.Types (LinkCSVRow)
+import DataViz.Layout.Sankey.Types (LinkCSVRow, RibbonLayout(..), classifyLayout)
 import Effect (Effect)
 import Effect.Class (class MonadEffect, liftEffect)
 import Halogen as H
@@ -174,11 +174,19 @@ renderHeader =
         ]
     ]
 
+ribbonLayoutLabel :: RibbonLayout -> String
+ribbonLayoutLabel = case _ of
+  AcyclicLayout _ -> "Acyclic"
+  EndCyclicLayout _ -> "EndCyclic"
+  InteriorCyclicLayout _ -> "InteriorCyclic"
+  MixedCyclicLayout _ -> "MixedCyclic"
+
 renderDiagramCard :: forall m. DiagramSpec -> H.ComponentHTML Action () m
 renderDiagramCard spec =
   let
     result = Sankey.computeLayout spec.links 800.0 300.0
-    topologyLabel = show result.cycleAnalysis.topology
+    classified = classifyLayout result
+    topologyLabel = ribbonLayoutLabel classified
   in
     HH.div
       [ HP.class_ (H.ClassName "ribbon-card") ]

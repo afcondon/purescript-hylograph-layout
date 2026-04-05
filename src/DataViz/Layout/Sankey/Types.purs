@@ -21,6 +21,8 @@ module DataViz.Layout.Sankey.Types
   , LinkColorMode(..)
   , CycleTopology(..)
   , CycleAnalysis
+  , RibbonLayout(..)
+  , classifyLayout
   , FlowContext
   , NodeValueStrategy(..)
   , sankeyNodeValue
@@ -185,6 +187,46 @@ type CycleAnalysis =
   , endCycles :: Array SankeyLink -- Back-edges from max layer to layer 0
   , interiorCycles :: Array SankeyLink -- All other back-edges
   }
+
+-- | Classified layout result. Each constructor carries exactly the data
+-- | its rendering strategy needs. Pattern match to select the right renderer.
+data RibbonLayout
+  = AcyclicLayout
+      { nodes :: Array SankeyNode
+      , links :: Array SankeyLink
+      }
+  | EndCyclicLayout
+      { nodes :: Array SankeyNode
+      , links :: Array SankeyLink
+      , endCycles :: Array SankeyLink
+      }
+  | InteriorCyclicLayout
+      { nodes :: Array SankeyNode
+      , links :: Array SankeyLink
+      , interiorCycles :: Array SankeyLink
+      }
+  | MixedCyclicLayout
+      { nodes :: Array SankeyNode
+      , links :: Array SankeyLink
+      , endCycles :: Array SankeyLink
+      , interiorCycles :: Array SankeyLink
+      }
+
+-- | Classify a layout result into the appropriate rendering variant.
+classifyLayout :: SankeyLayoutResult -> RibbonLayout
+classifyLayout result = case result.cycleAnalysis.topology of
+  Acyclic -> AcyclicLayout
+    { nodes: result.nodes, links: result.links }
+  EndCyclic -> EndCyclicLayout
+    { nodes: result.nodes, links: result.links
+    , endCycles: result.cycleAnalysis.endCycles }
+  InteriorCyclic -> InteriorCyclicLayout
+    { nodes: result.nodes, links: result.links
+    , interiorCycles: result.cycleAnalysis.interiorCycles }
+  MixedCyclic -> MixedCyclicLayout
+    { nodes: result.nodes, links: result.links
+    , endCycles: result.cycleAnalysis.endCycles
+    , interiorCycles: result.cycleAnalysis.interiorCycles }
 
 -- | The flows incident on a node, separated by direction
 type FlowContext =
