@@ -9,9 +9,6 @@
               "arrays": ">=7.3.0 <8.0.0"
             },
             {
-              "debug": ">=6.0.2 <7.0.0"
-            },
-            {
               "either": ">=6.1.0 <7.0.0"
             },
             {
@@ -393,15 +390,6 @@
         "partial",
         "prelude",
         "tuples"
-      ]
-    },
-    "debug": {
-      "type": "registry",
-      "version": "6.0.2",
-      "integrity": "sha256-d/EzRm/J2JyzvlIeo2Ex78Y7HRB0IXBitnVJywL4gHk=",
-      "dependencies": [
-        "functions",
-        "prelude"
       ]
     },
     "distributive": {
