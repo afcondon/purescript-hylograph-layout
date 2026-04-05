@@ -6,7 +6,7 @@ package:
   description: Pure PureScript implementations of D3-style layout algorithms
     (tree, pack, sankey, edge-bundle, etc.)
   publish:
-    version: 0.2.1
+    version: 0.3.0
     license: MIT
     location:
       githubOwner: afcondon
