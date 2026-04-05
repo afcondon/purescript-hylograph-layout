@@ -52,7 +52,8 @@ import Hylograph.HATS.InterpreterTick as HATSInterp
 import Hylograph.Internal.Element.Types (ElementType(..))
 import Hylograph.Transform (clearContainer)
 
-import DataViz.Layout.Sankey.Types (LinkCSVRow)
+import Data.Array (catMaybes) as Array
+import DataViz.Layout.Sankey.Types (LinkCSVRow, RibbonLayout(..), SankeyLink, SankeyNode, classifyLayout)
 import Gallery.FlowData (SankeyData, MatrixData, EdgeBundleData)
 
 -- =============================================================================
@@ -699,31 +700,163 @@ renderSankey selector sankeyData = do
   pure unit
 
 -- | Render a wide Sankey diagram from raw link data at a given size.
--- | Used by the Ribbon demo page for full-width diagrams.
+-- | Dispatches on cycle topology: acyclic gets standard rendering,
+-- | end-cyclic gets ghost copies with back-edge ribbons.
 renderSankeyWide :: String -> Array LinkCSVRow -> Number -> Number -> Effect Unit
 renderSankeyWide selector links w h = do
+  let layoutResult = Sankey.computeLayout links w h
+  case classifyLayout layoutResult of
+    EndCyclicLayout r -> renderEndCyclic selector w h r.nodes r.links r.endCycles
+    _ -> renderAcyclic selector w h layoutResult.nodes layoutResult.links
+
+-- | Standard acyclic rendering (also used for interior/mixed until they get their own algorithms)
+renderAcyclic :: String -> Number -> Number -> Array SankeyNode -> Array SankeyLink -> Effect Unit
+renderAcyclic selector w h nodes links = do
   let
-    layoutResult = Sankey.computeLayout links w h
-    nodeFlats = layoutResult.nodes <#> \n ->
-      { name: n.name, x0: n.x0, y0: n.y0, x1: n.x1, y1: n.y1 }
-    linkFlats = layoutResult.links <#> \link ->
-      { pathD: SankeyPath.generateLinkPath layoutResult.nodes link
-      , sourceName: fromMaybe "" $ map _.name $ SankeyPath.findNode layoutResult.nodes link.sourceIndex
-      , targetName: fromMaybe "" $ map _.name $ SankeyPath.findNode layoutResult.nodes link.targetIndex
-      }
-    tree = buildSankeyWide w h nodeFlats linkFlats
+    nodeFlats = toNodeFlats nodes
+    linkFlats = toLinkFlats nodes links
+    tree = buildAcyclicTree w h nodeFlats linkFlats
   _ <- HATSInterp.rerender selector tree
   pure unit
 
-buildSankeyWide :: Number -> Number -> Array SankeyNodeFlat -> Array SankeyLinkFlat -> HATS.Tree
-buildSankeyWide w h nodes links =
+-- | End-cyclic rendering: faded predecessor | full central | faded successor
+-- | with back-edge ribbons connecting central's last layer to successor's first layer
+renderEndCyclic :: String -> Number -> Number -> Array SankeyNode -> Array SankeyLink -> Array SankeyLink -> Effect Unit
+renderEndCyclic selector w h nodes links endCycles = do
+  let
+    nodeFlats = toNodeFlats nodes
+    linkFlats = toLinkFlats nodes links
+    -- Gap between copies — slightly wider than inter-layer spacing for visual break
+    gap = w * 0.06
+    copyOffset = w + gap
+    backEdgeFlats = Array.catMaybes $ endCycles <#> \link ->
+      buildBackEdgeRibbon nodes copyOffset link
+    ghostW = w * 0.35
+    tree = buildEndCyclicTree w h ghostW copyOffset nodeFlats linkFlats backEdgeFlats
+  _ <- HATSInterp.rerender selector tree
+  pure unit
+
+-- | Flatten nodes for rendering
+toNodeFlats :: Array SankeyNode -> Array SankeyNodeFlat
+toNodeFlats nodes = nodes <#> \n ->
+  { name: n.name, x0: n.x0, y0: n.y0, x1: n.x1, y1: n.y1 }
+
+-- | Flatten links for rendering
+toLinkFlats :: Array SankeyNode -> Array SankeyLink -> Array SankeyLinkFlat
+toLinkFlats nodes links = links <#> \link ->
+  { pathD: SankeyPath.generateLinkPath nodes link
+  , sourceName: fromMaybe "" $ map _.name $ SankeyPath.findNode nodes link.sourceIndex
+  , targetName: fromMaybe "" $ map _.name $ SankeyPath.findNode nodes link.targetIndex
+  }
+
+-- | Build a back-edge ribbon path connecting the central diagram's source node
+-- | to the successor copy's target node (shifted by copyOffset = w + gap)
+buildBackEdgeRibbon :: Array SankeyNode -> Number -> SankeyLink -> Maybe SankeyLinkFlat
+buildBackEdgeRibbon nodes copyOffset link = do
+  source <- SankeyPath.findNode nodes link.sourceIndex
+  target <- SankeyPath.findNode nodes link.targetIndex
+  let
+    -- Source: right edge of node in central diagram
+    sx = source.x1
+    sy = (source.y0 + source.y1) / 2.0
+    -- Target: left edge of node in successor copy (shifted by copyOffset)
+    tx = target.x0 + copyOffset
+    ty = (target.y0 + target.y1) / 2.0
+    -- Ribbon half-width
+    hw = link.width / 2.0
+    -- Bezier control point x (midpoint between source and target)
+    xi = (sx + tx) / 2.0
+    n = toStringWith (fixed 1)
+    pathD = "M" <> n sx <> "," <> n (sy - hw)
+      <> " C" <> n xi <> "," <> n (sy - hw)
+      <> " " <> n xi <> "," <> n (ty - hw)
+      <> " " <> n tx <> "," <> n (ty - hw)
+      <> " L" <> n tx <> "," <> n (ty + hw)
+      <> " C" <> n xi <> "," <> n (ty + hw)
+      <> " " <> n xi <> "," <> n (sy + hw)
+      <> " " <> n sx <> "," <> n (sy + hw)
+      <> " Z"
+  pure { pathD, sourceName: source.name, targetName: target.name }
+
+-- =============================================================================
+-- HATS Tree Builders
+-- =============================================================================
+
+buildAcyclicTree :: Number -> Number -> Array SankeyNodeFlat -> Array SankeyLinkFlat -> HATS.Tree
+buildAcyclicTree w h nodes links =
   HATS.elem SVG
     [ F.viewBox 0.0 0.0 (w + 20.0) (h + 20.0), F.preserveAspectRatio "xMidYMid meet" ]
     [ HATS.elem Group [ F.transform "translate(10,10)" ]
-        [ linksLayer <> nodesLayer ]
+        [ sankeyLinksLayer "sankey-links" links <> sankeyNodesLayer "sankey-nodes" nodes ]
     ]
-  where
-  linksLayer = HATS.forEach "sankey-links" Path links (\l -> l.sourceName <> "-" <> l.targetName) \link ->
+
+buildEndCyclicTree :: Number -> Number -> Number -> Number -> Array SankeyNodeFlat -> Array SankeyLinkFlat -> Array SankeyLinkFlat -> HATS.Tree
+buildEndCyclicTree w h ghostW copyOffset nodes links backEdges =
+  let
+    totalW = 2.0 * ghostW + 2.0 * copyOffset - w + 20.0
+    offsetX = ghostW + 10.0
+    n = toStringWith (fixed 1)
+  in
+    HATS.elem SVG
+      [ F.viewBox 0.0 0.0 totalW (h + 20.0), F.preserveAspectRatio "xMidYMid meet" ]
+      [ HATS.elem Group [ F.transform ("translate(" <> n offsetX <> ",10)") ]
+          [ -- Predecessor ghost: fades from transparent (left) to near-opaque (right)
+            HATS.elem Group
+              [ F.transform ("translate(" <> n (-copyOffset) <> ",0)")
+              , F.style (cssMask "to right")
+              ]
+              [ sankeyLinksLayer "pred-links" links
+                <> sankeyNodesLayer "pred-nodes" nodes
+              ]
+          , -- Central diagram
+            HATS.elem Group []
+              [ sankeyLinksLayer "sankey-links" links
+                <> sankeyNodesLayer "sankey-nodes" nodes
+              ]
+          , -- Successor ghost: fades from near-opaque (left) to transparent (right)
+            HATS.elem Group
+              [ F.transform ("translate(" <> n copyOffset <> ",0)")
+              , F.style (cssMask "to left")
+              ]
+              [ sankeyLinksLayer "succ-links" links
+                <> sankeyNodesLayer "succ-nodes" nodes
+              ]
+          , -- Back-edge ribbons connecting central's last layer to successor's first layer
+            if Array.null backEdges then HATS.elem Group [] []
+            else HATS.forEach "end-cycle-links" Path backEdges
+                   (\l -> "cycle-" <> l.sourceName <> "-" <> l.targetName) \link ->
+                   let linkId = "cycle-" <> link.sourceName <> "-" <> link.targetName
+                   in HATS.withBehaviors
+                        [ HATS.onCoordinatedHighlight
+                            { identify: linkId
+                            , classify: \hoveredId ->
+                                if hoveredId == linkId then HATS.Primary
+                                else if hoveredId == link.sourceName || hoveredId == link.targetName then HATS.Related
+                                else HATS.Dimmed
+                            , group: Nothing
+                            }
+                        ] $
+                        HATS.elem Path
+                          [ F.d link.pathD
+                          , F.fill "rgba(140, 100, 70, 0.35)"
+                          , F.class_ "cycle-link"
+                          ] []
+          ]
+      ]
+
+-- | CSS gradient mask for progressive ghost fading.
+-- | Direction is "to right" (predecessor) or "to left" (successor).
+cssMask :: String -> String
+cssMask dir =
+  -- We only show ~35% of each ghost, so the gradient must be steep:
+  -- stay transparent for the hidden 60%, then ramp in the visible 40%
+  let grad = "linear-gradient(" <> dir <> ", transparent 0%, transparent 55%, rgba(0,0,0,0.9) 100%)"
+  in "-webkit-mask-image: " <> grad <> "; mask-image: " <> grad
+
+-- | Reusable links layer with coordinated highlighting
+sankeyLinksLayer :: String -> Array SankeyLinkFlat -> HATS.Tree
+sankeyLinksLayer groupName links =
+  HATS.forEach groupName Path links (\l -> l.sourceName <> "-" <> l.targetName) \link ->
     let linkIdentity = link.sourceName <> "-" <> link.targetName
     in HATS.withBehaviors
          [ HATS.onCoordinatedHighlight
@@ -741,7 +874,10 @@ buildSankeyWide w h nodes links =
            , F.class_ "sankey-link"
            ] []
 
-  nodesLayer = HATS.forEach "sankey-nodes" Rect nodes _.name \node ->
+-- | Reusable nodes layer with coordinated highlighting
+sankeyNodesLayer :: String -> Array SankeyNodeFlat -> HATS.Tree
+sankeyNodesLayer groupName nodes =
+  HATS.forEach groupName Rect nodes _.name \node ->
     let
       nodeW = node.x1 - node.x0
       nodeH = node.y1 - node.y0
