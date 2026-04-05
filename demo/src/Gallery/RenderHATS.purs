@@ -15,6 +15,7 @@ module Gallery.RenderHATS
   , renderIcicle
   , renderTreemap
   , renderSankey
+  , renderSankeyWide
   , renderChord
   , renderEdgeBundle
   , renderAdjacency
@@ -51,6 +52,7 @@ import Hylograph.HATS.InterpreterTick as HATSInterp
 import Hylograph.Internal.Element.Types (ElementType(..))
 import Hylograph.Transform (clearContainer)
 
+import DataViz.Layout.Sankey.Types (LinkCSVRow)
 import Gallery.FlowData (SankeyData, MatrixData, EdgeBundleData)
 
 -- =============================================================================
@@ -695,6 +697,68 @@ renderSankey selector sankeyData = do
     tree = buildSankey nodeFlats linkFlats
   _ <- HATSInterp.rerender selector tree
   pure unit
+
+-- | Render a wide Sankey diagram from raw link data at a given size.
+-- | Used by the Ribbon demo page for full-width diagrams.
+renderSankeyWide :: String -> Array LinkCSVRow -> Number -> Number -> Effect Unit
+renderSankeyWide selector links w h = do
+  let
+    layoutResult = Sankey.computeLayout links w h
+    nodeFlats = layoutResult.nodes <#> \n ->
+      { name: n.name, x0: n.x0, y0: n.y0, x1: n.x1, y1: n.y1 }
+    linkFlats = layoutResult.links <#> \link ->
+      { pathD: SankeyPath.generateLinkPath layoutResult.nodes link
+      , sourceName: fromMaybe "" $ map _.name $ SankeyPath.findNode layoutResult.nodes link.sourceIndex
+      , targetName: fromMaybe "" $ map _.name $ SankeyPath.findNode layoutResult.nodes link.targetIndex
+      }
+    tree = buildSankeyWide w h nodeFlats linkFlats
+  _ <- HATSInterp.rerender selector tree
+  pure unit
+
+buildSankeyWide :: Number -> Number -> Array SankeyNodeFlat -> Array SankeyLinkFlat -> HATS.Tree
+buildSankeyWide w h nodes links =
+  HATS.elem SVG
+    [ F.viewBox 0.0 0.0 (w + 20.0) (h + 20.0), F.preserveAspectRatio "xMidYMid meet" ]
+    [ HATS.elem Group [ F.transform "translate(10,10)" ]
+        [ linksLayer <> nodesLayer ]
+    ]
+  where
+  linksLayer = HATS.forEach "sankey-links" Path links (\l -> l.sourceName <> "-" <> l.targetName) \link ->
+    let linkIdentity = link.sourceName <> "-" <> link.targetName
+    in HATS.withBehaviors
+         [ HATS.onCoordinatedHighlight
+             { identify: linkIdentity
+             , classify: \hoveredId ->
+                 if hoveredId == linkIdentity then HATS.Primary
+                 else if hoveredId == link.sourceName || hoveredId == link.targetName then HATS.Related
+                 else HATS.Dimmed
+             , group: Nothing
+             }
+         ] $
+         HATS.elem Path
+           [ F.d link.pathD
+           , F.fill "rgba(168, 159, 145, 0.3)"
+           , F.class_ "sankey-link"
+           ] []
+
+  nodesLayer = HATS.forEach "sankey-nodes" Rect nodes _.name \node ->
+    let
+      nodeW = node.x1 - node.x0
+      nodeH = node.y1 - node.y0
+    in HATS.withBehaviors
+         [ HATS.onCoordinatedHighlight
+             { identify: node.name
+             , classify: classifySimple node.name
+             , group: Nothing
+             }
+         ] $
+         HATS.elem Rect
+           [ F.x node.x0, F.y node.y0
+           , F.width nodeW, F.height nodeH
+           , F.fill (mutedFlow 0)
+           , F.class_ "sankey-node"
+           , F.style "cursor: pointer"
+           ] []
 
 buildSankey :: Array SankeyNodeFlat -> Array SankeyLinkFlat -> HATS.Tree
 buildSankey nodes links =

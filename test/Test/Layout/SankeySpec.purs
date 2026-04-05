@@ -18,7 +18,7 @@ import Effect (Effect)
 import Effect.Console (log)
 import Foreign.Object as FO
 import DataViz.Layout.Sankey.Compute (computeLayout)
-import DataViz.Layout.Sankey.Types (LinkCSVRow, SankeyLayoutResult, SankeyNode, SankeyLink, NodeID(..))
+import DataViz.Layout.Sankey.Types (CycleTopology(..), LinkCSVRow, SankeyLayoutResult, SankeyNode, SankeyLink, NodeID(..))
 import Test.Golden.Util (GoldenResult(..), assertGolden)
 
 -- | Simple test data: a small flow network
@@ -53,6 +53,33 @@ fanInData =
   [ { s: "Source1", t: "Sink", v: 30.0 }
   , { s: "Source2", t: "Sink", v: 40.0 }
   , { s: "Source3", t: "Sink", v: 30.0 }
+  ]
+
+-- | End cycle: A→B→C→A (back-edge from last layer to first)
+endCycleData :: Array LinkCSVRow
+endCycleData =
+  [ { s: "A", t: "B", v: 10.0 }
+  , { s: "B", t: "C", v: 10.0 }
+  , { s: "C", t: "A", v: 10.0 }
+  ]
+
+-- | Interior cycle: A→B→C→D with B→A back-edge (layer 1 to layer 0, not max→0)
+interiorCycleData :: Array LinkCSVRow
+interiorCycleData =
+  [ { s: "A", t: "B", v: 10.0 }
+  , { s: "B", t: "C", v: 10.0 }
+  , { s: "C", t: "D", v: 10.0 }
+  , { s: "B", t: "A", v: 5.0 }
+  ]
+
+-- | Mixed: end cycle + interior cycle
+mixedCycleData :: Array LinkCSVRow
+mixedCycleData =
+  [ { s: "A", t: "B", v: 10.0 }
+  , { s: "B", t: "C", v: 10.0 }
+  , { s: "C", t: "D", v: 10.0 }
+  , { s: "D", t: "A", v: 5.0 } -- end cycle: last layer → first layer
+  , { s: "C", t: "B", v: 3.0 } -- interior cycle: layer 2 → layer 1
   ]
 
 -- | Convert SankeyNode to JSON for golden comparison
@@ -140,9 +167,62 @@ runSankeyTests = do
   r4 <- assertGolden "sankey-fan-in.golden.json" (stringify $ resultToJson result4)
   logResult "Fan-in" r4
 
+  -- Test 5: End cycle (C→A is back-edge from last layer to first)
+  log "\nTest 5: End cycle"
+  let result5 = computeLayout endCycleData 800.0 600.0
+  log $ "  Nodes: " <> show (Array.length result5.nodes)
+  log $ "  Forward links: " <> show (Array.length result5.links)
+  log $ "  End cycles: " <> show (Array.length result5.cycleAnalysis.endCycles)
+  log $ "  Interior cycles: " <> show (Array.length result5.cycleAnalysis.interiorCycles)
+  log $ "  Topology: " <> show result5.cycleAnalysis.topology
+  let r5 = if result5.cycleAnalysis.topology == EndCyclic
+            && Array.length result5.links == 2
+            && Array.length result5.cycleAnalysis.endCycles == 1
+            then GoldenMatch
+            else GoldenMismatch "" ""
+  logResult "End cycle" r5
+
+  -- Test 6: Interior cycle (B→A is back-edge from layer 1 to layer 0, not max layer)
+  log "\nTest 6: Interior cycle"
+  let result6 = computeLayout interiorCycleData 800.0 600.0
+  log $ "  Nodes: " <> show (Array.length result6.nodes)
+  log $ "  Forward links: " <> show (Array.length result6.links)
+  log $ "  End cycles: " <> show (Array.length result6.cycleAnalysis.endCycles)
+  log $ "  Interior cycles: " <> show (Array.length result6.cycleAnalysis.interiorCycles)
+  log $ "  Topology: " <> show result6.cycleAnalysis.topology
+  let r6 = if result6.cycleAnalysis.topology == InteriorCyclic
+            && Array.length result6.cycleAnalysis.interiorCycles == 1
+            then GoldenMatch
+            else GoldenMismatch "" ""
+  logResult "Interior cycle" r6
+
+  -- Test 7: Mixed cycles (both end and interior)
+  log "\nTest 7: Mixed cycles"
+  let result7 = computeLayout mixedCycleData 800.0 600.0
+  log $ "  Nodes: " <> show (Array.length result7.nodes)
+  log $ "  Forward links: " <> show (Array.length result7.links)
+  log $ "  End cycles: " <> show (Array.length result7.cycleAnalysis.endCycles)
+  log $ "  Interior cycles: " <> show (Array.length result7.cycleAnalysis.interiorCycles)
+  log $ "  Topology: " <> show result7.cycleAnalysis.topology
+  let r7 = if result7.cycleAnalysis.topology == MixedCyclic
+            && Array.length result7.cycleAnalysis.endCycles == 1
+            && Array.length result7.cycleAnalysis.interiorCycles == 1
+            then GoldenMatch
+            else GoldenMismatch "" ""
+  logResult "Mixed cycles" r7
+
+  -- Test 8: Acyclic data produces Acyclic topology
+  log "\nTest 8: Acyclic topology check"
+  let r8 = if result1.cycleAnalysis.topology == Acyclic
+            && Array.null result1.cycleAnalysis.endCycles
+            && Array.null result1.cycleAnalysis.interiorCycles
+            then GoldenMatch
+            else GoldenMismatch "" ""
+  logResult "Acyclic topology" r8
+
   -- Count failures
-  let failures = countFailures [r1, r2, r3, r4]
-  log $ "\nSankey tests: " <> show (4 - failures) <> "/4 passed"
+  let failures = countFailures [r1, r2, r3, r4, r5, r6, r7, r8]
+  log $ "\nSankey tests: " <> show (8 - failures) <> "/8 passed"
   pure failures
 
 logResult :: String -> GoldenResult -> Effect Unit

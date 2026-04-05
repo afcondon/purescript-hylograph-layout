@@ -9,6 +9,9 @@
               "arrays": ">=7.3.0 <8.0.0"
             },
             {
+              "debug": ">=6.0.2 <7.0.0"
+            },
+            {
               "either": ">=6.1.0 <7.0.0"
             },
             {
@@ -392,6 +395,15 @@
         "tuples"
       ]
     },
+    "debug": {
+      "type": "registry",
+      "version": "6.0.2",
+      "integrity": "sha256-d/EzRm/J2JyzvlIeo2Ex78Y7HRB0IXBitnVJywL4gHk=",
+      "dependencies": [
+        "functions",
+        "prelude"
+      ]
+    },
     "distributive": {
       "type": "registry",
       "version": "6.0.0",
@@ -770,8 +782,8 @@
     },
     "hylograph-selection": {
       "type": "registry",
-      "version": "0.3.1",
-      "integrity": "sha256-02bb82LelMRywIs5ZvTtwLCnBh8VXrjbSpx+to2nRl8=",
+      "version": "0.3.4",
+      "integrity": "sha256-v6GH6EqcK24ed5BNsUB4qEefnejHJ324MSgOBMPJHRQ=",
       "dependencies": [
         "arrays",
         "colors",

@@ -19,6 +19,8 @@ module DataViz.Layout.Sankey.Types
   , SankeyStep
   , Alignment(..)
   , LinkColorMode(..)
+  , CycleTopology(..)
+  , CycleAnalysis
   , FlowContext
   , NodeValueStrategy(..)
   , sankeyNodeValue
@@ -32,9 +34,8 @@ module DataViz.Layout.Sankey.Types
 import Prelude
 
 import Data.Foldable (foldl)
+import Data.Graph.Weighted (WeightedDigraph)
 import Data.Graph.Weighted as WG
-import Data.Graph.Weighted.DAG (DAG)
-import Data.Graph.Weighted.DAG as DAG
 import Data.Map (Map, empty, lookup) as Map
 import Data.Maybe (Maybe)
 import Data.Set as Set
@@ -115,6 +116,7 @@ initialiseSankeyLink l =
 type SankeyLayoutResult =
   { nodes :: Array SankeyNode
   , links :: Array SankeyLink
+  , cycleAnalysis :: CycleAnalysis
   }
 
 -- | Configuration for Sankey layout algorithm
@@ -159,6 +161,30 @@ instance showLinkColorMode :: Show LinkColorMode where
   show TargetColor = "target"
   show SourceTargetGradient = "source-target"
   show (StaticColor c) = "static(" <> c <> ")"
+
+-- | Classification of cycle topology in a flow graph.
+-- | Determined after layer assignment by examining back-edge endpoints.
+data CycleTopology
+  = Acyclic -- No cycles: pure DAG
+  | EndCyclic -- Back-edges only from final layer to first layer
+  | InteriorCyclic -- Back-edges between non-terminal layers
+  | MixedCyclic -- Both end-cyclic and interior-cyclic back-edges
+
+derive instance eqCycleTopology :: Eq CycleTopology
+derive instance ordCycleTopology :: Ord CycleTopology
+
+instance showCycleTopology :: Show CycleTopology where
+  show Acyclic = "Acyclic"
+  show EndCyclic = "EndCyclic"
+  show InteriorCyclic = "InteriorCyclic"
+  show MixedCyclic = "MixedCyclic"
+
+-- | Analysis of back-edges in a flow graph, computed after layout.
+type CycleAnalysis =
+  { topology :: CycleTopology
+  , endCycles :: Array SankeyLink -- Back-edges from max layer to layer 0
+  , interiorCycles :: Array SankeyLink -- All other back-edges
+  }
 
 -- | The flows incident on a node, separated by direction
 type FlowContext =
@@ -216,9 +242,10 @@ type SankeyGraphModel =
   , nodeNameToID :: NodeIDMap
   , nodeIDToName :: NodeNameMap
   , nodeOrder :: Array NodeID -- Nodes in encounter order (matches D3's Set insertion order)
-  , graph :: DAG NodeID Number -- DAG for adjacency lookups (replaces deps/sped)
+  , graph :: WeightedDigraph NodeID Number -- Directed graph for adjacency lookups
   , sankeyNodes :: Array SankeyNode
-  , sankeyLinks :: Array SankeyLink
+  , sankeyLinks :: Array SankeyLink -- Forward links (used for layout)
+  , backEdgeLinks :: Array SankeyLink -- Back-edge links (excluded from layout)
   , config :: SankeyConfig
   , capturedSteps :: Array SankeyStep -- For debugging: intermediate states
   }
@@ -231,9 +258,10 @@ initialSankeyGraphModel config =
   , nodeNameToID: Map.empty
   , nodeIDToName: Map.empty
   , nodeOrder: [] -- Will be populated in encounter order
-  , graph: DAG.unsafeFromWeightedDigraph WG.empty -- Start with empty DAG
+  , graph: WG.empty
   , sankeyNodes: []
   , sankeyLinks: []
+  , backEdgeLinks: []
   , config
   , capturedSteps: []
   }
@@ -241,9 +269,9 @@ initialSankeyGraphModel config =
 initialiseSankeyNode :: SankeyGraphModel -> NodeID -> Maybe SankeyNode
 initialiseSankeyNode m id = do
   name <- Map.lookup id m.nodeIDToName
-  -- Get adjacency from DAG: outgoing targets and incoming sources
-  let sourceLinks = Set.fromFoldable $ map _.target $ DAG.outgoing id m.graph
-  let targetLinks = Set.fromFoldable $ map _.source $ DAG.incoming id m.graph
+  -- Get adjacency from graph: outgoing targets and incoming sources
+  let sourceLinks = Set.fromFoldable $ map _.target $ WG.outgoing id m.graph
+  let targetLinks = Set.fromFoldable $ map _.source $ WG.incoming id m.graph
   pure $
     { name
     , x0: 0.0

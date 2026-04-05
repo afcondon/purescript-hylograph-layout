@@ -17,14 +17,16 @@ import Control.Monad.State (State, execState, get, modify_)
 import Data.Array (catMaybes, filter, find, foldl, length, mapWithIndex, snoc, sortBy, (!!))
 import Data.Array as Array
 import Data.Foldable (for_)
-import Data.Graph.Weighted.DAG as DAG
+import Data.Graph.Algorithms (hasCycle)
+import Data.Graph.Weighted as WG
 import Data.Int (toNumber)
 import Data.Map as M
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Number (pow)
 import Data.Set as Set
-import DataViz.Layout.Sankey.Types (Alignment(..), FlowContext, LinkCSVRow, LinkColorMode(..), LinkID(..), NodeID(..), NodeValueStrategy(..), SankeyConfig, SankeyGraphModel, SankeyLayoutResult, SankeyLink, SankeyNode, defaultSankeyConfig, initialSankeyGraphModel, initialiseSankeyLink, initialiseSankeyNode)
+import Data.Tuple (Tuple(..))
+import DataViz.Layout.Sankey.Types (Alignment(..), CycleAnalysis, CycleTopology(..), FlowContext, LinkCSVRow, LinkColorMode(..), LinkID(..), NodeID(..), NodeValueStrategy(..), SankeyConfig, SankeyGraphModel, SankeyLayoutResult, SankeyLink, SankeyNode, defaultSankeyConfig, initialSankeyGraphModel, initialiseSankeyLink, initialiseSankeyNode)
 
 -- Constants
 epsilon :: Number
@@ -54,36 +56,25 @@ computeLayoutWithConfig linkInputs config =
   let
     -- Run the State computation to build and compute layout
     finalModel = execState computeSankeyLayout $ initialSankeyGraphModel config
+    cycleAnalysis = classifyBackEdges finalModel.sankeyNodes finalModel.backEdgeLinks
   in
     { nodes: finalModel.sankeyNodes
     , links: finalModel.sankeyLinks
+    , cycleAnalysis
     }
   where
   -- State computation that runs all layout steps
   computeSankeyLayout :: State SankeyGraphModel Unit
   computeSankeyLayout = do
-    -- Step 1: Build graph from link inputs (creates nodes and links)
     for_ linkInputs processCSVLink
+    detectAndRemoveBackEdges
     initialiseSankeyNodes
-
-    -- Step 2: Compute node links (populate sourceLinks/targetLinks arrays)
-
-    -- Step 3: Compute node values (max flow through each node)
     computeNodeValues
-
-    -- Step 4: Compute node depths (left-to-right BFS)
     computeNodeDepths
-
-    -- Step 5: Compute node heights (right-to-left BFS)
     computeNodeHeights
-
-    -- Step 6: Compute node breadths (vertical positioning with relaxation)
     computeNodeBreadths
-
-    -- Step 7: Compute link breadths (link y0/y1 positions)
     computeLinkBreadths
-
-    -- Step 8: Assign colors
+    computeBackEdgeWidths
     assignColors
 
 -- ============================================================================
@@ -121,7 +112,7 @@ processCSVLink link = do
     , nodeNameToID = M.insert link.s sid $ M.insert link.t tid model.nodeNameToID
     , nodeIDToName = M.insert sid link.s $ M.insert tid link.t model.nodeIDToName
     , nodeOrder = model.nodeOrder <> newNodes -- Append new nodes in encounter order
-    , graph = DAG.unsafeAddEdge sid tid link.v model.graph -- Add edge to DAG
+    , graph = WG.addEdge sid tid link.v model.graph -- Add edge to digraph
     , sankeyLinks =
         snoc model.sankeyLinks $ initialiseSankeyLink { source: sid, target: tid, value: link.v, id: LinkID model.linkCount }
     }
@@ -138,6 +129,66 @@ initialiseSankeyNodes = do
   modify_ _ { sankeyNodes = sankeyNodes }
 
 -- ============================================================================
+-- Step 1.5: Detect and remove back-edges (cycle support)
+-- ============================================================================
+
+-- | Detect cycles in the graph and partition edges into forward and back-edges.
+-- | Uses DFS edge classification to find all back-edges in a single pass.
+-- | After this step, model.graph contains only forward edges (safe for BFS),
+-- | model.sankeyLinks has forward links, and model.backEdgeLinks has back-edge links.
+detectAndRemoveBackEdges :: State SankeyGraphModel Unit
+detectAndRemoveBackEdges = do
+  model <- get
+  let simpleGraph = WG.toSimpleGraph model.graph
+  if not (hasCycle simpleGraph) then pure unit -- Acyclic: no changes needed
+  else do
+    -- Graph has cycles: find all back-edges via DFS edge classification
+    let backEdgePairs = findBackEdgePairs model.graph
+    let isBackEdge link = Set.member (Tuple link.sourceIndex link.targetIndex) backEdgePairs
+    let { yes: backLinks, no: forwardLinks } = partitionArray isBackEdge model.sankeyLinks
+    -- Rebuild graph from forward edges only
+    let forwardEdges = Array.filter (\e -> not (Set.member (Tuple e.source e.target) backEdgePairs)) (WG.edges model.graph)
+    let forwardGraph = WG.fromEdges forwardEdges
+    modify_ _ { graph = forwardGraph, sankeyLinks = forwardLinks, backEdgeLinks = backLinks }
+
+-- | Find all back-edge pairs using DFS three-color marking.
+-- | An edge (u, v) is a back-edge if v is gray (in the current DFS stack) when visited from u.
+findBackEdgePairs :: WG.WeightedDigraph NodeID Number -> Set.Set (Tuple NodeID NodeID)
+findBackEdgePairs graph =
+  let
+    allNodes = WG.nodes graph
+    initial = { white: Set.fromFoldable allNodes, gray: Set.empty, black: Set.empty, backEdges: Set.empty }
+    result = foldl (\state node ->
+      if Set.member node state.white then dfsClassify state node
+      else state
+    ) initial allNodes
+  in result.backEdges
+  where
+  dfsClassify state node =
+    let
+      state' = state
+        { white = Set.delete node state.white
+        , gray = Set.insert node state.gray
+        }
+      neighbors = WG.outgoing node graph
+      state'' = foldl (\st edge ->
+        if Set.member edge.target st.gray then
+          st { backEdges = Set.insert (Tuple node edge.target) st.backEdges }
+        else if Set.member edge.target st.white then
+          dfsClassify st edge.target
+        else st
+      ) state' neighbors
+    in
+      state'' { gray = Set.delete node state''.gray, black = Set.insert node state''.black }
+
+-- | Partition an array by a predicate
+partitionArray :: forall a. (a -> Boolean) -> Array a -> { yes :: Array a, no :: Array a }
+partitionArray pred arr = foldl
+  (\acc x -> if pred x then acc { yes = snoc acc.yes x } else acc { no = snoc acc.no x })
+  { yes: [], no: [] }
+  arr
+
+-- ============================================================================
 -- Step 2: computeNodeLinks - Build sourceLinks/targetLinks arrays
 -- ============================================================================
 -- | Done in first pass in PureScript solution
@@ -147,12 +198,14 @@ initialiseSankeyNodes = do
 -- ============================================================================
 
 -- | For each node, compute value using the configured node value strategy.
--- | For Sankey diagrams this is max(sum inflows, sum outflows).
+-- | Includes BOTH forward and back-edge flows for accurate node sizing.
 computeNodeValues :: State SankeyGraphModel Unit
 computeNodeValues = do
   model <- get
   let (NodeValueStrategy valueFn) = model.config.nodeValueStrategy
-  let updatedNodes = (setNodeValue valueFn model.sankeyLinks) <$> model.sankeyNodes
+  -- Include all flows (forward + back-edge) so node values reflect total throughput
+  let allLinks = model.sankeyLinks <> model.backEdgeLinks
+  let updatedNodes = (setNodeValue valueFn allLinks) <$> model.sankeyNodes
   modify_ _ { sankeyNodes = updatedNodes }
   where
   setNodeValue :: (FlowContext -> Number) -> Array SankeyLink -> SankeyNode -> SankeyNode
@@ -961,6 +1014,52 @@ computeLinkBreadths = do
       linksWithY1
 
 -- ============================================================================
+-- Step 7.5: Compute back-edge link widths
+-- ============================================================================
+
+-- | Set widths on back-edge links using the same scale factor as forward links.
+-- | y0/y1 remain at 0.0 — the renderer positions back-edges differently.
+computeBackEdgeWidths :: State SankeyGraphModel Unit
+computeBackEdgeWidths = do
+  model <- get
+  let config = model.config
+  let ky = calculateGlobalKy model.sankeyNodes config.extent.y0 config.extent.y1 config.nodePadding
+  let backLinksWithWidth = map (\link -> link { width = link.value * ky }) model.backEdgeLinks
+  modify_ _ { backEdgeLinks = backLinksWithWidth }
+
+-- ============================================================================
+-- Cycle classification
+-- ============================================================================
+
+-- | Classify back-edges into end-cyclic and interior-cyclic based on node layers.
+-- | End-cyclic: source in max layer AND target in layer 0 (the diagram "repeats").
+-- | Interior-cyclic: all other back-edges (local loops within the diagram).
+classifyBackEdges :: Array SankeyNode -> Array SankeyLink -> CycleAnalysis
+classifyBackEdges nodes backLinks =
+  if Array.null backLinks then
+    { topology: Acyclic, endCycles: [], interiorCycles: [] }
+  else
+    let
+      maxLayer = foldl (\acc node -> max acc node.layer) 0 nodes
+      nodeLayerMap = M.fromFoldable $ map (\n -> Tuple n.index n.layer) nodes
+
+      isEndCyclic :: SankeyLink -> Boolean
+      isEndCyclic link =
+        let srcLayer = fromMaybe (-1) $ M.lookup link.sourceIndex nodeLayerMap
+            tgtLayer = fromMaybe (-1) $ M.lookup link.targetIndex nodeLayerMap
+        in srcLayer == maxLayer && tgtLayer == 0
+
+      { yes: endCycles, no: interiorCycles } = partitionArray isEndCyclic backLinks
+
+      topology = case Array.null endCycles, Array.null interiorCycles of
+        true, true -> Acyclic
+        false, true -> EndCyclic
+        true, false -> InteriorCyclic
+        false, false -> MixedCyclic
+    in
+      { topology, endCycles, interiorCycles }
+
+-- ============================================================================
 -- Step 8: Assign Colors
 -- ============================================================================
 
@@ -1011,7 +1110,8 @@ assignColors = do
         StaticColor c ->
           link { color = c }
 
-  -- Assign colors to links based on color mode
+  -- Assign colors to forward links and back-edge links
   let linksWithColor = map (assignLinkColor nodesWithColor config.linkColorMode) model.sankeyLinks
+  let backLinksWithColor = map (assignLinkColor nodesWithColor config.linkColorMode) model.backEdgeLinks
 
-  modify_ _ { sankeyNodes = nodesWithColor, sankeyLinks = linksWithColor }
+  modify_ _ { sankeyNodes = nodesWithColor, sankeyLinks = linksWithColor, backEdgeLinks = backLinksWithColor }

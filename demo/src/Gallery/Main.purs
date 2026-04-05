@@ -11,6 +11,7 @@ import Gallery.LandingPage as LandingPage
 import Gallery.HierarchyPage as HierarchyPage
 import Gallery.FlowPage as FlowPage
 import Gallery.PatternPage as PatternPage
+import Gallery.RibbonPage as RibbonPage
 
 foreign import getLocationHash :: Effect String
 foreign import onHashChange :: Effect Unit -> Effect Unit
@@ -25,6 +26,7 @@ main = do
       "#hierarchy" -> runUI HierarchyPage.component unit body
       "#flow" -> runUI FlowPage.component unit body
       "#pattern" -> runUI PatternPage.component unit body
+      "#ribbon" -> runUI RibbonPage.component unit body
       _ -> runUI LandingPage.component unit body
 
 foreign import reloadPage :: Unit -> Effect Unit

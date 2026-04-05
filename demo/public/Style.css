@@ -1128,3 +1128,86 @@ body {
   vertical-align: middle;
   margin: 0 16px;
 }
+
+/* ==========================================================================
+   Ribbon Page - Cycle Topology Variants
+   ========================================================================== */
+
+.ribbon-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.ribbon-card {
+  border: 2px solid var(--vellum-shadow);
+  border-radius: 8px;
+  background: var(--vellum);
+  padding: 24px 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.ribbon-card-header {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 4px;
+}
+
+.ribbon-card-header h3 {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--ink-brown);
+  margin: 0;
+}
+
+.ribbon-topology-badge {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.topology-Acyclic {
+  background: #e8f0e4;
+  color: var(--forest-green);
+}
+
+.topology-EndCyclic {
+  background: #e4e8f0;
+  color: var(--ultramarine);
+}
+
+.topology-InteriorCyclic {
+  background: #f0e8e4;
+  color: var(--ochre);
+}
+
+.topology-MixedCyclic {
+  background: #f0e4ea;
+  color: var(--tyrian-purple);
+}
+
+.ribbon-card-description {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--ink-sepia);
+  margin: 0 0 16px 0;
+}
+
+.ribbon-viewport {
+  width: 100%;
+  min-height: 200px;
+  border-top: 1px solid var(--vellum-shadow);
+  padding-top: 16px;
+}
+
+.ribbon-viewport svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
