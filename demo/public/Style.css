@@ -988,18 +988,12 @@ body {
    ========================================================================== */
 
 .flow-grid {
-  grid-template-columns: repeat(4, var(--circle-size));
+  grid-template-columns: repeat(3, var(--circle-size));
 }
 
 /* No offset needed for single row */
 .flow-grid .layout-card:nth-child(n) {
   transform: none;
-}
-
-@media (max-width: 1800px) {
-  .flow-grid {
-    grid-template-columns: repeat(4, var(--circle-size));
-  }
 }
 
 @media (max-width: 1500px) {
@@ -1210,4 +1204,50 @@ body {
   width: 100%;
   height: auto;
   display: block;
+}
+
+/* Generalized flow note — manuscript medallion style, rectangular */
+.ribbon-note {
+  background: var(--vellum);
+  border: 3px solid var(--vellum-shadow);
+  border-radius: 8px;
+  padding: 28px 36px;
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  box-shadow:
+    inset 0 2px 8px rgba(0, 0, 0, 0.06),
+    0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Inner decorative border */
+.ribbon-note::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border-radius: 4px;
+  border: 1px solid var(--vellum-shadow);
+  pointer-events: none;
+}
+
+.ribbon-note p {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-style: italic;
+  color: var(--ink-sepia);
+  line-height: 1.7;
+  margin: 0;
+  text-align: center;
+}
+
+.ribbon-note a {
+  color: var(--ultramarine);
+  font-style: normal;
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid var(--vellum-shadow);
+}
+
+.ribbon-note a:hover {
+  border-bottom-color: var(--ultramarine);
 }

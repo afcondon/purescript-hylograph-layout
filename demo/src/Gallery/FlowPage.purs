@@ -88,6 +88,7 @@ render _state =
         [ HP.class_ (H.ClassName "ribbon-grid") ]
         [ renderAcyclicCard
         , renderEndCyclicCard
+        , renderGeneralizedNote
         ]
     , renderFooter
     ]
@@ -152,6 +153,20 @@ renderEndCyclicCard =
         , HP.id "flow-end-cyclic"
         ]
         []
+    ]
+
+-- | Note about the generalized flow diagram capability
+renderGeneralizedNote :: forall m. H.ComponentHTML Action () m
+renderGeneralizedNote =
+  HH.div
+    [ HP.class_ (H.ClassName "ribbon-note") ]
+    [ HH.p_
+        [ HH.text "The layout engine behind these diagrams is generalized beyond Sankey. The node sizing function is a parameter \x2014 any fold over incident flows \x2014 not hardcoded to conservation-of-flow. We're looking for a compelling real-world dataset that naturally calls for different flow semantics. "
+        , HH.a
+            [ HP.href "https://github.com/afcondon/purescript-hylograph-layout/issues" ]
+            [ HH.text "Get in touch" ]
+        , HH.text " if you have one."
+        ]
     ]
 
 renderFooter :: forall m. H.ComponentHTML Action () m

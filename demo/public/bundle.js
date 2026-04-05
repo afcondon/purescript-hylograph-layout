@@ -11559,7 +11559,7 @@
       });
     }
     ;
-    throw new Error("Failed pattern match at DataViz.Layout.Sankey.Types (line 217, column 25 - line 229, column 60): " + [result.cycleAnalysis.topology.constructor.name]);
+    throw new Error("Failed pattern match at DataViz.Layout.Sankey.Types (line 219, column 25 - line 231, column 60): " + [result.cycleAnalysis.topology.constructor.name]);
   };
 
   // output/DataViz.Layout.Sankey.Compute/index.js
@@ -17847,13 +17847,13 @@
         return withBehaviors([onCoordinatedHighlight({
           identify: linkIdentity,
           classify: function(hoveredId) {
-            var $75 = hoveredId === linkIdentity;
-            if ($75) {
+            var $76 = hoveredId === linkIdentity;
+            if ($76) {
               return Primary.value;
             }
             ;
-            var $76 = hoveredId === link3.sourceName || hoveredId === link3.targetName;
-            if ($76) {
+            var $77 = hoveredId === link3.sourceName || hoveredId === link3.targetName;
+            if ($77) {
               return Related.value;
             }
             ;
@@ -17884,7 +17884,7 @@
             return map34(go2(depth + 1 | 0))(v.children.value0);
           }
           ;
-          throw new Error("Failed pattern match at Gallery.RenderHATS (line 624, column 14 - line 626, column 55): " + [v.children.constructor.name]);
+          throw new Error("Failed pattern match at Gallery.RenderHATS (line 625, column 14 - line 627, column 55): " + [v.children.constructor.name]);
         })();
         var childValues = foldl15(function(acc) {
           return function(v1) {
@@ -17897,23 +17897,23 @@
           }
           ;
           if (v.value instanceof Nothing) {
-            var $85 = $$null(kids);
-            if ($85) {
+            var $86 = $$null(kids);
+            if ($86) {
               return 0;
             }
             ;
             return childValues;
           }
           ;
-          throw new Error("Failed pattern match at Gallery.RenderHATS (line 628, column 15 - line 630, column 64): " + [v.value.constructor.name]);
+          throw new Error("Failed pattern match at Gallery.RenderHATS (line 629, column 15 - line 631, column 64): " + [v.value.constructor.name]);
         })();
         var childHeights = map34(function(v1) {
           return v1.value0.height;
         })(kids);
         var maxChildHeight = foldl15(max13)(0)(childHeights);
         var height9 = (function() {
-          var $88 = $$null(kids);
-          if ($88) {
+          var $89 = $$null(kids);
+          if ($89) {
             return 0;
           }
           ;
@@ -17944,7 +17944,7 @@
         return "#999";
       }
       ;
-      throw new Error("Failed pattern match at Gallery.RenderHATS (line 765, column 3 - line 767, column 22): " + [v.constructor.name]);
+      throw new Error("Failed pattern match at Gallery.RenderHATS (line 778, column 3 - line 780, column 22): " + [v.constructor.name]);
     };
   };
   var toLinkFlats = function(nodeFlats) {
@@ -18103,8 +18103,8 @@
           var x2 = cos(endAngle) * outerR;
           var x1 = cos(startAngle) * outerR;
           var largeArc = (function() {
-            var $98 = endAngle - startAngle > pi;
-            if ($98) {
+            var $99 = endAngle - startAngle > pi;
+            if ($99) {
               return "1";
             }
             ;
@@ -18117,8 +18117,8 @@
   };
   var cycleLinksLayer = function(groupName) {
     return function(edges2) {
-      var $99 = $$null(edges2);
-      if ($99) {
+      var $100 = $$null(edges2);
+      if ($100) {
         return elem4(Group.value)([])([]);
       }
       ;
@@ -18129,13 +18129,13 @@
         return withBehaviors([onCoordinatedHighlight({
           identify: linkId,
           classify: function(hoveredId) {
-            var $100 = hoveredId === linkId;
-            if ($100) {
+            var $101 = hoveredId === linkId;
+            if ($101) {
               return Primary.value;
             }
             ;
-            var $101 = hoveredId === link3.sourceName || hoveredId === link3.targetName;
-            if ($101) {
+            var $102 = hoveredId === link3.sourceName || hoveredId === link3.targetName;
+            if ($102) {
               return Related.value;
             }
             ;
@@ -18166,7 +18166,7 @@
         return Dimmed.value;
       }
       ;
-      throw new Error("Failed pattern match at Gallery.RenderHATS (line 137, column 1 - line 137, column 58): " + [nodeName2.constructor.name, hoveredName.constructor.name]);
+      throw new Error("Failed pattern match at Gallery.RenderHATS (line 138, column 1 - line 138, column 58): " + [nodeName2.constructor.name, hoveredName.constructor.name]);
     };
   };
   var sankeyNodesLayer = function(groupName) {
@@ -18198,7 +18198,7 @@
         return Dimmed.value;
       }
       ;
-      throw new Error("Failed pattern match at Gallery.RenderHATS (line 130, column 1 - line 130, column 64): " + [nodePath.constructor.name, hoveredPath.constructor.name]);
+      throw new Error("Failed pattern match at Gallery.RenderHATS (line 131, column 1 - line 131, column 64): " + [nodePath.constructor.name, hoveredPath.constructor.name]);
     };
   };
   var buildTreemap = function(nodes2) {
@@ -18229,8 +18229,8 @@
       var h = node.y1 - node.y0;
       var fillColor = treemapColor(node.depth);
       var nodeTree = (function() {
-        var $107 = node.isLeaf && (w > 1 && h > 1);
-        if ($107) {
+        var $108 = node.isLeaf && (w > 1 && h > 1);
+        if ($108) {
           return elem4(Rect.value)([x(node.x0), y(node.y0), width(w), height(h), fill(fillColor), stroke("#f5f0e1"), strokeWidth(0.5), class_("node"), style("cursor: pointer")])([]);
         }
         ;
@@ -18278,8 +18278,8 @@
               return v.path;
             })(function(node) {
               var nodeRadius = (function() {
-                var $108 = node.height === 0;
-                if ($108) {
+                var $109 = node.height === 0;
+                if ($109) {
                   return 4;
                 }
                 ;
@@ -18356,8 +18356,8 @@
         })(function(node) {
           var pos = polarToCartesian(node.x)(node.y);
           var nodeRadius = (function() {
-            var $109 = node.height === 0;
-            if ($109) {
+            var $110 = node.height === 0;
+            if ($110) {
               return 4;
             }
             ;
@@ -18435,8 +18435,8 @@
               return v.path;
             })(function(node) {
               var nodeRadius = (function() {
-                var $110 = node.height === 0;
-                if ($110) {
+                var $111 = node.height === 0;
+                if ($111) {
                   return 4;
                 }
                 ;
@@ -18576,13 +18576,13 @@
         return withBehaviors([onCoordinatedHighlight({
           identify: linkIdentity,
           classify: function(hoveredId) {
-            var $112 = hoveredId === linkIdentity;
-            if ($112) {
+            var $113 = hoveredId === linkIdentity;
+            if ($113) {
               return Primary.value;
             }
             ;
-            var $113 = hoveredId === link3.sourceName || hoveredId === link3.targetName;
-            if ($113) {
+            var $114 = hoveredId === link3.sourceName || hoveredId === link3.targetName;
+            if ($114) {
               return Related.value;
             }
             ;
@@ -18730,8 +18730,8 @@
       var h = node.y1 - node.y0;
       var fillColor = icicleColor(node.depth);
       var nodeTree = (function() {
-        var $117 = w > 0.5 && h > 0.5;
-        if ($117) {
+        var $118 = w > 0.5 && h > 0.5;
+        if ($118) {
           return elem4(Rect.value)([x(node.x0), y(node.y0), width(w), height(h), fill(fillColor), stroke("#f5f0e1"), strokeWidth(0.5), class_("node"), style("cursor: pointer")])([]);
         }
         ;
@@ -18802,13 +18802,13 @@
         return withBehaviors([onCoordinatedHighlight({
           identify: linkId,
           classify: function(hoveredId) {
-            var $118 = hoveredId === linkId;
-            if ($118) {
+            var $119 = hoveredId === linkId;
+            if ($119) {
               return Primary.value;
             }
             ;
-            var $119 = hoveredId === link3.source || hoveredId === link3.target;
-            if ($119) {
+            var $120 = hoveredId === link3.source || hoveredId === link3.target;
+            if ($120) {
               return Related.value;
             }
             ;
@@ -18867,13 +18867,13 @@
         return withBehaviors([onCoordinatedHighlight({
           identify: ribbonId,
           classify: function(hoveredId) {
-            var $120 = hoveredId === ribbonId;
-            if ($120) {
+            var $121 = hoveredId === ribbonId;
+            if ($121) {
               return Primary.value;
             }
             ;
-            var $121 = hoveredId === ribbon.sourceName || hoveredId === ribbon.targetName;
-            if ($121) {
+            var $122 = hoveredId === ribbon.sourceName || hoveredId === ribbon.targetName;
+            if ($122) {
               return Related.value;
             }
             ;
@@ -18979,8 +18979,8 @@
             return v.name;
           })(function(label5) {
             var txform = (function() {
-              var $122 = label5.rotation !== 0;
-              if ($122) {
+              var $123 = label5.rotation !== 0;
+              if ($123) {
                 return "rotate(" + (fmt(label5.rotation) + (" " + (fmt(label5.x) + (" " + (fmt(label5.y) + ")")))));
               }
               ;
@@ -18996,8 +18996,8 @@
             return v.name;
           })(function(label5) {
             var txform = (function() {
-              var $123 = label5.rotation !== 0;
-              if ($123) {
+              var $124 = label5.rotation !== 0;
+              if ($124) {
                 return "rotate(" + (fmt(label5.rotation) + (" " + (fmt(label5.x) + (" " + (fmt(label5.y) + ")")))));
               }
               ;
@@ -19014,8 +19014,8 @@
           })(function(cell) {
             var intensity = min2(1)(cell.value / 50);
             var fillOpacityVal = (function() {
-              var $124 = cell.value > 0;
-              if ($124) {
+              var $125 = cell.value > 0;
+              if ($125) {
                 return fmt(0.2 + intensity * 0.8);
               }
               ;
@@ -19024,8 +19024,8 @@
             return withBehaviors([onCoordinatedHighlight({
               identify: cell.rowName,
               classify: function(hoveredId) {
-                var $125 = hoveredId === cell.rowName || hoveredId === cell.colName;
-                if ($125) {
+                var $126 = hoveredId === cell.rowName || hoveredId === cell.colName;
+                if ($126) {
                   return Related.value;
                 }
                 ;
@@ -20969,11 +20969,12 @@
     return RenderLayouts4;
   })();
   var renderHeader = /* @__PURE__ */ div2([/* @__PURE__ */ class_2("gallery-header")])([/* @__PURE__ */ h1_([/* @__PURE__ */ text5("Flow Layouts")]), /* @__PURE__ */ p([/* @__PURE__ */ class_2("subtitle")])([/* @__PURE__ */ text5("Sankey and ribbon diagrams \u2014 acyclic and cyclic flow")]), /* @__PURE__ */ p([/* @__PURE__ */ class_2("gallery-nav")])([/* @__PURE__ */ a([/* @__PURE__ */ href4("#")])([/* @__PURE__ */ text5("\u2190 Gallery")]), /* @__PURE__ */ text5(" \xB7 "), /* @__PURE__ */ a([/* @__PURE__ */ href4("#relational")])([/* @__PURE__ */ text5("Relational")]), /* @__PURE__ */ text5(" \xB7 "), /* @__PURE__ */ a([/* @__PURE__ */ href4("#hierarchy")])([/* @__PURE__ */ text5("Hierarchy")]), /* @__PURE__ */ text5(" \xB7 "), /* @__PURE__ */ a([/* @__PURE__ */ href4("#pattern")])([/* @__PURE__ */ text5("Pattern")])])]);
+  var renderGeneralizedNote = /* @__PURE__ */ div2([/* @__PURE__ */ class_2("ribbon-note")])([/* @__PURE__ */ p_([/* @__PURE__ */ text5("The layout engine behind these diagrams is generalized beyond Sankey. The node sizing function is a parameter \u2014 any fold over incident flows \u2014 not hardcoded to conservation-of-flow. We're looking for a compelling real-world dataset that naturally calls for different flow semantics. "), /* @__PURE__ */ a([/* @__PURE__ */ href4("https://github.com/afcondon/purescript-hylograph-layout/issues")])([/* @__PURE__ */ text5("Get in touch")]), /* @__PURE__ */ text5(" if you have one.")])]);
   var renderFooter = /* @__PURE__ */ div2([/* @__PURE__ */ class_2("gallery-footer")])([/* @__PURE__ */ p_([/* @__PURE__ */ text5("From the "), /* @__PURE__ */ a([/* @__PURE__ */ href4("https://github.com/afcondon/purescript-d3-layout")])([/* @__PURE__ */ text5("hylograph-layout")]), /* @__PURE__ */ text5(" library")])]);
   var renderEndCyclicCard = /* @__PURE__ */ div2([/* @__PURE__ */ class_2("ribbon-card")])([/* @__PURE__ */ div2([/* @__PURE__ */ class_2("ribbon-card-header")])([/* @__PURE__ */ h3_([/* @__PURE__ */ text5("Looping Sankey")]), /* @__PURE__ */ span4([/* @__PURE__ */ class_2("ribbon-topology-badge topology-EndCyclic")])([/* @__PURE__ */ text5("EndCyclic")])]), /* @__PURE__ */ p([/* @__PURE__ */ class_2("ribbon-card-description")])([/* @__PURE__ */ text5("Circular economy \u2014 recycled material flows back to raw input. Faded copies show the repeating cycle.")]), /* @__PURE__ */ div2([/* @__PURE__ */ class_2("ribbon-viewport"), /* @__PURE__ */ id3("flow-end-cyclic")])([])]);
   var renderAcyclicCard = /* @__PURE__ */ div2([/* @__PURE__ */ class_2("ribbon-card")])([/* @__PURE__ */ div2([/* @__PURE__ */ class_2("ribbon-card-header")])([/* @__PURE__ */ h3_([/* @__PURE__ */ text5("Sankey Diagram")]), /* @__PURE__ */ span4([/* @__PURE__ */ class_2("ribbon-topology-badge topology-Acyclic")])([/* @__PURE__ */ text5("Acyclic")])]), /* @__PURE__ */ p([/* @__PURE__ */ class_2("ribbon-card-description")])([/* @__PURE__ */ text5("Energy flows from source to consumption. Conservation of flow at each node.")]), /* @__PURE__ */ div2([/* @__PURE__ */ class_2("ribbon-viewport"), /* @__PURE__ */ id3("flow-acyclic")])([])]);
   var render3 = function(_state) {
-    return div2([class_2("gallery-container")])([renderHeader, div2([class_2("ribbon-grid")])([renderAcyclicCard, renderEndCyclicCard]), renderFooter]);
+    return div2([class_2("gallery-container")])([renderHeader, div2([class_2("ribbon-grid")])([renderAcyclicCard, renderEndCyclicCard, renderGeneralizedNote]), renderFooter]);
   };
   var initialState = function(v) {
     return {
@@ -21038,7 +21039,7 @@
           return renderSankeyWide("#flow-acyclic")(state3.sankeyData.value0.links)(900)(350)();
         }
         ;
-        throw new Error("Failed pattern match at Gallery.FlowPage (line 193, column 3 - line 196, column 73): " + [state3.sankeyData.constructor.name]);
+        throw new Error("Failed pattern match at Gallery.FlowPage (line 208, column 3 - line 211, column 73): " + [state3.sankeyData.constructor.name]);
       })();
       return renderSankeyWide("#flow-end-cyclic")(endCycleData)(900)(350)();
     };
@@ -21076,7 +21077,7 @@
           });
         }
         ;
-        throw new Error("Failed pattern match at Gallery.FlowPage (line 181, column 5 - line 185, column 35): " + [v.value0.constructor.name]);
+        throw new Error("Failed pattern match at Gallery.FlowPage (line 196, column 5 - line 200, column 35): " + [v.value0.constructor.name]);
       }
       ;
       if (v instanceof RenderLayouts) {
@@ -21085,7 +21086,7 @@
         });
       }
       ;
-      throw new Error("Failed pattern match at Gallery.FlowPage (line 175, column 16 - line 189, column 41): " + [v.constructor.name]);
+      throw new Error("Failed pattern match at Gallery.FlowPage (line 190, column 16 - line 204, column 41): " + [v.constructor.name]);
     };
   };
   var component = function(dictMonadAff) {

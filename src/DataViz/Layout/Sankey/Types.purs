@@ -27,6 +27,8 @@ module DataViz.Layout.Sankey.Types
   , NodeValueStrategy(..)
   , sankeyNodeValue
   , constantNodeValue
+  , bottleneckNodeValue
+  , maxNodeValue
   , defaultSankeyConfig
   , SankeyGraphModel
   , initialSankeyGraphModel
@@ -249,6 +251,24 @@ sankeyNodeValue = NodeValueStrategy \{ incoming, outgoing } ->
 -- | Useful for pure topology/routing diagrams.
 constantNodeValue :: Number -> NodeValueStrategy
 constantNodeValue v = NodeValueStrategy \_ -> v
+
+-- | Bottleneck: node value = min(sum inflows, sum outflows).
+-- | Highlights capacity constraints — nodes are only as tall as their tightest side.
+bottleneckNodeValue :: NodeValueStrategy
+bottleneckNodeValue = NodeValueStrategy \{ incoming, outgoing } ->
+  let sumIn = foldl (+) 0.0 incoming
+      sumOut = foldl (+) 0.0 outgoing
+  in case sumIn == 0.0, sumOut == 0.0 of
+    true, _ -> sumOut
+    _, true -> sumIn
+    _, _ -> min sumIn sumOut
+
+-- | Maximum single flow: node value = max of all incident flow values.
+-- | Useful for time/latency metrics where parallel inputs don't sum
+-- | — the node waits for the slowest input.
+maxNodeValue :: NodeValueStrategy
+maxNodeValue = NodeValueStrategy \{ incoming, outgoing } ->
+  max (foldl max 0.0 incoming) (foldl max 0.0 outgoing)
 
 -- | Default configuration matching D3 defaults
 defaultSankeyConfig :: Number -> Number -> SankeyConfig

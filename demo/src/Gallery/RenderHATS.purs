@@ -16,6 +16,7 @@ module Gallery.RenderHATS
   , renderTreemap
   , renderSankey
   , renderSankeyWide
+  , renderSankeyWithStrategy
   , renderChord
   , renderEdgeBundle
   , renderAdjacency
@@ -53,7 +54,7 @@ import Hylograph.Internal.Element.Types (ElementType(..))
 import Hylograph.Transform (clearContainer)
 
 import Data.Array (catMaybes) as Array
-import DataViz.Layout.Sankey.Types (LinkCSVRow, RibbonLayout(..), SankeyLink, SankeyNode, classifyLayout)
+import DataViz.Layout.Sankey.Types (LinkCSVRow, NodeValueStrategy, RibbonLayout(..), SankeyLink, SankeyNode, classifyLayout, defaultSankeyConfig)
 import Gallery.FlowData (SankeyData, MatrixData, EdgeBundleData)
 
 -- =============================================================================
@@ -726,6 +727,18 @@ renderAcyclic selector w h nodes links = do
   let
     nodeFlats = toNodeFlats nodes
     linkFlats = toLinkFlats nodeFlats nodes links
+    tree = buildAcyclicTree w h nodeFlats linkFlats
+  _ <- HATSInterp.rerender selector tree
+  pure unit
+
+-- | Render a Sankey with a custom NodeValueStrategy (for small multiples comparison)
+renderSankeyWithStrategy :: String -> Array LinkCSVRow -> Number -> Number -> NodeValueStrategy -> Effect Unit
+renderSankeyWithStrategy selector links w h strategy = do
+  let
+    config = (defaultSankeyConfig w h) { nodeValueStrategy = strategy }
+    layoutResult = Sankey.computeLayoutWithConfig links config
+    nodeFlats = toNodeFlats layoutResult.nodes
+    linkFlats = toLinkFlats nodeFlats layoutResult.nodes layoutResult.links
     tree = buildAcyclicTree w h nodeFlats linkFlats
   _ <- HATSInterp.rerender selector tree
   pure unit
