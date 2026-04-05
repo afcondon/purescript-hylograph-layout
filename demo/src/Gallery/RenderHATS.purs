@@ -681,19 +681,30 @@ buildTreemap nodes =
 -- Sankey Diagram
 -- =============================================================================
 
-type SankeyNodeFlat = { name :: String, x0 :: Number, y0 :: Number, x1 :: Number, y1 :: Number }
-type SankeyLinkFlat = { pathD :: String, sourceName :: String, targetName :: String }
+type SankeyNodeFlat = { name :: String, x0 :: Number, y0 :: Number, x1 :: Number, y1 :: Number, color :: String }
+type SankeyLinkFlat = { pathD :: String, sourceName :: String, targetName :: String, color :: String }
+
+-- Manuscript color palette for Sankey nodes
+manuscriptPalette :: Array String
+manuscriptPalette =
+  [ "#c23b22", "#1e3a5f", "#c9a227", "#2d5a27"
+  , "#66023c", "#cc7722", "#0d6e6e", "#5c4033"
+  ]
+
+manuscriptColor :: Int -> String
+manuscriptColor i = fromMaybe "#999" $ manuscriptPalette Array.!! (i `mod` Array.length manuscriptPalette)
 
 renderSankey :: String -> SankeyData -> Effect Unit
 renderSankey selector sankeyData = do
   let
     layoutResult = Sankey.computeLayout sankeyData.links 380.0 380.0
     nodeFlats = layoutResult.nodes <#> \n ->
-      { name: n.name, x0: n.x0, y0: n.y0, x1: n.x1, y1: n.y1 }
+      { name: n.name, x0: n.x0, y0: n.y0, x1: n.x1, y1: n.y1, color: mutedFlow 0 }
     linkFlats = layoutResult.links <#> \link ->
       { pathD: SankeyPath.generateLinkPath layoutResult.nodes link
       , sourceName: fromMaybe "" $ map _.name $ SankeyPath.findNode layoutResult.nodes link.sourceIndex
       , targetName: fromMaybe "" $ map _.name $ SankeyPath.findNode layoutResult.nodes link.targetIndex
+      , color: "rgba(168, 159, 145, 0.3)"
       }
     tree = buildSankey nodeFlats linkFlats
   _ <- HATSInterp.rerender selector tree
@@ -714,7 +725,7 @@ renderAcyclic :: String -> Number -> Number -> Array SankeyNode -> Array SankeyL
 renderAcyclic selector w h nodes links = do
   let
     nodeFlats = toNodeFlats nodes
-    linkFlats = toLinkFlats nodes links
+    linkFlats = toLinkFlats nodeFlats nodes links
     tree = buildAcyclicTree w h nodeFlats linkFlats
   _ <- HATSInterp.rerender selector tree
   pure unit
@@ -725,34 +736,53 @@ renderEndCyclic :: String -> Number -> Number -> Array SankeyNode -> Array Sanke
 renderEndCyclic selector w h nodes links endCycles = do
   let
     nodeFlats = toNodeFlats nodes
-    linkFlats = toLinkFlats nodes links
+    linkFlats = toLinkFlats nodeFlats nodes links
     -- Gap between copies — slightly wider than inter-layer spacing for visual break
     gap = w * 0.06
     copyOffset = w + gap
-    backEdgeFlats = Array.catMaybes $ endCycles <#> \link ->
-      buildBackEdgeRibbon nodes copyOffset link
+    -- Back-edge ribbons at both junctions:
+    -- 1. Central → Successor (outbound: source at x1, target at x0 + copyOffset)
+    outboundEdges = Array.catMaybes $ endCycles <#> \link ->
+      buildBackEdgeRibbon nodeFlats nodes copyOffset link
+    -- 2. Predecessor → Central (inbound: source at x1 - copyOffset, target at x0)
+    inboundEdges = Array.catMaybes $ endCycles <#> \link ->
+      buildInboundBackEdge nodeFlats nodes copyOffset link
     ghostW = w * 0.35
-    tree = buildEndCyclicTree w h ghostW copyOffset nodeFlats linkFlats backEdgeFlats
+    tree = buildEndCyclicTree w h ghostW copyOffset nodeFlats linkFlats outboundEdges inboundEdges
   _ <- HATSInterp.rerender selector tree
   pure unit
 
--- | Flatten nodes for rendering
+-- | Flatten nodes for rendering with manuscript palette colors
 toNodeFlats :: Array SankeyNode -> Array SankeyNodeFlat
-toNodeFlats nodes = nodes <#> \n ->
-  { name: n.name, x0: n.x0, y0: n.y0, x1: n.x1, y1: n.y1 }
+toNodeFlats nodes = Array.mapWithIndex (\i n ->
+  { name: n.name, x0: n.x0, y0: n.y0, x1: n.x1, y1: n.y1
+  , color: manuscriptColor i
+  }) nodes
 
--- | Flatten links for rendering
-toLinkFlats :: Array SankeyNode -> Array SankeyLink -> Array SankeyLinkFlat
-toLinkFlats nodes links = links <#> \link ->
-  { pathD: SankeyPath.generateLinkPath nodes link
-  , sourceName: fromMaybe "" $ map _.name $ SankeyPath.findNode nodes link.sourceIndex
-  , targetName: fromMaybe "" $ map _.name $ SankeyPath.findNode nodes link.targetIndex
-  }
+-- | Build a color lookup from node name to color
+nodeColorMap :: Array SankeyNodeFlat -> String -> String
+nodeColorMap nodes name =
+  case Array.find (\n -> n.name == name) nodes of
+    Just n -> n.color
+    Nothing -> "#999"
+
+-- | Flatten links for rendering with source node color
+toLinkFlats :: Array SankeyNodeFlat -> Array SankeyNode -> Array SankeyLink -> Array SankeyLinkFlat
+toLinkFlats nodeFlats nodes links = links <#> \link ->
+  let
+    sourceName = fromMaybe "" $ map _.name $ SankeyPath.findNode nodes link.sourceIndex
+    sourceColor = nodeColorMap nodeFlats sourceName
+  in
+    { pathD: SankeyPath.generateLinkPath nodes link
+    , sourceName
+    , targetName: fromMaybe "" $ map _.name $ SankeyPath.findNode nodes link.targetIndex
+    , color: sourceColor
+    }
 
 -- | Build a back-edge ribbon path connecting the central diagram's source node
 -- | to the successor copy's target node (shifted by copyOffset = w + gap)
-buildBackEdgeRibbon :: Array SankeyNode -> Number -> SankeyLink -> Maybe SankeyLinkFlat
-buildBackEdgeRibbon nodes copyOffset link = do
+buildBackEdgeRibbon :: Array SankeyNodeFlat -> Array SankeyNode -> Number -> SankeyLink -> Maybe SankeyLinkFlat
+buildBackEdgeRibbon nodeFlats nodes copyOffset link = do
   source <- SankeyPath.findNode nodes link.sourceIndex
   target <- SankeyPath.findNode nodes link.targetIndex
   let
@@ -776,7 +806,34 @@ buildBackEdgeRibbon nodes copyOffset link = do
       <> " " <> n xi <> "," <> n (sy + hw)
       <> " " <> n sx <> "," <> n (sy + hw)
       <> " Z"
-  pure { pathD, sourceName: source.name, targetName: target.name }
+  pure { pathD, sourceName: source.name, targetName: target.name, color: nodeColorMap nodeFlats source.name }
+
+-- | Build a back-edge ribbon from predecessor's source to central's target.
+-- | Source is shifted left by copyOffset (in the predecessor copy).
+buildInboundBackEdge :: Array SankeyNodeFlat -> Array SankeyNode -> Number -> SankeyLink -> Maybe SankeyLinkFlat
+buildInboundBackEdge nodeFlats nodes copyOffset link = do
+  source <- SankeyPath.findNode nodes link.sourceIndex
+  target <- SankeyPath.findNode nodes link.targetIndex
+  let
+    -- Source: right edge of node in predecessor (shifted left by copyOffset)
+    sx = source.x1 - copyOffset
+    sy = (source.y0 + source.y1) / 2.0
+    -- Target: left edge of node in central diagram
+    tx = target.x0
+    ty = (target.y0 + target.y1) / 2.0
+    hw = link.width / 2.0
+    xi = (sx + tx) / 2.0
+    n = toStringWith (fixed 1)
+    pathD = "M" <> n sx <> "," <> n (sy - hw)
+      <> " C" <> n xi <> "," <> n (sy - hw)
+      <> " " <> n xi <> "," <> n (ty - hw)
+      <> " " <> n tx <> "," <> n (ty - hw)
+      <> " L" <> n tx <> "," <> n (ty + hw)
+      <> " C" <> n xi <> "," <> n (ty + hw)
+      <> " " <> n xi <> "," <> n (sy + hw)
+      <> " " <> n sx <> "," <> n (sy + hw)
+      <> " Z"
+  pure { pathD, sourceName: source.name, targetName: target.name, color: nodeColorMap nodeFlats source.name }
 
 -- =============================================================================
 -- HATS Tree Builders
@@ -790,8 +847,8 @@ buildAcyclicTree w h nodes links =
         [ sankeyLinksLayer "sankey-links" links <> sankeyNodesLayer "sankey-nodes" nodes ]
     ]
 
-buildEndCyclicTree :: Number -> Number -> Number -> Number -> Array SankeyNodeFlat -> Array SankeyLinkFlat -> Array SankeyLinkFlat -> HATS.Tree
-buildEndCyclicTree w h ghostW copyOffset nodes links backEdges =
+buildEndCyclicTree :: Number -> Number -> Number -> Number -> Array SankeyNodeFlat -> Array SankeyLinkFlat -> Array SankeyLinkFlat -> Array SankeyLinkFlat -> HATS.Tree
+buildEndCyclicTree w h ghostW copyOffset nodes links outboundEdges inboundEdges =
   let
     totalW = 2.0 * ghostW + 2.0 * copyOffset - w + 20.0
     offsetX = ghostW + 10.0
@@ -821,26 +878,9 @@ buildEndCyclicTree w h ghostW copyOffset nodes links backEdges =
               [ sankeyLinksLayer "succ-links" links
                 <> sankeyNodesLayer "succ-nodes" nodes
               ]
-          , -- Back-edge ribbons connecting central's last layer to successor's first layer
-            if Array.null backEdges then HATS.elem Group [] []
-            else HATS.forEach "end-cycle-links" Path backEdges
-                   (\l -> "cycle-" <> l.sourceName <> "-" <> l.targetName) \link ->
-                   let linkId = "cycle-" <> link.sourceName <> "-" <> link.targetName
-                   in HATS.withBehaviors
-                        [ HATS.onCoordinatedHighlight
-                            { identify: linkId
-                            , classify: \hoveredId ->
-                                if hoveredId == linkId then HATS.Primary
-                                else if hoveredId == link.sourceName || hoveredId == link.targetName then HATS.Related
-                                else HATS.Dimmed
-                            , group: Nothing
-                            }
-                        ] $
-                        HATS.elem Path
-                          [ F.d link.pathD
-                          , F.fill "rgba(140, 100, 70, 0.35)"
-                          , F.class_ "cycle-link"
-                          ] []
+          , -- Back-edge ribbons at both junctions
+            cycleLinksLayer "outbound-cycle" outboundEdges
+              <> cycleLinksLayer "inbound-cycle" inboundEdges
           ]
       ]
 
@@ -870,7 +910,8 @@ sankeyLinksLayer groupName links =
          ] $
          HATS.elem Path
            [ F.d link.pathD
-           , F.fill "rgba(168, 159, 145, 0.3)"
+           , F.fill link.color
+           , F.opacity "0.4"
            , F.class_ "sankey-link"
            ] []
 
@@ -891,10 +932,34 @@ sankeyNodesLayer groupName nodes =
          HATS.elem Rect
            [ F.x node.x0, F.y node.y0
            , F.width nodeW, F.height nodeH
-           , F.fill (mutedFlow 0)
+           , F.fill node.color
            , F.class_ "sankey-node"
            , F.style "cursor: pointer"
            ] []
+
+-- | Cycle back-edge links layer
+cycleLinksLayer :: String -> Array SankeyLinkFlat -> HATS.Tree
+cycleLinksLayer groupName edges =
+  if Array.null edges then HATS.elem Group [] []
+  else HATS.forEach groupName Path edges
+         (\l -> groupName <> "-" <> l.sourceName <> "-" <> l.targetName) \link ->
+         let linkId = groupName <> "-" <> link.sourceName <> "-" <> link.targetName
+         in HATS.withBehaviors
+              [ HATS.onCoordinatedHighlight
+                  { identify: linkId
+                  , classify: \hoveredId ->
+                      if hoveredId == linkId then HATS.Primary
+                      else if hoveredId == link.sourceName || hoveredId == link.targetName then HATS.Related
+                      else HATS.Dimmed
+                  , group: Nothing
+                  }
+              ] $
+              HATS.elem Path
+                [ F.d link.pathD
+                , F.fill link.color
+                , F.opacity "0.5"
+                , F.class_ "cycle-link"
+                ] []
 
 buildSankey :: Array SankeyNodeFlat -> Array SankeyLinkFlat -> HATS.Tree
 buildSankey nodes links =

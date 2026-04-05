@@ -20,7 +20,7 @@ import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
 
 import Gallery.Data (FlareNode, loadFlareData, flareToTree)
-import Gallery.FlowData (MatrixData, loadMatrixData)
+import Gallery.FlowData (SankeyData, MatrixData, loadSankeyData, loadMatrixData)
 import Gallery.RenderHATS as HATS
 
 -- =============================================================================
@@ -34,6 +34,7 @@ type HierNode =
 
 type State =
   { treeData :: Maybe (Tree HierNode)
+  , sankeyData :: Maybe SankeyData
   , matrixData :: Maybe MatrixData
   , swimlaneRects :: Array Rect
   }
@@ -41,6 +42,7 @@ type State =
 data Action
   = Initialize
   | FlareLoaded (Either String FlareNode)
+  | SankeyLoaded (Either String SankeyData)
   | MatrixLoaded (Either String MatrixData)
   | RenderPreviews
 
@@ -78,6 +80,7 @@ component = H.mkComponent
 initialState :: forall input. input -> State
 initialState _ =
   { treeData: Nothing
+  , sankeyData: Nothing
   , matrixData: Nothing
   , swimlaneRects: swimlane 4 6.0 (viewport 400.0 400.0) swimlaneItems
   }
@@ -115,6 +118,7 @@ render state =
         [ HP.class_ (H.ClassName "landing-cards") ]
         [ hierarchyCard
         , flowCard
+        , relationalCard
         , patternCard state.swimlaneRects
         ]
     , renderFooter
@@ -156,7 +160,7 @@ flowCard =
         [ HP.class_ (H.ClassName "landing-card-preview") ]
         [ HH.div
             [ HP.class_ (H.ClassName "circle-viewport landing-viewport")
-            , HP.id "landing-chord"
+            , HP.id "landing-sankey"
             ]
             []
         ]
@@ -164,9 +168,34 @@ flowCard =
         [ HP.class_ (H.ClassName "landing-card-body") ]
         [ HH.h2_ [ HH.text "Flow" ]
         , HH.p [ HP.class_ (H.ClassName "landing-card-desc") ]
-            [ HH.text "Sankey, chord, edge bundle, and adjacency layouts for relational data" ]
+            [ HH.text "Sankey and ribbon diagrams for directed flow, including cyclic flows" ]
         , HH.p [ HP.class_ (H.ClassName "landing-card-count") ]
-            [ HH.text "4 layouts" ]
+            [ HH.text "2 layouts" ]
+        ]
+    ]
+
+relationalCard :: forall m. H.ComponentHTML Action () m
+relationalCard =
+  HH.a
+    [ HP.href "#relational"
+    , HP.class_ (H.ClassName "landing-card")
+    , HP.attr (HH.AttrName "style") "--card-accent: var(--ochre)"
+    ]
+    [ HH.div
+        [ HP.class_ (H.ClassName "landing-card-preview") ]
+        [ HH.div
+            [ HP.class_ (H.ClassName "circle-viewport landing-viewport")
+            , HP.id "landing-chord"
+            ]
+            []
+        ]
+    , HH.div
+        [ HP.class_ (H.ClassName "landing-card-body") ]
+        [ HH.h2_ [ HH.text "Relational" ]
+        , HH.p [ HP.class_ (H.ClassName "landing-card-desc") ]
+            [ HH.text "Chord, edge bundle, and adjacency layouts for relational data" ]
+        , HH.p [ HP.class_ (H.ClassName "landing-card-count") ]
+            [ HH.text "3 layouts" ]
         ]
     ]
 
@@ -245,6 +274,9 @@ renderPreviews state = do
   case state.treeData of
     Nothing -> pure unit
     Just tree -> HATS.renderTreeHorizontal "#landing-tree" tree
+  case state.sankeyData of
+    Nothing -> pure unit
+    Just sankeyData -> HATS.renderSankey "#landing-sankey" sankeyData
   case state.matrixData of
     Nothing -> pure unit
     Just matrixData -> HATS.renderChord "#landing-chord" matrixData
@@ -258,6 +290,8 @@ handleAction = case _ of
   Initialize -> do
     flareResult <- liftAff loadFlareData
     handleAction (FlareLoaded flareResult)
+    sankeyResult <- liftAff loadSankeyData
+    handleAction (SankeyLoaded sankeyResult)
     matrixResult <- liftAff loadMatrixData
     handleAction (MatrixLoaded matrixResult)
 
@@ -266,6 +300,13 @@ handleAction = case _ of
       Left _ -> pure unit
       Right flareNode -> do
         H.modify_ _ { treeData = Just (flareToTree flareNode) }
+        handleAction RenderPreviews
+
+  SankeyLoaded result -> do
+    case result of
+      Left _ -> pure unit
+      Right sankeyData -> do
+        H.modify_ _ { sankeyData = Just sankeyData }
         handleAction RenderPreviews
 
   MatrixLoaded result -> do

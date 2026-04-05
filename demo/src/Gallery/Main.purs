@@ -10,6 +10,7 @@ import Halogen.VDom.Driver (runUI)
 import Gallery.LandingPage as LandingPage
 import Gallery.HierarchyPage as HierarchyPage
 import Gallery.FlowPage as FlowPage
+import Gallery.RelationalPage as RelationalPage
 import Gallery.PatternPage as PatternPage
 import Gallery.RibbonPage as RibbonPage
 
@@ -25,6 +26,7 @@ main = do
     case hash of
       "#hierarchy" -> runUI HierarchyPage.component unit body
       "#flow" -> runUI FlowPage.component unit body
+      "#relational" -> runUI RelationalPage.component unit body
       "#pattern" -> runUI PatternPage.component unit body
       "#ribbon" -> runUI RibbonPage.component unit body
       _ -> runUI LandingPage.component unit body

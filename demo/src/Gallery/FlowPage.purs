@@ -1,7 +1,7 @@
 -- | Flow Page
 -- |
--- | Shows 4 flow/relational layouts (Sankey, Chord, EdgeBundle, Adjacency)
--- | in circular viewports with HATS coordinated highlighting.
+-- | Shows Sankey/ribbon flow diagrams: acyclic and end-cyclic.
+-- | Full-width, full-color diagrams with HATS coordinated highlighting.
 module Gallery.FlowPage where
 
 import Prelude
@@ -15,22 +15,36 @@ import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
 
-import Gallery.FlowData (SankeyData, MatrixData, EdgeBundleData, loadSankeyData, loadMatrixData, loadEdgeBundleData)
+import DataViz.Layout.Sankey.Types (LinkCSVRow)
+import Gallery.FlowData (SankeyData, loadSankeyData)
 import Gallery.RenderHATS as HATS
-import Gallery.Types (LayoutType(..), layoutInfo)
+
+-- =============================================================================
+-- Datasets
+-- =============================================================================
+
+-- | End cycle: circular economy (output feeds back to input)
+endCycleData :: Array LinkCSVRow
+endCycleData =
+  [ { s: "Raw Material", t: "Manufacturing", v: 50.0 }
+  , { s: "Manufacturing", t: "Distribution", v: 45.0 }
+  , { s: "Manufacturing", t: "Scrap", v: 5.0 }
+  , { s: "Distribution", t: "Consumer", v: 40.0 }
+  , { s: "Distribution", t: "Waste", v: 5.0 }
+  , { s: "Consumer", t: "Disposal", v: 15.0 }
+  , { s: "Consumer", t: "Collection", v: 25.0 }
+  , { s: "Collection", t: "Recycling", v: 20.0 }
+  , { s: "Collection", t: "Waste", v: 5.0 }
+  , { s: "Recycling", t: "Raw Material", v: 18.0 }
+  , { s: "Scrap", t: "Recycling", v: 4.0 }
+  ]
 
 -- =============================================================================
 -- Types
 -- =============================================================================
 
-type FlowData =
-  { sankey :: Maybe SankeyData
-  , matrix :: Maybe MatrixData
-  , edgeBundle :: Maybe EdgeBundleData
-  }
-
 type State =
-  { flowData :: FlowData
+  { sankeyData :: Maybe SankeyData
   , loading :: Boolean
   , error :: Maybe String
   }
@@ -38,12 +52,7 @@ type State =
 data Action
   = Initialize
   | SankeyLoaded (Either String SankeyData)
-  | MatrixLoaded (Either String MatrixData)
-  | EdgeBundleLoaded (Either String EdgeBundleData)
   | RenderLayouts
-
-flowLayouts :: Array LayoutType
-flowLayouts = [ Sankey, Chord, EdgeBundle, Adjacency ]
 
 -- =============================================================================
 -- Component
@@ -61,7 +70,7 @@ component = H.mkComponent
 
 initialState :: forall input. input -> State
 initialState _ =
-  { flowData: { sankey: Nothing, matrix: Nothing, edgeBundle: Nothing }
+  { sankeyData: Nothing
   , loading: true
   , error: Nothing
   }
@@ -76,8 +85,10 @@ render _state =
     [ HP.class_ (H.ClassName "gallery-container") ]
     [ renderHeader
     , HH.div
-        [ HP.class_ (H.ClassName "gallery-grid flow-grid") ]
-        (flowLayouts <#> renderLayoutCard)
+        [ HP.class_ (H.ClassName "ribbon-grid") ]
+        [ renderAcyclicCard
+        , renderEndCyclicCard
+        ]
     , renderFooter
     ]
 
@@ -88,10 +99,12 @@ renderHeader =
     [ HH.h1_ [ HH.text "Flow Layouts" ]
     , HH.p
         [ HP.class_ (H.ClassName "subtitle") ]
-        [ HH.text "4 layouts for relational data \x2014 hover any element for coordinated highlighting" ]
+        [ HH.text "Sankey and ribbon diagrams \x2014 acyclic and cyclic flow" ]
     , HH.p
         [ HP.class_ (H.ClassName "gallery-nav") ]
         [ HH.a [ HP.href "#" ] [ HH.text "\x2190 Gallery" ]
+        , HH.text " \x00b7 "
+        , HH.a [ HP.href "#relational" ] [ HH.text "Relational" ]
         , HH.text " \x00b7 "
         , HH.a [ HP.href "#hierarchy" ] [ HH.text "Hierarchy" ]
         , HH.text " \x00b7 "
@@ -99,35 +112,47 @@ renderHeader =
         ]
     ]
 
-renderLayoutCard :: forall m. LayoutType -> H.ComponentHTML Action () m
-renderLayoutCard layoutType =
+renderAcyclicCard :: forall m. H.ComponentHTML Action () m
+renderAcyclicCard =
   HH.div
-    [ HP.class_ (H.ClassName "layout-card")
-    , HP.attr (HH.AttrName "data-layout") (layoutTypeAttr layoutType)
-    ]
+    [ HP.class_ (H.ClassName "ribbon-card") ]
     [ HH.div
-        [ HP.class_ (H.ClassName "circle-viewport")
-        , HP.id (hatsContainerId layoutType)
+        [ HP.class_ (H.ClassName "ribbon-card-header") ]
+        [ HH.h3_ [ HH.text "Sankey Diagram" ]
+        , HH.span
+            [ HP.class_ (H.ClassName "ribbon-topology-badge topology-Acyclic") ]
+            [ HH.text "Acyclic" ]
+        ]
+    , HH.p
+        [ HP.class_ (H.ClassName "ribbon-card-description") ]
+        [ HH.text "Energy flows from source to consumption. Conservation of flow at each node." ]
+    , HH.div
+        [ HP.class_ (H.ClassName "ribbon-viewport")
+        , HP.id "flow-acyclic"
         ]
         []
-    , HH.div
-        [ HP.class_ (H.ClassName "layout-label") ]
-        [ HH.h3_ [ HH.text info.name ]
-        , HH.p_ [ HH.text info.description ]
-        ]
     ]
-  where
-  info = layoutInfo layoutType
 
-hatsContainerId :: LayoutType -> String
-hatsContainerId layoutType = "hats-" <> layoutTypeAttr layoutType
-
-layoutTypeAttr :: LayoutType -> String
-layoutTypeAttr Sankey = "sankey"
-layoutTypeAttr Chord = "chord"
-layoutTypeAttr EdgeBundle = "edge-bundle"
-layoutTypeAttr Adjacency = "adjacency"
-layoutTypeAttr _ = ""
+renderEndCyclicCard :: forall m. H.ComponentHTML Action () m
+renderEndCyclicCard =
+  HH.div
+    [ HP.class_ (H.ClassName "ribbon-card") ]
+    [ HH.div
+        [ HP.class_ (H.ClassName "ribbon-card-header") ]
+        [ HH.h3_ [ HH.text "Looping Sankey" ]
+        , HH.span
+            [ HP.class_ (H.ClassName "ribbon-topology-badge topology-EndCyclic") ]
+            [ HH.text "EndCyclic" ]
+        ]
+    , HH.p
+        [ HP.class_ (H.ClassName "ribbon-card-description") ]
+        [ HH.text "Circular economy \x2014 recycled material flows back to raw input. Faded copies show the repeating cycle." ]
+    , HH.div
+        [ HP.class_ (H.ClassName "ribbon-viewport")
+        , HP.id "flow-end-cyclic"
+        ]
+        []
+    ]
 
 renderFooter :: forall m. H.ComponentHTML Action () m
 renderFooter =
@@ -143,28 +168,6 @@ renderFooter =
     ]
 
 -- =============================================================================
--- HATS Rendering
--- =============================================================================
-
-renderHATSLayouts :: State -> Effect Unit
-renderHATSLayouts state = do
-  case state.flowData.sankey of
-    Nothing -> pure unit
-    Just sankeyData ->
-      HATS.renderSankey ("#" <> hatsContainerId Sankey) sankeyData
-
-  case state.flowData.matrix of
-    Nothing -> pure unit
-    Just matrixData -> do
-      HATS.renderChord ("#" <> hatsContainerId Chord) matrixData
-      HATS.renderAdjacency ("#" <> hatsContainerId Adjacency) matrixData
-
-  case state.flowData.edgeBundle of
-    Nothing -> pure unit
-    Just bundleData ->
-      HATS.renderEdgeBundle ("#" <> hatsContainerId EdgeBundle) bundleData
-
--- =============================================================================
 -- Actions
 -- =============================================================================
 
@@ -173,32 +176,23 @@ handleAction = case _ of
   Initialize -> do
     sankeyResult <- liftAff loadSankeyData
     handleAction (SankeyLoaded sankeyResult)
-    matrixResult <- liftAff loadMatrixData
-    handleAction (MatrixLoaded matrixResult)
-    edgeBundleResult <- liftAff loadEdgeBundleData
-    handleAction (EdgeBundleLoaded edgeBundleResult)
 
   SankeyLoaded result -> do
     case result of
       Left _ -> pure unit
       Right sankeyData -> do
-        H.modify_ \s -> s { flowData = s.flowData { sankey = Just sankeyData }, loading = false }
-        handleAction RenderLayouts
-
-  MatrixLoaded result -> do
-    case result of
-      Left _ -> pure unit
-      Right matrixData -> do
-        H.modify_ \s -> s { flowData = s.flowData { matrix = Just matrixData } }
-        handleAction RenderLayouts
-
-  EdgeBundleLoaded result -> do
-    case result of
-      Left _ -> pure unit
-      Right edgeBundleData -> do
-        H.modify_ \s -> s { flowData = s.flowData { edgeBundle = Just edgeBundleData } }
+        H.modify_ _ { sankeyData = Just sankeyData, loading = false }
         handleAction RenderLayouts
 
   RenderLayouts -> do
     state <- H.get
-    liftEffect $ renderHATSLayouts state
+    liftEffect $ renderFlowLayouts state
+
+renderFlowLayouts :: State -> Effect Unit
+renderFlowLayouts state = do
+  case state.sankeyData of
+    Nothing -> pure unit
+    Just sankeyData ->
+      HATS.renderSankeyWide "#flow-acyclic" sankeyData.links 900.0 350.0
+
+  HATS.renderSankeyWide "#flow-end-cyclic" endCycleData 900.0 350.0

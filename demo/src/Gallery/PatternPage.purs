@@ -115,6 +115,8 @@ renderHeader =
             , HH.a [ HP.href "#hierarchy" ] [ HH.text "Hierarchy" ]
             , HH.text " \x00b7 "
             , HH.a [ HP.href "#flow" ] [ HH.text "Flow" ]
+            , HH.text " \x00b7 "
+            , HH.a [ HP.href "#relational" ] [ HH.text "Relational" ]
             ]
         ]
     ]
