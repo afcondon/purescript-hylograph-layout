@@ -6215,7 +6215,7 @@
     },
     foldMap: function(dictMonoid) {
       var mempty2 = mempty(dictMonoid);
-      var append111 = append(dictMonoid.Semigroup0());
+      var append110 = append(dictMonoid.Semigroup0());
       return function(f) {
         var go2 = function(v) {
           if (v instanceof Leaf) {
@@ -6223,7 +6223,7 @@
           }
           ;
           if (v instanceof Node) {
-            return append111(go2(v.value4))(append111(f(v.value3))(go2(v.value5)));
+            return append110(go2(v.value4))(append110(f(v.value3))(go2(v.value5)));
           }
           ;
           throw new Error("Failed pattern match at Data.Map.Internal (line 181, column 10 - line 184, column 28): " + [v.constructor.name]);
@@ -6277,7 +6277,7 @@
     },
     foldMapWithIndex: function(dictMonoid) {
       var mempty2 = mempty(dictMonoid);
-      var append111 = append(dictMonoid.Semigroup0());
+      var append110 = append(dictMonoid.Semigroup0());
       return function(f) {
         var go2 = function(v) {
           if (v instanceof Leaf) {
@@ -6285,7 +6285,7 @@
           }
           ;
           if (v instanceof Node) {
-            return append111(go2(v.value4))(append111(f(v.value2)(v.value3))(go2(v.value5)));
+            return append110(go2(v.value4))(append110(f(v.value2)(v.value3))(go2(v.value5)));
           }
           ;
           throw new Error("Failed pattern match at Data.Map.Internal (line 201, column 10 - line 204, column 30): " + [v.constructor.name]);
@@ -6522,14 +6522,14 @@
       })(drop(1)(split("\n")(edgesCSV)));
       var edges2 = mapMaybe(parseGraphEdge)(edgeLines);
       var importsMap = foldl2(addImport)(empty3)(edges2);
-      var nodes2 = map11(function(name16) {
+      var nodes = map11(function(name16) {
         return {
           name: name16,
           imports: fromMaybe([])(lookup3(name16)(importsMap))
         };
       })(nodeNames);
       return {
-        nodes: nodes2
+        nodes
       };
     };
   };
@@ -7766,7 +7766,7 @@
   var applyLinks = function(outgoingMap) {
     return function(incomingMap) {
       return function(v) {
-        var outgoing4 = fromMaybe([])(lookup4(v.value0.fullName)(outgoingMap));
+        var outgoing3 = fromMaybe([])(lookup4(v.value0.fullName)(outgoingMap));
         var incoming3 = fromMaybe([])(lookup4(v.value0.fullName)(incomingMap));
         var childrenWithLinks = map17(applyLinks(outgoingMap)(incomingMap))(v.value0.children);
         return new BilinkedNode({
@@ -7775,7 +7775,7 @@
           data_: v.value0.data_,
           depth: v.value0.depth,
           height: v.value0.height,
-          outgoing: outgoing4,
+          outgoing: outgoing3,
           incoming: incoming3,
           children: childrenWithLinks
         });
@@ -8221,7 +8221,7 @@
     };
   };
   var buildHierarchy = function(config) {
-    return function(nodes2) {
+    return function(nodes) {
       var emptyRoot = new TreeNode({
         name: "",
         fullName: "",
@@ -8230,7 +8230,7 @@
         depth: 0,
         height: 0
       });
-      var treeWithNodes = foldl9(insertNode(config.getName))(emptyRoot)(nodes2);
+      var treeWithNodes = foldl9(insertNode(config.getName))(emptyRoot)(nodes);
       var withHeights = computeHeights(treeWithNodes);
       return withHeights;
     };
@@ -10279,7 +10279,7 @@
   };
   var computeBaseSeparations = function(minSep) {
     return function(separationFn) {
-      return function(nodes2) {
+      return function(nodes) {
         var tailSafe = function(v) {
           if (v instanceof Nil) {
             return Nil.value;
@@ -10308,15 +10308,15 @@
             };
           };
         };
-        if (nodes2 instanceof Nil) {
+        if (nodes instanceof Nil) {
           return Nil.value;
         }
         ;
-        if (nodes2 instanceof Cons && nodes2.value1 instanceof Nil) {
+        if (nodes instanceof Cons && nodes.value1 instanceof Nil) {
           return Nil.value;
         }
         ;
-        return zipWith2(getSep(separationFn)(minSep))(nodes2)(tailSafe(nodes2));
+        return zipWith2(getSep(separationFn)(minSep))(nodes)(tailSafe(nodes));
       };
     };
   };
@@ -11027,130 +11027,79 @@
   // output/Data.Graph.Algorithms/index.js
   var fromFoldable11 = /* @__PURE__ */ fromFoldable10(foldableArray);
   var toUnfoldable5 = /* @__PURE__ */ toUnfoldable4(unfoldableArray);
-  var append6 = /* @__PURE__ */ append(semigroupArray);
-  var findCycle = function(dictOrd) {
-    var member5 = member2(dictOrd);
-    var eq23 = eq(dictOrd.Eq0());
-    var $$delete6 = $$delete3(dictOrd);
-    var insert11 = insert5(dictOrd);
+  var findBackEdges = function(dictOrd) {
     var lookup11 = lookup2(dictOrd);
+    var $$delete5 = $$delete3(dictOrd);
+    var insert11 = insert5(dictOrd);
+    var member5 = member2(dictOrd);
+    var insert14 = insert5(ordTuple(dictOrd)(dictOrd));
     var fromFoldable24 = fromFoldable11(dictOrd);
     return function(graph) {
-      var dfs = function(state3) {
+      var dfsClassify = function(state3) {
         return function(node) {
-          if (member5(node)(state3.gray)) {
-            var cycleStart = findIndex(function(v) {
-              return eq23(v)(node);
-            })(state3.path);
-            if (cycleStart instanceof Just) {
-              return {
-                gray: state3.gray,
-                path: state3.path,
-                black: state3.black,
-                white: state3.white,
-                cycle: new Just(append6(drop(cycleStart.value0)(state3.path))([node]))
-              };
+          var targets = (function() {
+            var v = lookup11(node)(graph.edges);
+            if (v instanceof Nothing) {
+              return [];
             }
             ;
-            if (cycleStart instanceof Nothing) {
-              return {
-                gray: state3.gray,
-                path: state3.path,
-                black: state3.black,
-                white: state3.white,
-                cycle: new Just([node])
-              };
+            if (v instanceof Just) {
+              return toUnfoldable5(v.value0);
             }
             ;
-            throw new Error("Failed pattern match at Data.Graph.Algorithms (line 306, column 12 - line 308, column 54): " + [cycleStart.constructor.name]);
-          }
-          ;
-          if (member5(node)(state3.black)) {
-            return state3;
-          }
-          ;
-          if (otherwise) {
-            var state$prime = {
-              black: state3.black,
-              cycle: state3.cycle,
-              white: $$delete6(node)(state3.white),
-              gray: insert11(node)(state3.gray),
-              path: snoc(state3.path)(node)
+            throw new Error("Failed pattern match at Data.Graph.Algorithms (line 365, column 17 - line 367, column 39): " + [v.constructor.name]);
+          })();
+          var state$prime = {
+            backEdges: state3.backEdges,
+            black: state3.black,
+            white: $$delete5(node)(state3.white),
+            gray: insert11(node)(state3.gray)
+          };
+          var state$prime$prime = foldl2(function(st) {
+            return function(target6) {
+              var $277 = member5(target6)(st.gray);
+              if ($277) {
+                return {
+                  gray: st.gray,
+                  white: st.white,
+                  black: st.black,
+                  backEdges: insert14(new Tuple(node, target6))(st.backEdges)
+                };
+              }
+              ;
+              var $278 = member5(target6)(st.white);
+              if ($278) {
+                return dfsClassify(st)(target6);
+              }
+              ;
+              return st;
             };
-            var neighbors = (function() {
-              var v = lookup11(node)(graph.edges);
-              if (v instanceof Nothing) {
-                return [];
-              }
-              ;
-              if (v instanceof Just) {
-                return toUnfoldable5(v.value0);
-              }
-              ;
-              throw new Error("Failed pattern match at Data.Graph.Algorithms (line 319, column 23 - line 321, column 53): " + [v.constructor.name]);
-            })();
-            var state$prime$prime = foldl2(dfs)(state$prime)(neighbors);
-            if (state$prime$prime.cycle instanceof Just) {
-              return state$prime$prime;
-            }
-            ;
-            if (state$prime$prime.cycle instanceof Nothing) {
-              return {
-                cycle: state$prime$prime.cycle,
-                white: state$prime$prime.white,
-                gray: $$delete6(node)(state$prime$prime.gray),
-                black: insert11(node)(state$prime$prime.black),
-                path: fromMaybe([])(init(state$prime$prime.path))
-              };
-            }
-            ;
-            throw new Error("Failed pattern match at Data.Graph.Algorithms (line 324, column 11 - line 332, column 18): " + [state$prime$prime.cycle.constructor.name]);
-          }
-          ;
-          throw new Error("Failed pattern match at Data.Graph.Algorithms (line 301, column 3 - line 332, column 18): " + [state3.constructor.name, node.constructor.name]);
+          })(state$prime)(targets);
+          return {
+            backEdges: state$prime$prime.backEdges,
+            white: state$prime$prime.white,
+            gray: $$delete5(node)(state$prime$prime.gray),
+            black: insert11(node)(state$prime$prime.black)
+          };
         };
       };
-      var initialState14 = {
+      var initial = {
         white: fromFoldable24(graph.nodes),
         gray: empty6,
         black: empty6,
-        path: [],
-        cycle: Nothing.value
+        backEdges: empty6
       };
       var result = foldl2(function(state3) {
         return function(node) {
-          if (state3.cycle instanceof Just) {
-            return state3;
+          var $279 = member5(node)(state3.white);
+          if ($279) {
+            return dfsClassify(state3)(node);
           }
           ;
-          if (state3.cycle instanceof Nothing) {
-            var $259 = member5(node)(state3.white);
-            if ($259) {
-              return dfs(state3)(node);
-            }
-            ;
-            return state3;
-          }
-          ;
-          throw new Error("Failed pattern match at Data.Graph.Algorithms (line 292, column 7 - line 297, column 21): " + [state3.cycle.constructor.name]);
+          return state3;
         };
-      })(initialState14)(graph.nodes);
-      return result.cycle;
-    };
-  };
-  var hasCycle = function(dictOrd) {
-    var findCycle1 = findCycle(dictOrd);
-    return function(graph) {
-      var v = findCycle1(graph);
-      if (v instanceof Nothing) {
-        return false;
-      }
-      ;
-      if (v instanceof Just) {
-        return true;
-      }
-      ;
-      throw new Error("Failed pattern match at Data.Graph.Algorithms (line 278, column 18 - line 280, column 17): " + [v.constructor.name]);
+      })(initial)(graph.nodes);
+      return result.backEdges;
     };
   };
 
@@ -11182,9 +11131,6 @@
         return fromMaybe([])(lookup11(node)(v.forward));
       };
     };
-  };
-  var nodes = function(v) {
-    return toUnfoldable6(v.nodeSet);
   };
   var incoming = function(dictOrd) {
     var lookup11 = lookup2(dictOrd);
@@ -11571,31 +11517,26 @@
   var modify_3 = /* @__PURE__ */ modify_2(monadStateStateT2);
   var insert6 = /* @__PURE__ */ insert(ordString);
   var insert1 = /* @__PURE__ */ insert(ordNodeID);
-  var append7 = /* @__PURE__ */ append(semigroupArray);
+  var append6 = /* @__PURE__ */ append(semigroupArray);
   var addEdge3 = /* @__PURE__ */ addEdge2(ordNodeID);
   var map29 = /* @__PURE__ */ map(functorArray);
   var min6 = /* @__PURE__ */ min(ordNumber);
   var max8 = /* @__PURE__ */ max(ordInt);
-  var $$delete4 = /* @__PURE__ */ $$delete3(ordNodeID);
-  var insert22 = /* @__PURE__ */ insert5(ordNodeID);
-  var outgoing3 = /* @__PURE__ */ outgoing(ordNodeID);
-  var member3 = /* @__PURE__ */ member2(ordNodeID);
-  var ordTuple2 = /* @__PURE__ */ ordTuple(ordNodeID)(ordNodeID);
-  var insert32 = /* @__PURE__ */ insert5(ordTuple2);
-  var fromFoldable14 = /* @__PURE__ */ fromFoldable10(foldableArray)(ordNodeID);
   var eq13 = /* @__PURE__ */ eq(eqNodeID);
   var append16 = /* @__PURE__ */ append(semigroupOrdering);
   var compare5 = /* @__PURE__ */ compare(ordNumber);
   var compare12 = /* @__PURE__ */ compare(ordLinkID);
   var div1 = /* @__PURE__ */ div(euclideanRingInt);
   var max12 = /* @__PURE__ */ max(ordNumber);
+  var findBackEdges2 = /* @__PURE__ */ findBackEdges(ordNodeID);
   var toSimpleGraph2 = /* @__PURE__ */ toSimpleGraph(ordNodeID);
-  var hasCycle2 = /* @__PURE__ */ hasCycle(ordNodeID);
   var applicativeStateT2 = /* @__PURE__ */ applicativeStateT(monadIdentity);
   var pure8 = /* @__PURE__ */ pure(applicativeStateT2);
-  var member1 = /* @__PURE__ */ member2(ordTuple2);
+  var member3 = /* @__PURE__ */ member2(/* @__PURE__ */ ordTuple(ordNodeID)(ordNodeID));
   var fromEdges2 = /* @__PURE__ */ fromEdges(ordNodeID);
+  var member1 = /* @__PURE__ */ member2(ordNodeID);
   var union4 = /* @__PURE__ */ union3(ordNodeID);
+  var fromFoldable14 = /* @__PURE__ */ fromFoldable10(foldableArray)(ordNodeID);
   var eq22 = /* @__PURE__ */ eq(eqLinkID);
   var fromFoldable15 = /* @__PURE__ */ fromFoldable3(ordNodeID)(foldableArray);
   var lookup1 = /* @__PURE__ */ lookup2(ordNodeID);
@@ -11647,27 +11588,27 @@
         throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 97, column 7 - line 107, column 177): " + [s.constructor.name, t.constructor.name]);
       })();
       return modify_3(function(v1) {
-        var $146 = {};
-        for (var $147 in v1) {
-          if ({}.hasOwnProperty.call(v1, $147)) {
-            $146[$147] = v1[$147];
+        var $139 = {};
+        for (var $140 in v1) {
+          if ({}.hasOwnProperty.call(v1, $140)) {
+            $139[$140] = v1[$140];
           }
           ;
         }
         ;
-        $146.linkCount = model.linkCount + 1 | 0;
-        $146.nodeCount = v.nodeCount;
-        $146.nodeNameToID = insert6(link3.s)(v.sid)(insert6(link3.t)(v.tid)(model.nodeNameToID));
-        $146.nodeIDToName = insert1(v.sid)(link3.s)(insert1(v.tid)(link3.t)(model.nodeIDToName));
-        $146.nodeOrder = append7(model.nodeOrder)(v.newNodes);
-        $146.graph = addEdge3(v.sid)(v.tid)(link3.v)(model.graph);
-        $146.sankeyLinks = snoc(model.sankeyLinks)(initialiseSankeyLink({
+        $139.linkCount = model.linkCount + 1 | 0;
+        $139.nodeCount = v.nodeCount;
+        $139.nodeNameToID = insert6(link3.s)(v.sid)(insert6(link3.t)(v.tid)(model.nodeNameToID));
+        $139.nodeIDToName = insert1(v.sid)(link3.s)(insert1(v.tid)(link3.t)(model.nodeIDToName));
+        $139.nodeOrder = append6(model.nodeOrder)(v.newNodes);
+        $139.graph = addEdge3(v.sid)(v.tid)(link3.v)(model.graph);
+        $139.sankeyLinks = snoc(model.sankeyLinks)(initialiseSankeyLink({
           source: v.sid,
           target: v.tid,
           value: link3.v,
           id: model.linkCount
         }));
-        return $146;
+        return $139;
       });
     });
   };
@@ -11675,8 +11616,8 @@
     return function(arr) {
       return foldl2(function(acc) {
         return function(x2) {
-          var $153 = pred(x2);
-          if ($153) {
+          var $146 = pred(x2);
+          if ($146) {
             return {
               no: acc.no,
               yes: snoc(acc.yes)(x2)
@@ -11694,7 +11635,7 @@
       })(arr);
     };
   };
-  var initializeNodeBreadths = function(nodes2) {
+  var initializeNodeBreadths = function(nodes) {
     return function(_links) {
       return function(_config) {
         return function(padding2) {
@@ -11768,8 +11709,8 @@
                       })(0)(layerNodes);
                       var numNodes = toNumber(length(layerNodes));
                       var availableHeight = height9 - (numNodes - 1) * padding1;
-                      var $154 = totalValue > 0;
-                      if ($154) {
+                      var $147 = totalValue > 0;
+                      if ($147) {
                         return availableHeight / totalValue;
                       }
                       ;
@@ -11788,7 +11729,7 @@
                       return 1;
                     }
                     ;
-                    throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 456, column 7 - line 458, column 23): " + [v.constructor.name]);
+                    throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 423, column 7 - line 425, column 23): " + [v.constructor.name]);
                   };
                 };
               };
@@ -11797,11 +11738,11 @@
                 return function(node) {
                   return max8(acc)(node.layer);
                 };
-              })(0)(nodes2);
+              })(0)(nodes);
               var layers = map29(function(layerIdx) {
                 return filter(function(node) {
                   return node.layer === layerIdx;
-                })(nodes2);
+                })(nodes);
               })(range2(0)(maxLayer));
               var ky = calculateKy(layers)(totalHeight)(padding2);
               var positionedLayers = map29(positionLayer(ky)(padding2)(y0))(layers);
@@ -11816,77 +11757,20 @@
   var initialiseSankeyNodes = /* @__PURE__ */ bind6(get4)(function(model) {
     var sankeyNodes = catMaybes(map29(initialiseSankeyNode(model))(model.nodeOrder));
     return modify_3(function(v) {
-      var $157 = {};
-      for (var $158 in v) {
-        if ({}.hasOwnProperty.call(v, $158)) {
-          $157[$158] = v[$158];
+      var $150 = {};
+      for (var $151 in v) {
+        if ({}.hasOwnProperty.call(v, $151)) {
+          $150[$151] = v[$151];
         }
         ;
       }
       ;
-      $157.sankeyNodes = sankeyNodes;
-      return $157;
+      $150.sankeyNodes = sankeyNodes;
+      return $150;
     });
   });
-  var findBackEdgePairs = function(graph) {
-    var dfsClassify = function(state3) {
-      return function(node) {
-        var state$prime = {
-          backEdges: state3.backEdges,
-          black: state3.black,
-          white: $$delete4(node)(state3.white),
-          gray: insert22(node)(state3.gray)
-        };
-        var neighbors = outgoing3(node)(graph);
-        var state$prime$prime = foldl2(function(st) {
-          return function(edge) {
-            var $160 = member3(edge.target)(st.gray);
-            if ($160) {
-              return {
-                gray: st.gray,
-                white: st.white,
-                black: st.black,
-                backEdges: insert32(new Tuple(node, edge.target))(st.backEdges)
-              };
-            }
-            ;
-            var $161 = member3(edge.target)(st.white);
-            if ($161) {
-              return dfsClassify(st)(edge.target);
-            }
-            ;
-            return st;
-          };
-        })(state$prime)(neighbors);
-        return {
-          backEdges: state$prime$prime.backEdges,
-          white: state$prime$prime.white,
-          gray: $$delete4(node)(state$prime$prime.gray),
-          black: insert22(node)(state$prime$prime.black)
-        };
-      };
-    };
-    var allNodes = nodes(graph);
-    var initial = {
-      white: fromFoldable14(allNodes),
-      gray: empty6,
-      black: empty6,
-      backEdges: empty6
-    };
-    var result = foldl2(function(state3) {
-      return function(node) {
-        var $162 = member3(node)(state3.white);
-        if ($162) {
-          return dfsClassify(state3)(node);
-        }
-        ;
-        return state3;
-      };
-    })(initial)(allNodes);
-    return result.backEdges;
-  };
   var epsilon2 = 1e-6;
-  var relaxation = function(nodes2) {
+  var relaxation = function(nodes) {
     return function(links) {
       return function(config) {
         return function(padding2) {
@@ -11906,7 +11790,7 @@
                       return node;
                     }
                     ;
-                    throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 879, column 11 - line 881, column 28): " + [v.constructor.name]);
+                    throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 846, column 11 - line 848, column 28): " + [v.constructor.name]);
                   })(allNodes);
                 };
               };
@@ -11958,8 +11842,8 @@
                                 return acc;
                               }
                               ;
-                              var $174 = eq13(link3.sourceIndex)(source2.index);
-                              if ($174) {
+                              var $164 = eq13(link3.sourceIndex)(source2.index);
+                              if ($164) {
                                 return {
                                   y: acc.y,
                                   found: true
@@ -11981,8 +11865,8 @@
                                 return acc;
                               }
                               ;
-                              var $176 = eq13(link3.targetIndex)(target6.index);
-                              if ($176) {
+                              var $166 = eq13(link3.targetIndex)(target6.index);
+                              if ($166) {
                                 return {
                                   y: acc.y,
                                   found: true
@@ -12053,8 +11937,8 @@
                                 return acc;
                               }
                               ;
-                              var $186 = eq13(link3.targetIndex)(target6.index);
-                              if ($186) {
+                              var $176 = eq13(link3.targetIndex)(target6.index);
+                              if ($176) {
                                 return {
                                   y: acc.y,
                                   found: true
@@ -12076,8 +11960,8 @@
                                 return acc;
                               }
                               ;
-                              var $188 = eq13(link3.sourceIndex)(source2.index);
-                              if ($188) {
+                              var $178 = eq13(link3.sourceIndex)(source2.index);
+                              if ($178) {
                                 return {
                                   y: acc.y,
                                   found: true
@@ -12114,8 +11998,8 @@
                               var $tco_done = false;
                               var $tco_result;
                               function $tco_loop(idx, y2, currentNodes) {
-                                var $189 = idx >= n;
-                                if ($189) {
+                                var $179 = idx >= n;
+                                if ($179) {
                                   $tco_done = true;
                                   return currentNodes;
                                 }
@@ -12129,8 +12013,8 @@
                                 if (v instanceof Just) {
                                   var dy = (y2 - v.value0.node.y0) * beta2;
                                   var updated = (function() {
-                                    var $191 = dy > epsilon2;
-                                    if ($191) {
+                                    var $181 = dy > epsilon2;
+                                    if ($181) {
                                       var newNode = {
                                         color: v.value0.node.color,
                                         depth: v.value0.node.depth,
@@ -12164,7 +12048,7 @@
                                       return y2;
                                     }
                                     ;
-                                    throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 866, column 22 - line 868, column 29): " + [v1.constructor.name]);
+                                    throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 833, column 22 - line 835, column 29): " + [v1.constructor.name]);
                                   })();
                                   $tco_var_idx = idx + 1 | 0;
                                   $tco_var_y = newY;
@@ -12172,7 +12056,7 @@
                                   return;
                                 }
                                 ;
-                                throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 853, column 14 - line 870, column 40): " + [v.constructor.name]);
+                                throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 820, column 14 - line 837, column 40): " + [v.constructor.name]);
                               }
                               ;
                               while (!$tco_done) {
@@ -12194,8 +12078,8 @@
                   return function(targetY) {
                     return function(padding1) {
                       return function(beta2) {
-                        var $195 = startIdx < 0;
-                        if ($195) {
+                        var $185 = startIdx < 0;
+                        if ($185) {
                           return nodes1;
                         }
                         ;
@@ -12207,8 +12091,8 @@
                               var $tco_done1 = false;
                               var $tco_result;
                               function $tco_loop(idx, y2, currentNodes) {
-                                var $196 = idx < 0;
-                                if ($196) {
+                                var $186 = idx < 0;
+                                if ($186) {
                                   $tco_done1 = true;
                                   return currentNodes;
                                 }
@@ -12222,8 +12106,8 @@
                                 if (v instanceof Just) {
                                   var dy = (v.value0.node.y1 - y2) * beta2;
                                   var updated = (function() {
-                                    var $198 = dy > epsilon2;
-                                    if ($198) {
+                                    var $188 = dy > epsilon2;
+                                    if ($188) {
                                       var newNode = {
                                         color: v.value0.node.color,
                                         depth: v.value0.node.depth,
@@ -12257,7 +12141,7 @@
                                       return y2;
                                     }
                                     ;
-                                    throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 835, column 24 - line 837, column 31): " + [v1.constructor.name]);
+                                    throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 802, column 24 - line 804, column 31): " + [v1.constructor.name]);
                                   })();
                                   $tco_var_idx = idx - 1 | 0;
                                   $tco_var_y = newY;
@@ -12265,7 +12149,7 @@
                                   return;
                                 }
                                 ;
-                                throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 822, column 16 - line 839, column 42): " + [v.constructor.name]);
+                                throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 789, column 16 - line 806, column 42): " + [v.constructor.name]);
                               }
                               ;
                               while (!$tco_done1) {
@@ -12287,8 +12171,8 @@
                   return function(yMin) {
                     return function(yMax) {
                       return function(beta2) {
-                        var $202 = $$null(sorted);
-                        if ($202) {
+                        var $192 = $$null(sorted);
+                        if ($192) {
                           return sorted;
                         }
                         ;
@@ -12304,7 +12188,7 @@
                             return yMin;
                           }
                           ;
-                          throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 798, column 22 - line 800, column 26): " + [middleNode.constructor.name]);
+                          throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 765, column 22 - line 767, column 26): " + [middleNode.constructor.name]);
                         })();
                         var startYUp = (function() {
                           if (middleNode instanceof Just) {
@@ -12315,7 +12199,7 @@
                             return yMax;
                           }
                           ;
-                          throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 790, column 20 - line 792, column 26): " + [middleNode.constructor.name]);
+                          throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 757, column 20 - line 759, column 26): " + [middleNode.constructor.name]);
                         })();
                         var pushedUp = resolveCollisionsBottomToTop(sorted)(middleIdx - 1 | 0)(startYUp)(padding1)(beta2);
                         var pushedUpAndDown = resolveCollisionsTopToBottom(pushedUp)(middleIdx + 1 | 0)(startYDown)(padding1)(beta2);
@@ -12368,14 +12252,14 @@
                             return acc;
                           }
                           ;
-                          throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 616, column 13 - line 626, column 29): " + [v.constructor.name]);
+                          throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 583, column 13 - line 593, column 29): " + [v.constructor.name]);
                         };
                       })({
                         sum: 0,
                         totalWeight: 0
                       })(sortedLinks);
-                      var $213 = result.totalWeight > 0;
-                      if ($213) {
+                      var $203 = result.totalWeight > 0;
+                      if ($203) {
                         return result.sum / result.totalWeight;
                       }
                       ;
@@ -12425,14 +12309,14 @@
                             return acc;
                           }
                           ;
-                          throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 654, column 13 - line 663, column 29): " + [v.constructor.name]);
+                          throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 621, column 13 - line 630, column 29): " + [v.constructor.name]);
                         };
                       })({
                         sum: 0,
                         totalWeight: 0
                       })(sortedLinks);
-                      var $220 = result.totalWeight > 0;
-                      if ($220) {
+                      var $210 = result.totalWeight > 0;
+                      if ($210) {
                         return result.sum / result.totalWeight;
                       }
                       ;
@@ -12495,8 +12379,8 @@
                                     y1: newY1
                                   };
                                   return map29(function(n) {
-                                    var $223 = eq13(n.index)(nodeIdx);
-                                    if ($223) {
+                                    var $213 = eq13(n.index)(nodeIdx);
+                                    if ($213) {
                                       return updatedNode;
                                     }
                                     ;
@@ -12504,7 +12388,7 @@
                                   })(nodes1);
                                 }
                                 ;
-                                throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 559, column 13 - line 576, column 82): " + [v.constructor.name]);
+                                throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 526, column 13 - line 543, column 82): " + [v.constructor.name]);
                               };
                             })(currentNodes)(layerNodeIndices);
                             var layerNodesUpdated = filter(function(n) {
@@ -12560,9 +12444,9 @@
                   };
                 };
               };
-              var $226 = config.iterations <= 0;
-              if ($226) {
-                return nodes2;
+              var $216 = config.iterations <= 0;
+              if ($216) {
+                return nodes;
               }
               ;
               return foldl2(function(currentNodes) {
@@ -12573,7 +12457,7 @@
                   var ltr = relaxByLayer(rtl)(links)(padding2)(true)(alpha)(beta2);
                   return ltr;
                 };
-              })(nodes2)(range2(0)(config.iterations - 1 | 0));
+              })(nodes)(range2(0)(config.iterations - 1 | 0));
             };
           };
         };
@@ -12581,41 +12465,40 @@
     };
   };
   var detectAndRemoveBackEdges = /* @__PURE__ */ bind6(get4)(function(model) {
-    var simpleGraph = toSimpleGraph2(model.graph);
-    var $227 = !hasCycle2(simpleGraph);
-    if ($227) {
+    var backEdgePairs = findBackEdges2(toSimpleGraph2(model.graph));
+    var $217 = isEmpty2(backEdgePairs);
+    if ($217) {
       return pure8(unit);
     }
     ;
-    var backEdgePairs = findBackEdgePairs(model.graph);
     var isBackEdge = function(link3) {
-      return member1(new Tuple(link3.sourceIndex, link3.targetIndex))(backEdgePairs);
+      return member3(new Tuple(link3.sourceIndex, link3.targetIndex))(backEdgePairs);
     };
     var v = partitionArray(isBackEdge)(model.sankeyLinks);
     var forwardEdges = filter(function(e) {
-      return !member1(new Tuple(e.source, e.target))(backEdgePairs);
+      return !member3(new Tuple(e.source, e.target))(backEdgePairs);
     })(edges(model.graph));
     var forwardGraph = fromEdges2(forwardEdges);
     return modify_3(function(v1) {
-      var $229 = {};
-      for (var $230 in v1) {
-        if ({}.hasOwnProperty.call(v1, $230)) {
-          $229[$230] = v1[$230];
+      var $219 = {};
+      for (var $220 in v1) {
+        if ({}.hasOwnProperty.call(v1, $220)) {
+          $219[$220] = v1[$220];
         }
         ;
       }
       ;
-      $229.graph = forwardGraph;
-      $229.sankeyLinks = v.no;
-      $229.backEdgeLinks = v.yes;
-      return $229;
+      $219.graph = forwardGraph;
+      $219.sankeyLinks = v.no;
+      $219.backEdgeLinks = v.yes;
+      return $219;
     });
   });
   var computeNodeValues = /* @__PURE__ */ (function() {
     var setNodeValue2 = function(valueFn) {
       return function(links) {
         return function(n) {
-          var outgoing1 = map29(function(v) {
+          var outgoing3 = map29(function(v) {
             return v.value;
           })(filter(function(l) {
             return eq13(l.sourceIndex)(n.index);
@@ -12640,26 +12523,26 @@
             targetLinks: n.targetLinks,
             value: valueFn({
               incoming: incoming3,
-              outgoing: outgoing1
+              outgoing: outgoing3
             })
           };
         };
       };
     };
     return bind6(get4)(function(model) {
-      var allLinks = append7(model.sankeyLinks)(model.backEdgeLinks);
+      var allLinks = append6(model.sankeyLinks)(model.backEdgeLinks);
       var updatedNodes = map29(setNodeValue2(model.config.nodeValueStrategy)(allLinks))(model.sankeyNodes);
       return modify_3(function(v) {
-        var $235 = {};
-        for (var $236 in v) {
-          if ({}.hasOwnProperty.call(v, $236)) {
-            $235[$236] = v[$236];
+        var $225 = {};
+        for (var $226 in v) {
+          if ({}.hasOwnProperty.call(v, $226)) {
+            $225[$226] = v[$226];
           }
           ;
         }
         ;
-        $235.sankeyNodes = updatedNodes;
-        return $235;
+        $225.sankeyNodes = updatedNodes;
+        return $225;
       });
     });
   })();
@@ -12673,21 +12556,21 @@
             var $tco_var_current = $copy_current;
             var $tco_done = false;
             var $tco_result;
-            function $tco_loop(nodes2, height9, current, maxHeight) {
+            function $tco_loop(nodes, height9, current, maxHeight) {
               if (isEmpty2(current)) {
                 $tco_done = true;
-                return nodes2;
+                return nodes;
               }
               ;
               if (height9 > maxHeight) {
                 $tco_done = true;
-                return nodes2;
+                return nodes;
               }
               ;
               if (otherwise) {
                 var nodesWithHeight = map29(function(node) {
-                  var $242 = member3(node.index)(current);
-                  if ($242) {
+                  var $232 = member1(node.index)(current);
+                  if ($232) {
                     return {
                       index: node.index,
                       color: node.color,
@@ -12706,17 +12589,17 @@
                   }
                   ;
                   return node;
-                })(nodes2);
+                })(nodes);
                 var next = foldl2(function(acc) {
                   return function(node) {
-                    var $243 = member3(node.index)(current);
-                    if ($243) {
+                    var $233 = member1(node.index)(current);
+                    if ($233) {
                       return union4(acc)(node.targetLinks);
                     }
                     ;
                     return acc;
                   };
-                })(empty6)(nodes2);
+                })(empty6)(nodes);
                 $tco_var_nodes = nodesWithHeight;
                 $tco_var_height = height9 + 1 | 0;
                 $tco_var_current = next;
@@ -12724,7 +12607,7 @@
                 return;
               }
               ;
-              throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 276, column 3 - line 276, column 84): " + [nodes2.constructor.name, height9.constructor.name, current.constructor.name, maxHeight.constructor.name]);
+              throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 243, column 3 - line 243, column 84): " + [nodes.constructor.name, height9.constructor.name, current.constructor.name, maxHeight.constructor.name]);
             }
             ;
             while (!$tco_done) {
@@ -12746,16 +12629,16 @@
       })(sinkNodes));
       var result = bfsHeight(model.sankeyNodes)(0)(initialCurrent)(n);
       return modify_3(function(v) {
-        var $244 = {};
-        for (var $245 in v) {
-          if ({}.hasOwnProperty.call(v, $245)) {
-            $244[$245] = v[$245];
+        var $234 = {};
+        for (var $235 in v) {
+          if ({}.hasOwnProperty.call(v, $235)) {
+            $234[$235] = v[$235];
           }
           ;
         }
         ;
-        $244.sankeyNodes = result;
-        return $244;
+        $234.sankeyNodes = result;
+        return $234;
       });
     });
   })();
@@ -12769,21 +12652,21 @@
             var $tco_var_current = $copy_current;
             var $tco_done = false;
             var $tco_result;
-            function $tco_loop(nodes2, depth, current, maxDepth) {
+            function $tco_loop(nodes, depth, current, maxDepth) {
               if (isEmpty2(current)) {
                 $tco_done = true;
-                return nodes2;
+                return nodes;
               }
               ;
               if (depth > maxDepth) {
                 $tco_done = true;
-                return nodes2;
+                return nodes;
               }
               ;
               if (otherwise) {
                 var nodesWithDepth = map29(function(node) {
-                  var $251 = member3(node.index)(current);
-                  if ($251) {
+                  var $241 = member1(node.index)(current);
+                  if ($241) {
                     return {
                       index: node.index,
                       color: node.color,
@@ -12802,17 +12685,17 @@
                   }
                   ;
                   return node;
-                })(nodes2);
+                })(nodes);
                 var next = foldl2(function(acc) {
                   return function(node) {
-                    var $252 = member3(node.index)(current);
-                    if ($252) {
+                    var $242 = member1(node.index)(current);
+                    if ($242) {
                       return union4(acc)(node.sourceLinks);
                     }
                     ;
                     return acc;
                   };
-                })(empty6)(nodes2);
+                })(empty6)(nodes);
                 $tco_var_nodes = nodesWithDepth;
                 $tco_var_depth = depth + 1 | 0;
                 $tco_var_current = next;
@@ -12820,7 +12703,7 @@
                 return;
               }
               ;
-              throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 234, column 3 - line 234, column 83): " + [nodes2.constructor.name, depth.constructor.name, current.constructor.name, maxDepth.constructor.name]);
+              throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 201, column 3 - line 201, column 83): " + [nodes.constructor.name, depth.constructor.name, current.constructor.name, maxDepth.constructor.name]);
             }
             ;
             while (!$tco_done) {
@@ -12842,21 +12725,21 @@
       })(sourceNodes));
       var result = bfsDepth(model.sankeyNodes)(0)(initialCurrent)(n);
       return modify_3(function(v) {
-        var $253 = {};
-        for (var $254 in v) {
-          if ({}.hasOwnProperty.call(v, $254)) {
-            $253[$254] = v[$254];
+        var $243 = {};
+        for (var $244 in v) {
+          if ({}.hasOwnProperty.call(v, $244)) {
+            $243[$244] = v[$244];
           }
           ;
         }
         ;
-        $253.sankeyNodes = result;
-        return $253;
+        $243.sankeyNodes = result;
+        return $243;
       });
     });
   })();
   var computeLinkBreadths = /* @__PURE__ */ (function() {
-    var calculateLinkYPositions = function(nodes2) {
+    var calculateLinkYPositions = function(nodes) {
       return function(links) {
         var linksWithY0 = foldl2(function(currentLinks) {
           return function(node) {
@@ -12867,10 +12750,10 @@
               return function(b2) {
                 var v = find2(function(n) {
                   return eq13(n.index)(b2.targetIndex);
-                })(nodes2);
+                })(nodes);
                 var v1 = find2(function(n) {
                   return eq13(n.index)(a2.targetIndex);
-                })(nodes2);
+                })(nodes);
                 if (v1 instanceof Just && v instanceof Just) {
                   return append16(compare5(v1.value0.y0)(v.value0.y0))(compare12(a2.index)(b2.index));
                 }
@@ -12912,10 +12795,10 @@
                 return link3;
               }
               ;
-              throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 964, column 21 - line 966, column 38): " + [v.constructor.name]);
+              throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 931, column 21 - line 933, column 38): " + [v.constructor.name]);
             })(currentLinks);
           };
-        })(links)(nodes2);
+        })(links)(nodes);
         var linksWithY1 = foldl2(function(currentLinks) {
           return function(node) {
             var incomingLinks = filter(function(link3) {
@@ -12925,10 +12808,10 @@
               return function(b2) {
                 var v = find2(function(n) {
                   return eq13(n.index)(b2.sourceIndex);
-                })(nodes2);
+                })(nodes);
                 var v1 = find2(function(n) {
                   return eq13(n.index)(a2.sourceIndex);
-                })(nodes2);
+                })(nodes);
                 if (v1 instanceof Just && v instanceof Just) {
                   return append16(compare5(v1.value0.y0)(v.value0.y0))(compare12(a2.index)(b2.index));
                 }
@@ -12970,14 +12853,14 @@
                 return link3;
               }
               ;
-              throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 1005, column 21 - line 1007, column 38): " + [v.constructor.name]);
+              throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 972, column 21 - line 974, column 38): " + [v.constructor.name]);
             })(currentLinks);
           };
-        })(linksWithY0)(nodes2);
+        })(linksWithY0)(nodes);
         return linksWithY1;
       };
     };
-    var calculateGlobalKy1 = function(nodes2) {
+    var calculateGlobalKy1 = function(nodes) {
       return function(y0) {
         return function(y1) {
           return function(padding2) {
@@ -12989,8 +12872,8 @@
               })(0)(layerNodes);
               var numNodes = toNumber(length(layerNodes));
               var availableHeight = y1 - y0 - (numNodes - 1) * padding2;
-              var $268 = totalValue > 0;
-              if ($268) {
+              var $258 = totalValue > 0;
+              if ($258) {
                 return availableHeight / totalValue;
               }
               ;
@@ -13000,11 +12883,11 @@
               return function(node) {
                 return max8(acc)(node.layer);
               };
-            })(0)(nodes2);
+            })(0)(nodes);
             var layers = map29(function(layerIdx) {
               return filter(function(node) {
                 return node.layer === layerIdx;
-              })(nodes2);
+              })(nodes);
             })(range2(0)(maxLayer));
             var scales = map29(scaleForLayer)(layers);
             var nonEmptyScales = filter(function(s) {
@@ -13019,7 +12902,7 @@
               return 1;
             }
             ;
-            throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 924, column 7 - line 926, column 23): " + [v.constructor.name]);
+            throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 891, column 7 - line 893, column 23): " + [v.constructor.name]);
           };
         };
       };
@@ -13040,23 +12923,23 @@
       })(model.sankeyLinks);
       var linksWithY = calculateLinkYPositions(model.sankeyNodes)(linksWithWidth);
       return modify_3(function(v) {
-        var $271 = {};
-        for (var $272 in v) {
-          if ({}.hasOwnProperty.call(v, $272)) {
-            $271[$272] = v[$272];
+        var $261 = {};
+        for (var $262 in v) {
+          if ({}.hasOwnProperty.call(v, $262)) {
+            $261[$262] = v[$262];
           }
           ;
         }
         ;
-        $271.sankeyLinks = linksWithY;
-        return $271;
+        $261.sankeyLinks = linksWithY;
+        return $261;
       });
     });
   })();
-  var classifyBackEdges = function(nodes2) {
+  var classifyBackEdges = function(nodes) {
     return function(backLinks) {
-      var $274 = $$null(backLinks);
-      if ($274) {
+      var $264 = $$null(backLinks);
+      if ($264) {
         return {
           topology: Acyclic.value,
           endCycles: [],
@@ -13066,12 +12949,12 @@
       ;
       var nodeLayerMap = fromFoldable15(map29(function(n) {
         return new Tuple(n.index, n.layer);
-      })(nodes2));
+      })(nodes));
       var maxLayer = foldl2(function(acc) {
         return function(node) {
           return max8(acc)(node.layer);
         };
-      })(0)(nodes2);
+      })(0)(nodes);
       var isEndCyclic = function(link3) {
         var tgtLayer = fromMaybe(-1 | 0)(lookup1(link3.targetIndex)(nodeLayerMap));
         var srcLayer = fromMaybe(-1 | 0)(lookup1(link3.sourceIndex)(nodeLayerMap));
@@ -13097,7 +12980,7 @@
           return MixedCyclic.value;
         }
         ;
-        throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 1054, column 18 - line 1058, column 36): " + [v2.constructor.name, v1.constructor.name]);
+        throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 1021, column 18 - line 1025, column 36): " + [v2.constructor.name, v1.constructor.name]);
       })();
       return {
         topology,
@@ -13106,7 +12989,7 @@
       };
     };
   };
-  var calculateGlobalKy = function(nodes2) {
+  var calculateGlobalKy = function(nodes) {
     return function(y0) {
       return function(y1) {
         return function(padding2) {
@@ -13118,8 +13001,8 @@
             })(0)(layerNodes);
             var numNodes = toNumber(length(layerNodes));
             var availableHeight = y1 - y0 - (numNodes - 1) * padding2;
-            var $280 = totalValue > 0;
-            if ($280) {
+            var $270 = totalValue > 0;
+            if ($270) {
               return availableHeight / totalValue;
             }
             ;
@@ -13129,11 +13012,11 @@
             return function(node) {
               return max8(acc)(node.layer);
             };
-          })(0)(nodes2);
+          })(0)(nodes);
           var layers = map29(function(layerIdx) {
             return filter(function(node) {
               return node.layer === layerIdx;
-            })(nodes2);
+            })(nodes);
           })(range2(0)(maxLayer));
           var scales = map29(scaleForLayer)(layers);
           var nonEmptyScales = filter(function(s) {
@@ -13148,7 +13031,7 @@
             return 1;
           }
           ;
-          throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 325, column 5 - line 327, column 21): " + [v.constructor.name]);
+          throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 292, column 5 - line 294, column 21): " + [v.constructor.name]);
         };
       };
     };
@@ -13156,28 +13039,28 @@
   var computeBackEdgeWidths = /* @__PURE__ */ bind6(get4)(function(model) {
     var ky = calculateGlobalKy(model.sankeyNodes)(model.config.extent.y0)(model.config.extent.y1)(model.config.nodePadding);
     var backLinksWithWidth = map29(function(link3) {
-      var $283 = {};
-      for (var $284 in link3) {
-        if ({}.hasOwnProperty.call(link3, $284)) {
-          $283[$284] = link3[$284];
+      var $273 = {};
+      for (var $274 in link3) {
+        if ({}.hasOwnProperty.call(link3, $274)) {
+          $273[$274] = link3[$274];
         }
         ;
       }
       ;
-      $283.width = link3.value * ky;
-      return $283;
+      $273.width = link3.value * ky;
+      return $273;
     })(model.backEdgeLinks);
     return modify_3(function(v) {
-      var $286 = {};
-      for (var $287 in v) {
-        if ({}.hasOwnProperty.call(v, $287)) {
-          $286[$287] = v[$287];
+      var $276 = {};
+      for (var $277 in v) {
+        if ({}.hasOwnProperty.call(v, $277)) {
+          $276[$277] = v[$277];
         }
         ;
       }
       ;
-      $286.backEdgeLinks = backLinksWithWidth;
-      return $286;
+      $276.backEdgeLinks = backLinksWithWidth;
+      return $276;
     });
   });
   var assignColors = /* @__PURE__ */ bind6(get4)(function(model) {
@@ -13201,13 +13084,13 @@
         };
       };
     })(model.sankeyNodes);
-    var assignLinkColor = function(nodes2) {
+    var assignLinkColor = function(nodes) {
       return function(mode) {
         return function(link3) {
           if (mode instanceof SourceColor) {
             var sourceNode = find2(function(n) {
               return eq13(n.index)(link3.sourceIndex);
-            })(nodes2);
+            })(nodes);
             return {
               sourceIndex: link3.sourceIndex,
               targetIndex: link3.targetIndex,
@@ -13225,7 +13108,7 @@
           if (mode instanceof TargetColor) {
             var targetNode = find2(function(n) {
               return eq13(n.index)(link3.targetIndex);
-            })(nodes2);
+            })(nodes);
             return {
               sourceIndex: link3.sourceIndex,
               targetIndex: link3.targetIndex,
@@ -13266,25 +13149,25 @@
             };
           }
           ;
-          throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 1096, column 7 - line 1111, column 29): " + [mode.constructor.name]);
+          throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 1063, column 7 - line 1078, column 29): " + [mode.constructor.name]);
         };
       };
     };
     var linksWithColor = map29(assignLinkColor(nodesWithColor)(model.config.linkColorMode))(model.sankeyLinks);
     var backLinksWithColor = map29(assignLinkColor(nodesWithColor)(model.config.linkColorMode))(model.backEdgeLinks);
     return modify_3(function(v) {
-      var $292 = {};
-      for (var $293 in v) {
-        if ({}.hasOwnProperty.call(v, $293)) {
-          $292[$293] = v[$293];
+      var $282 = {};
+      for (var $283 in v) {
+        if ({}.hasOwnProperty.call(v, $283)) {
+          $282[$283] = v[$283];
         }
         ;
       }
       ;
-      $292.sankeyNodes = nodesWithColor;
-      $292.sankeyLinks = linksWithColor;
-      $292.backEdgeLinks = backLinksWithColor;
-      return $292;
+      $282.sankeyNodes = nodesWithColor;
+      $282.sankeyLinks = linksWithColor;
+      $282.backEdgeLinks = backLinksWithColor;
+      return $282;
     });
   });
   var alignNodeToLayer = function(alignment) {
@@ -13299,8 +13182,8 @@
         }
         ;
         if (alignment instanceof Justify) {
-          var $296 = isEmpty2(node.sourceLinks);
-          if ($296) {
+          var $286 = isEmpty2(node.sourceLinks);
+          if ($286) {
             return numLayers - 1 | 0;
           }
           ;
@@ -13308,19 +13191,19 @@
         }
         ;
         if (alignment instanceof Center) {
-          var $297 = !isEmpty2(node.targetLinks);
-          if ($297) {
+          var $287 = !isEmpty2(node.targetLinks);
+          if ($287) {
             return node.depth;
           }
           ;
           return 0;
         }
         ;
-        throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 401, column 3 - line 411, column 13): " + [alignment.constructor.name]);
+        throw new Error("Failed pattern match at DataViz.Layout.Sankey.Compute (line 368, column 3 - line 378, column 13): " + [alignment.constructor.name]);
       };
     };
   };
-  var computeNodeLayers = function(nodes2) {
+  var computeNodeLayers = function(nodes) {
     return function(config) {
       return function(x0) {
         return function(x1) {
@@ -13328,7 +13211,7 @@
             return function(node) {
               return max8(acc)(node.depth);
             };
-          })(0)(nodes2);
+          })(0)(nodes);
           var numLayers = maxDepth + 1 | 0;
           var nodesWithLayer = map29(function(node) {
             var layer = alignNodeToLayer(config.alignment)(node)(numLayers);
@@ -13347,7 +13230,7 @@
               y1: node.y1,
               layer
             };
-          })(nodes2);
+          })(nodes);
           var kx = (x1 - x0 - config.nodeWidth) / max12(1)(toNumber(numLayers - 1 | 0));
           var nodesWithX = map29(function(node) {
             var x0Pos = x0 + toNumber(node.layer) * kx;
@@ -13391,8 +13274,8 @@
       };
     })(0)(layers);
     var adjustedPadding = (function() {
-      var $298 = maxNodesInLayer > 1;
-      if ($298) {
+      var $288 = maxNodesInLayer > 1;
+      if ($288) {
         return min6(model.config.nodePadding)(totalHeight / (toNumber(maxNodesInLayer) - 1));
       }
       ;
@@ -13414,17 +13297,17 @@
     })(model.sankeyLinks);
     var relaxedNodes = relaxation(nodesWithY)(linksWithWidth)(model.config)(adjustedPadding)(model.config.extent.y0)(model.config.extent.y1);
     return modify_3(function(v) {
-      var $299 = {};
-      for (var $300 in v) {
-        if ({}.hasOwnProperty.call(v, $300)) {
-          $299[$300] = v[$300];
+      var $289 = {};
+      for (var $290 in v) {
+        if ({}.hasOwnProperty.call(v, $290)) {
+          $289[$290] = v[$290];
         }
         ;
       }
       ;
-      $299.sankeyNodes = relaxedNodes;
-      $299.sankeyLinks = linksWithWidth;
-      return $299;
+      $289.sankeyNodes = relaxedNodes;
+      $289.sankeyLinks = linksWithWidth;
+      return $289;
     });
   });
   var computeLayoutWithConfig = function(linkInputs) {
@@ -13467,17 +13350,17 @@
 
   // output/DataViz.Layout.Sankey.Path/index.js
   var eq4 = /* @__PURE__ */ eq(eqNodeID);
-  var findNode2 = function(nodes2) {
+  var findNode2 = function(nodes) {
     return function(nodeId) {
       return find2(function(n) {
         return eq4(n.index)(nodeId);
-      })(nodes2);
+      })(nodes);
     };
   };
-  var generateLinkPath = function(nodes2) {
+  var generateLinkPath = function(nodes) {
     return function(link3) {
-      var targetNode = findNode2(nodes2)(link3.targetIndex);
-      var sourceNode = findNode2(nodes2)(link3.sourceIndex);
+      var targetNode = findNode2(nodes)(link3.targetIndex);
+      var sourceNode = findNode2(nodes)(link3.sourceIndex);
       if (sourceNode instanceof Just && targetNode instanceof Just) {
         var xi = (sourceNode.value0.x1 + targetNode.value0.x0) / 2;
         var y0Bottom = link3.y0 + link3.width / 2;
@@ -14209,7 +14092,7 @@
   };
   var show7 = /* @__PURE__ */ show(showNumber);
   var eq5 = /* @__PURE__ */ eq(eqElementType);
-  var append8 = /* @__PURE__ */ append(semigroupArray);
+  var append7 = /* @__PURE__ */ append(semigroupArray);
   var DepthFirst = /* @__PURE__ */ (function() {
     function DepthFirst2() {
     }
@@ -14520,7 +14403,7 @@
           elemType: v.value0.elemType,
           attrs: v.value0.attrs,
           children: v.value0.children,
-          behaviors: append8(v.value0.behaviors)(bs)
+          behaviors: append7(v.value0.behaviors)(bs)
         });
       }
       ;
@@ -16686,7 +16569,7 @@
   var fromEvent = /* @__PURE__ */ unsafeReadProtoTagged("MouseEvent");
 
   // output/Hylograph.HATS.InterpreterTick/index.js
-  var append9 = /* @__PURE__ */ append(semigroupArray);
+  var append8 = /* @__PURE__ */ append(semigroupArray);
   var map33 = /* @__PURE__ */ map(functorArray);
   var bind7 = /* @__PURE__ */ bind(bindEffect);
   var traverse_2 = /* @__PURE__ */ traverse_(applicativeEffect)(foldableArray);
@@ -16778,7 +16661,7 @@
           var childResults = concatMap(go2)(children2);
           var $77 = isLeaf2 || includeInternal;
           if ($77) {
-            return append9([node])(childResults);
+            return append8([node])(childResults);
           }
           ;
           return childResults;
@@ -16807,7 +16690,7 @@
               ;
               return [];
             })();
-            return append9(thisNode)(go2(append9(v.value0.tail)(children2)));
+            return append8(thisNode)(go2(append8(v.value0.tail)(children2)));
           }
           ;
           throw new Error("Failed pattern match at Hylograph.HATS.InterpreterTick (line 556, column 14 - line 563, column 43): " + [v.constructor.name]);
@@ -17309,9 +17192,9 @@
           return function(b2) {
             return {
               selections: union5(a2.selections)(b2.selections),
-              entering: append9(a2.entering)(b2.entering),
-              updating: append9(a2.updating)(b2.updating),
-              exiting: append9(a2.exiting)(b2.exiting)
+              entering: append8(a2.entering)(b2.entering),
+              updating: append8(a2.updating)(b2.updating),
+              exiting: append8(a2.exiting)(b2.exiting)
             };
           };
         };
@@ -17766,7 +17649,7 @@
                     var childMaps = foldl2(union5)(empty3)(map33(function(v1) {
                       return v1.childSelections;
                     })(enterResults));
-                    var selections = insert7(spec.name)(append9(updateElements)(enterElements))(childMaps);
+                    var selections = insert7(spec.name)(append8(updateElements)(enterElements))(childMaps);
                     var totalElements = length(updateElements) + length(enterElements) | 0;
                     return {
                       result: {
@@ -17931,11 +17814,11 @@
     };
     return go2(0);
   })();
-  var nodeColorMap = function(nodes2) {
+  var nodeColorMap = function(nodes) {
     return function(name16) {
       var v = find2(function(n) {
         return n.name === name16;
-      })(nodes2);
+      })(nodes);
       if (v instanceof Just) {
         return v.value0.color;
       }
@@ -17948,19 +17831,19 @@
     };
   };
   var toLinkFlats = function(nodeFlats) {
-    return function(nodes2) {
+    return function(nodes) {
       return function(links) {
         return mapFlipped3(links)(function(link3) {
           var sourceName = fromMaybe("")(map115(function(v) {
             return v.name;
-          })(findNode2(nodes2)(link3.sourceIndex)));
+          })(findNode2(nodes)(link3.sourceIndex)));
           var sourceColor = nodeColorMap(nodeFlats)(sourceName);
           return {
-            pathD: generateLinkPath(nodes2)(link3),
+            pathD: generateLinkPath(nodes)(link3),
             sourceName,
             targetName: fromMaybe("")(map115(function(v) {
               return v.name;
-            })(findNode2(nodes2)(link3.targetIndex))),
+            })(findNode2(nodes)(link3.targetIndex))),
             color: sourceColor
           };
         });
@@ -17995,7 +17878,7 @@
   var manuscriptColor = function(i2) {
     return fromMaybe("#999")(index(manuscriptPalette)(mod4(i2)(length(manuscriptPalette))));
   };
-  var toNodeFlats = function(nodes2) {
+  var toNodeFlats = function(nodes) {
     return mapWithIndex2(function(i2) {
       return function(n) {
         return {
@@ -18007,7 +17890,7 @@
           color: manuscriptColor(i2)
         };
       };
-    })(nodes2);
+    })(nodes);
   };
   var isRelated = function(a2) {
     return function(b2) {
@@ -18170,8 +18053,8 @@
     };
   };
   var sankeyNodesLayer = function(groupName) {
-    return function(nodes2) {
-      return forEach(groupName)(Rect.value)(nodes2)(function(v) {
+    return function(nodes) {
+      return forEach(groupName)(Rect.value)(nodes)(function(v) {
         return v.name;
       })(function(node) {
         var nodeW = node.x1 - node.x0;
@@ -18201,7 +18084,7 @@
       throw new Error("Failed pattern match at Gallery.RenderHATS (line 131, column 1 - line 131, column 64): " + [nodePath.constructor.name, hoveredPath.constructor.name]);
     };
   };
-  var buildTreemap = function(nodes2) {
+  var buildTreemap = function(nodes) {
     var treemapColor = function(d2) {
       var v = mod4(d2)(5);
       if (v === 0) {
@@ -18222,7 +18105,7 @@
       ;
       return "#e0a2c0";
     };
-    return elem4(SVG.value)([viewBox(0)(0)(400)(400), preserveAspectRatio("xMidYMid meet")])([elem4(Group.value)([transform("translate(10,10)")])([forEach("rects")(Rect.value)(nodes2)(function(v) {
+    return elem4(SVG.value)([viewBox(0)(0)(400)(400), preserveAspectRatio("xMidYMid meet")])([elem4(Group.value)([transform("translate(10,10)")])([forEach("rects")(Rect.value)(nodes)(function(v) {
       return v.path;
     })(function(node) {
       var w = node.x1 - node.x0;
@@ -18261,8 +18144,8 @@
         paddingInner: 1
       };
       var treemapped = treemap(config)(valuedNode);
-      var nodes2 = flattenTreemapNodes(treemapped);
-      var tree2 = buildTreemap(nodes2);
+      var nodes = flattenTreemapNodes(treemapped);
+      var tree2 = buildTreemap(nodes);
       return function __do4() {
         rerender(selector)(tree2)();
         return unit;
@@ -18272,9 +18155,9 @@
   var buildTreeVertical = function(offsetX) {
     return function(offsetY) {
       return function(color) {
-        return function(nodes2) {
+        return function(nodes) {
           return function(links) {
-            var nodesLayer = forEach("nodes")(Group.value)(nodes2)(function(v) {
+            var nodesLayer = forEach("nodes")(Group.value)(nodes)(function(v) {
               return v.path;
             })(function(node) {
               var nodeRadius = (function() {
@@ -18318,8 +18201,8 @@
       };
       var laidOut = cluster(config)(inputTree);
       var links = extractLinks(laidOut);
-      var nodes2 = flattenNodes(laidOut);
-      var tree2 = buildTreeVertical(40)(25)(colorMalachite)(nodes2)(links);
+      var nodes = flattenNodes(laidOut);
+      var tree2 = buildTreeVertical(40)(25)(colorMalachite)(nodes)(links);
       return function __do4() {
         rerender(selector)(tree2)();
         return unit;
@@ -18340,8 +18223,8 @@
       };
       var laidOut = tree(config)(inputTree);
       var links = extractLinks(laidOut);
-      var nodes2 = flattenNodes(laidOut);
-      var tree2 = buildTreeVertical(40)(25)(colorForestGreen)(nodes2)(links);
+      var nodes = flattenNodes(laidOut);
+      var tree2 = buildTreeVertical(40)(25)(colorForestGreen)(nodes)(links);
       return function __do4() {
         rerender(selector)(tree2)();
         return unit;
@@ -18349,9 +18232,9 @@
     };
   };
   var buildTreeRadial = function(color) {
-    return function(nodes2) {
+    return function(nodes) {
       return function(links) {
-        var nodesLayer = forEach("nodes")(Circle.value)(nodes2)(function(v) {
+        var nodesLayer = forEach("nodes")(Circle.value)(nodes)(function(v) {
           return v.path;
         })(function(node) {
           var pos = polarToCartesian(node.x)(node.y);
@@ -18396,8 +18279,8 @@
       };
       var laidOut = cluster(config)(inputTree);
       var links = extractLinks(laidOut);
-      var nodes2 = flattenNodes(laidOut);
-      var tree2 = buildTreeRadial(colorMalachite)(nodes2)(links);
+      var nodes = flattenNodes(laidOut);
+      var tree2 = buildTreeRadial(colorMalachite)(nodes)(links);
       return function __do4() {
         rerender(selector)(tree2)();
         return unit;
@@ -18418,8 +18301,8 @@
       };
       var laidOut = tree(config)(inputTree);
       var links = extractLinks(laidOut);
-      var nodes2 = flattenNodes(laidOut);
-      var tree2 = buildTreeRadial(colorGoldLeaf)(nodes2)(links);
+      var nodes = flattenNodes(laidOut);
+      var tree2 = buildTreeRadial(colorGoldLeaf)(nodes)(links);
       return function __do4() {
         rerender(selector)(tree2)();
         return unit;
@@ -18429,9 +18312,9 @@
   var buildTreeHorizontal = function(offsetX) {
     return function(offsetY) {
       return function(color) {
-        return function(nodes2) {
+        return function(nodes) {
           return function(links) {
-            var nodesLayer = forEach("nodes")(Group.value)(nodes2)(function(v) {
+            var nodesLayer = forEach("nodes")(Group.value)(nodes)(function(v) {
               return v.path;
             })(function(node) {
               var nodeRadius = (function() {
@@ -18475,8 +18358,8 @@
       };
       var laidOut = cluster(config)(inputTree);
       var links = extractLinks(laidOut);
-      var nodes2 = flattenNodes(laidOut);
-      var tree2 = buildTreeHorizontal(25)(40)(colorMalachite)(nodes2)(links);
+      var nodes = flattenNodes(laidOut);
+      var tree2 = buildTreeHorizontal(25)(40)(colorMalachite)(nodes)(links);
       return function __do4() {
         rerender(selector)(tree2)();
         return unit;
@@ -18497,8 +18380,8 @@
       };
       var laidOut = tree(config)(inputTree);
       var links = extractLinks(laidOut);
-      var nodes2 = flattenNodes(laidOut);
-      var tree2 = buildTreeHorizontal(40)(25)(colorForestGreen)(nodes2)(links);
+      var nodes = flattenNodes(laidOut);
+      var tree2 = buildTreeHorizontal(40)(25)(colorForestGreen)(nodes)(links);
       return function __do4() {
         rerender(selector)(tree2)();
         return unit;
@@ -18506,7 +18389,7 @@
     };
   };
   var buildSunburst = function(radius) {
-    return function(nodes2) {
+    return function(nodes) {
       var sunburstColor = function(d2) {
         var v = mod4(d2)(4);
         if (v === 0) {
@@ -18523,7 +18406,7 @@
         ;
         return "#f2e6b3";
       };
-      return elem4(SVG.value)([viewBox(0)(0)(400)(400), preserveAspectRatio("xMidYMid meet")])([elem4(Group.value)([transform("translate(200,200)")])([forEach("arcs")(Path.value)(nodes2)(function(v) {
+      return elem4(SVG.value)([viewBox(0)(0)(400)(400), preserveAspectRatio("xMidYMid meet")])([elem4(Group.value)([transform("translate(200,200)")])([forEach("arcs")(Path.value)(nodes)(function(v) {
         return v.path;
       })(function(node) {
         var fillColor = sunburstColor(node.depth);
@@ -18548,17 +18431,17 @@
         }
       };
       var partitioned = partition2(config)(hierarchy3);
-      var nodes2 = flattenPartitionNodes(partitioned);
-      var tree2 = buildSunburst(170)(nodes2);
+      var nodes = flattenPartitionNodes(partitioned);
+      var tree2 = buildSunburst(170)(nodes);
       return function __do4() {
         rerender(selector)(tree2)();
         return unit;
       };
     };
   };
-  var buildSankey = function(nodes2) {
+  var buildSankey = function(nodes) {
     return function(links) {
-      var nodesLayer = forEach("sankey-nodes")(Rect.value)(nodes2)(function(v) {
+      var nodesLayer = forEach("sankey-nodes")(Rect.value)(nodes)(function(v) {
         return v.name;
       })(function(node) {
         var w = node.x1 - node.x0;
@@ -18626,7 +18509,7 @@
       };
     };
   };
-  var buildPack = function(nodes2) {
+  var buildPack = function(nodes) {
     var packColor = function(d2) {
       var v = mod4(d2)(4);
       if (v === 0) {
@@ -18643,7 +18526,7 @@
       ;
       return "#f5d4cf";
     };
-    return elem4(SVG.value)([viewBox(0)(0)(400)(400), preserveAspectRatio("xMidYMid meet")])([elem4(Group.value)([transform("translate(10,10)")])([forEach("circles")(Circle.value)(nodes2)(function(v) {
+    return elem4(SVG.value)([viewBox(0)(0)(400)(400), preserveAspectRatio("xMidYMid meet")])([elem4(Group.value)([transform("translate(10,10)")])([forEach("circles")(Circle.value)(nodes)(function(v) {
       return v.path;
     })(function(node) {
       var fillOpacityVal = (function() {
@@ -18673,8 +18556,8 @@
         padding: 2
       };
       var packed = pack(config)(hierarchy3);
-      var nodes2 = flattenPackNodes(packed);
-      var tree2 = buildPack(nodes2);
+      var nodes = flattenPackNodes(packed);
+      var tree2 = buildPack(nodes);
       return function __do4() {
         rerender(selector)(tree2)();
         return unit;
@@ -18682,11 +18565,11 @@
     };
   };
   var buildInboundBackEdge = function(nodeFlats) {
-    return function(nodes2) {
+    return function(nodes) {
       return function(copyOffset) {
         return function(link3) {
-          return bind22(findNode2(nodes2)(link3.sourceIndex))(function(source2) {
-            return bind22(findNode2(nodes2)(link3.targetIndex))(function(target6) {
+          return bind22(findNode2(nodes)(link3.sourceIndex))(function(source2) {
+            return bind22(findNode2(nodes)(link3.targetIndex))(function(target6) {
               var ty = (target6.y0 + target6.y1) / 2;
               var sy = (source2.y0 + source2.y1) / 2;
               var sx = source2.x1 - copyOffset;
@@ -18706,7 +18589,7 @@
       };
     };
   };
-  var buildIcicle = function(nodes2) {
+  var buildIcicle = function(nodes) {
     var icicleColor = function(d2) {
       var v = mod4(d2)(4);
       if (v === 0) {
@@ -18723,7 +18606,7 @@
       ;
       return "#f2e6b3";
     };
-    return elem4(SVG.value)([viewBox(0)(0)(400)(400), preserveAspectRatio("xMidYMid meet")])([elem4(Group.value)([transform("translate(10,10)")])([forEach("rects")(Rect.value)(nodes2)(function(v) {
+    return elem4(SVG.value)([viewBox(0)(0)(400)(400), preserveAspectRatio("xMidYMid meet")])([elem4(Group.value)([transform("translate(10,10)")])([forEach("rects")(Rect.value)(nodes)(function(v) {
       return v.path;
     })(function(node) {
       var w = node.x1 - node.x0;
@@ -18756,8 +18639,8 @@
         }
       };
       var partitioned = partition2(config)(hierarchy3);
-      var nodes2 = flattenPartitionNodes(partitioned);
-      var tree2 = buildIcicle(nodes2);
+      var nodes = flattenPartitionNodes(partitioned);
+      var tree2 = buildIcicle(nodes);
       return function __do4() {
         rerender(selector)(tree2)();
         return unit;
@@ -18768,14 +18651,14 @@
     return function(h) {
       return function(ghostW) {
         return function(copyOffset) {
-          return function(nodes2) {
+          return function(nodes) {
             return function(links) {
               return function(outboundEdges) {
                 return function(inboundEdges) {
                   var totalW = 2 * ghostW + 2 * copyOffset - w + 20;
                   var offsetX = ghostW + 10;
                   var n = toStringWith(fixed(1));
-                  return elem4(SVG.value)([viewBox(0)(0)(totalW)(h + 20), preserveAspectRatio("xMidYMid meet")])([elem4(Group.value)([transform("translate(" + (n(offsetX) + ",10)"))])([elem4(Group.value)([transform("translate(" + (n(-copyOffset) + ",0)")), style(cssMask("to right"))])([append22(sankeyLinksLayer("pred-links")(links))(sankeyNodesLayer("pred-nodes")(nodes2))]), elem4(Group.value)([])([append22(sankeyLinksLayer("sankey-links")(links))(sankeyNodesLayer("sankey-nodes")(nodes2))]), elem4(Group.value)([transform("translate(" + (n(copyOffset) + ",0)")), style(cssMask("to left"))])([append22(sankeyLinksLayer("succ-links")(links))(sankeyNodesLayer("succ-nodes")(nodes2))]), append22(cycleLinksLayer("outbound-cycle")(outboundEdges))(cycleLinksLayer("inbound-cycle")(inboundEdges))])]);
+                  return elem4(SVG.value)([viewBox(0)(0)(totalW)(h + 20), preserveAspectRatio("xMidYMid meet")])([elem4(Group.value)([transform("translate(" + (n(offsetX) + ",10)"))])([elem4(Group.value)([transform("translate(" + (n(-copyOffset) + ",0)")), style(cssMask("to right"))])([append22(sankeyLinksLayer("pred-links")(links))(sankeyNodesLayer("pred-nodes")(nodes))]), elem4(Group.value)([])([append22(sankeyLinksLayer("sankey-links")(links))(sankeyNodesLayer("sankey-nodes")(nodes))]), elem4(Group.value)([transform("translate(" + (n(copyOffset) + ",0)")), style(cssMask("to left"))])([append22(sankeyLinksLayer("succ-links")(links))(sankeyNodesLayer("succ-nodes")(nodes))]), append22(cycleLinksLayer("outbound-cycle")(outboundEdges))(cycleLinksLayer("inbound-cycle")(inboundEdges))])]);
                 };
               };
             };
@@ -18784,9 +18667,9 @@
       };
     };
   };
-  var buildEdgeBundle = function(nodes2) {
+  var buildEdgeBundle = function(nodes) {
     return function(links) {
-      var nodesLayer = forEach("bundle-nodes")(Circle.value)(nodes2)(function(v) {
+      var nodesLayer = forEach("bundle-nodes")(Circle.value)(nodes)(function(v) {
         return v.fullName;
       })(function(node) {
         return withBehaviors([onCoordinatedHighlight({
@@ -18919,11 +18802,11 @@
     };
   };
   var buildBackEdgeRibbon = function(nodeFlats) {
-    return function(nodes2) {
+    return function(nodes) {
       return function(copyOffset) {
         return function(link3) {
-          return bind22(findNode2(nodes2)(link3.sourceIndex))(function(source2) {
-            return bind22(findNode2(nodes2)(link3.targetIndex))(function(target6) {
+          return bind22(findNode2(nodes)(link3.sourceIndex))(function(source2) {
+            return bind22(findNode2(nodes)(link3.targetIndex))(function(target6) {
               var ty = (target6.y0 + target6.y1) / 2;
               var tx = target6.x0 + copyOffset;
               var sy = (source2.y0 + source2.y1) / 2;
@@ -18946,19 +18829,19 @@
   var renderEndCyclic = function(selector) {
     return function(w) {
       return function(h) {
-        return function(nodes2) {
+        return function(nodes) {
           return function(links) {
             return function(endCycles) {
-              var nodeFlats = toNodeFlats(nodes2);
-              var linkFlats = toLinkFlats(nodeFlats)(nodes2)(links);
+              var nodeFlats = toNodeFlats(nodes);
+              var linkFlats = toLinkFlats(nodeFlats)(nodes)(links);
               var ghostW = w * 0.35;
               var gap = w * 0.06;
               var copyOffset = w + gap;
               var inboundEdges = catMaybes(mapFlipped3(endCycles)(function(link3) {
-                return buildInboundBackEdge(nodeFlats)(nodes2)(copyOffset)(link3);
+                return buildInboundBackEdge(nodeFlats)(nodes)(copyOffset)(link3);
               }));
               var outboundEdges = catMaybes(mapFlipped3(endCycles)(function(link3) {
-                return buildBackEdgeRibbon(nodeFlats)(nodes2)(copyOffset)(link3);
+                return buildBackEdgeRibbon(nodeFlats)(nodes)(copyOffset)(link3);
               }));
               var tree2 = buildEndCyclicTree(w)(h)(ghostW)(copyOffset)(nodeFlats)(linkFlats)(outboundEdges)(inboundEdges);
               return function __do4() {
@@ -19092,9 +18975,9 @@
   };
   var buildAcyclicTree = function(w) {
     return function(h) {
-      return function(nodes2) {
+      return function(nodes) {
         return function(links) {
-          return elem4(SVG.value)([viewBox(0)(0)(w + 20)(h + 20), preserveAspectRatio("xMidYMid meet")])([elem4(Group.value)([transform("translate(10,10)")])([append22(sankeyLinksLayer("sankey-links")(links))(sankeyNodesLayer("sankey-nodes")(nodes2))])]);
+          return elem4(SVG.value)([viewBox(0)(0)(w + 20)(h + 20), preserveAspectRatio("xMidYMid meet")])([elem4(Group.value)([transform("translate(10,10)")])([append22(sankeyLinksLayer("sankey-links")(links))(sankeyNodesLayer("sankey-nodes")(nodes))])]);
         };
       };
     };
@@ -19102,10 +18985,10 @@
   var renderAcyclic = function(selector) {
     return function(w) {
       return function(h) {
-        return function(nodes2) {
+        return function(nodes) {
           return function(links) {
-            var nodeFlats = toNodeFlats(nodes2);
-            var linkFlats = toLinkFlats(nodeFlats)(nodes2)(links);
+            var nodeFlats = toNodeFlats(nodes);
+            var linkFlats = toLinkFlats(nodeFlats)(nodes)(links);
             var tree2 = buildAcyclicTree(w)(h)(nodeFlats)(linkFlats);
             return function __do4() {
               rerender(selector)(tree2)();
@@ -19214,10 +19097,10 @@
   };
 
   // output/Halogen.Data.Slot/index.js
-  var ordTuple3 = /* @__PURE__ */ ordTuple(ordString)(ordOrdBox);
-  var pop1 = /* @__PURE__ */ pop(ordTuple3);
-  var lookup12 = /* @__PURE__ */ lookup2(ordTuple3);
-  var insert12 = /* @__PURE__ */ insert(ordTuple3);
+  var ordTuple2 = /* @__PURE__ */ ordTuple(ordString)(ordOrdBox);
+  var pop1 = /* @__PURE__ */ pop(ordTuple2);
+  var lookup12 = /* @__PURE__ */ lookup2(ordTuple2);
+  var insert12 = /* @__PURE__ */ insert(ordTuple2);
   var pop2 = function() {
     return function(dictIsSymbol) {
       var reflectSymbol2 = reflectSymbol(dictIsSymbol);
@@ -20456,7 +20339,7 @@
   // output/Halogen.Subscription/index.js
   var $$void6 = /* @__PURE__ */ $$void(functorEffect);
   var bind9 = /* @__PURE__ */ bind(bindEffect);
-  var append10 = /* @__PURE__ */ append(semigroupArray);
+  var append9 = /* @__PURE__ */ append(semigroupArray);
   var traverse_3 = /* @__PURE__ */ traverse_(applicativeEffect);
   var traverse_1 = /* @__PURE__ */ traverse_3(foldableArray);
   var unsubscribe = function(v) {
@@ -20480,7 +20363,7 @@
       emitter: function(k) {
         return function __do4() {
           modify_(function(v) {
-            return append10(v)([k]);
+            return append9(v)([k]);
           })(subscribers)();
           return modify_(deleteBy(unsafeRefEq)(k))(subscribers);
         };
@@ -20866,7 +20749,7 @@
       return function(dictOrd) {
         var lookup23 = lookup14(dictOrd);
         var pop22 = pop12(dictOrd);
-        var insert23 = insert14(dictOrd);
+        var insert22 = insert14(dictOrd);
         return function(label5) {
           return function(p2) {
             return function(comp) {
@@ -20875,7 +20758,7 @@
                   return mkComponentSlot({
                     get: lookup23(label5)(p2),
                     pop: pop22(label5)(p2),
-                    set: insert23(label5)(p2),
+                    set: insert22(label5)(p2),
                     component: comp,
                     input: input3,
                     output: output2
@@ -21677,7 +21560,7 @@
 
   // output/DataViz.Layout.Pattern/index.js
   var foldl16 = /* @__PURE__ */ foldl(foldableArray);
-  var append11 = /* @__PURE__ */ append(semigroupArray);
+  var append10 = /* @__PURE__ */ append(semigroupArray);
   var min9 = /* @__PURE__ */ min(ordNumber);
   var max14 = /* @__PURE__ */ max(ordNumber);
   var max15 = /* @__PURE__ */ max(ordInt);
@@ -21699,7 +21582,7 @@
           var runningTotals = foldl16(function(acc) {
             return function(d2) {
               var prev = fromMaybe(0)(last(acc));
-              return append11(acc)([prev + d2]);
+              return append10(acc)([prev + d2]);
             };
           })([0])(deltas);
           var n = length(deltas);
@@ -21848,7 +21731,7 @@
                 };
                 return {
                   x: acc.x + segWidth,
-                  rects: append11(acc.rects)([rect])
+                  rects: append10(acc.rects)([rect])
                 };
               };
             })({
@@ -21932,7 +21815,7 @@
                   return {
                     negY: acc.negY,
                     posY: y2,
-                    rects: append11(acc.rects)([rect])
+                    rects: append10(acc.rects)([rect])
                   };
                 }
                 ;
@@ -21946,7 +21829,7 @@
                 return {
                   posY: acc.posY,
                   negY: acc.negY + segHeight,
-                  rects: append11(acc.rects)([rect])
+                  rects: append10(acc.rects)([rect])
                 };
               };
             })({
@@ -22001,7 +21884,7 @@
                 };
                 return {
                   y: y2,
-                  rects: append11(acc.rects)([rect])
+                  rects: append10(acc.rects)([rect])
                 };
               };
             })({
@@ -22053,7 +21936,7 @@
               x: nextX,
               y: y2,
               rowHeight: rowH,
-              rects: append11(acc.rects)([rect])
+              rects: append10(acc.rects)([rect])
             };
           };
         })({
@@ -22140,7 +22023,7 @@
               };
               return {
                 colHeights: newColHeights,
-                rects: append11(acc.rects)([rect])
+                rects: append10(acc.rects)([rect])
               };
             };
           })({
@@ -22169,7 +22052,7 @@
             })(aspects);
             var result = foldl16(function(acc) {
               return function(item) {
-                var currentRow = append11(acc.currentRow)([item]);
+                var currentRow = append10(acc.currentRow)([item]);
                 var sumAspects = foldl16(function(s) {
                   return function(it) {
                     return s + it.aspect;
@@ -22179,7 +22062,7 @@
                 var $87 = rowH < minRowHeight && length(currentRow) > 1;
                 if ($87) {
                   return {
-                    rows: append11(acc.rows)([acc.currentRow]),
+                    rows: append10(acc.rows)([acc.currentRow]),
                     currentRow: [item]
                   };
                 }
@@ -22195,7 +22078,7 @@
             })(indexed);
             var $88 = length(result.currentRow) > 0;
             if ($88) {
-              return append11(result.rows)([result.currentRow]);
+              return append10(result.rows)([result.currentRow]);
             }
             ;
             return result.rows;
@@ -22236,7 +22119,7 @@
                       };
                       return {
                         x: inner.x + w + gap,
-                        items: append11(inner.items)([{
+                        items: append10(inner.items)([{
                           rect,
                           index: item.index
                         }])
@@ -22248,7 +22131,7 @@
                   })(row);
                   return {
                     y: rowY + rowH + gap,
-                    rects: append11(acc.rects)(rowRects.items)
+                    rects: append10(acc.rects)(rowRects.items)
                   };
                 };
               };
@@ -22431,7 +22314,7 @@
                       ;
                       return [];
                     })();
-                    return append11(leftPart)(append11([{
+                    return append10(leftPart)(append10([{
                       x: max14(seg.x)(px),
                       y: newY,
                       segWidth: min9(segRight)(itemRight) - max14(seg.x)(px)
@@ -22445,7 +22328,7 @@
                     var v = last(acc);
                     if (v instanceof Just && (v.value0.y === seg.y && v.value0.x + v.value0.segWidth === seg.x)) {
                       return fromMaybe(acc)(bind12(init(acc))(function(init3) {
-                        return pure16(append11(init3)([{
+                        return pure16(append10(init3)([{
                           y: v.value0.y,
                           x: v.value0.x,
                           segWidth: v.value0.segWidth + seg.segWidth
@@ -22453,7 +22336,7 @@
                       }));
                     }
                     ;
-                    return append11(acc)([seg]);
+                    return append10(acc)([seg]);
                   };
                 })([])(sortWith12(function(v) {
                   return v.x;
@@ -22479,7 +22362,7 @@
               };
             })(area2.y)(acc.skyline);
             return {
-              placed: append11(acc.placed)([{
+              placed: append10(acc.placed)([{
                 rect: {
                   x: area2.x,
                   y: y2,
@@ -22494,7 +22377,7 @@
           ;
           if (v instanceof Just) {
             return {
-              placed: append11(acc.placed)([{
+              placed: append10(acc.placed)([{
                 rect: {
                   x: v.value0.x,
                   y: v.value0.y,
@@ -22981,7 +22864,7 @@
   var get8 = /* @__PURE__ */ get(monadStateHalogenM);
   var modify_8 = /* @__PURE__ */ modify_2(monadStateHalogenM);
   var discard6 = /* @__PURE__ */ discard(discardUnit)(bindHalogenM);
-  var append18 = /* @__PURE__ */ append(semigroupArray);
+  var append11 = /* @__PURE__ */ append(semigroupArray);
   var mapFlipped5 = /* @__PURE__ */ mapFlipped(functorArray);
   var Initialize6 = /* @__PURE__ */ (function() {
     function Initialize16() {
@@ -23097,7 +22980,7 @@
   };
   var daysBtn = function(n) {
     return function(current) {
-      return button2([classes(append18(["masonry-btn"])((function() {
+      return button2([classes(append11(["masonry-btn"])((function() {
         var $38 = n === current;
         if ($38) {
           return ["active"];
@@ -23110,8 +22993,8 @@
     };
   };
   var renderControls2 = function(state3) {
-    return div2([class_2("masonry-controls")])(append18([span4([class_2("masonry-label")])([text5("Starts on:")])])(append18(mapFlipped5(range2(0)(6))(function(d2) {
-      return button2([classes(append18(["masonry-btn"])((function() {
+    return div2([class_2("masonry-controls")])(append11([span4([class_2("masonry-label")])([text5("Starts on:")])])(append11(mapFlipped5(range2(0)(6))(function(d2) {
+      return button2([classes(append11(["masonry-btn"])((function() {
         var $39 = d2 === state3.offset;
         if ($39) {
           return ["active"];
@@ -23152,7 +23035,7 @@
   };
 
   // output/Gallery.JustifiedDemo/index.js
-  var append19 = /* @__PURE__ */ append(semigroupArray);
+  var append18 = /* @__PURE__ */ append(semigroupArray);
   var show15 = /* @__PURE__ */ show(showNumber);
   var traverse5 = /* @__PURE__ */ traverse(traversableArray)(applicativeEffect);
   var bind16 = /* @__PURE__ */ bind(bindHalogenM);
@@ -23201,7 +23084,7 @@
   };
   var heightBtn = function(h) {
     return function(current) {
-      return button2([classes(append19(["masonry-btn"])((function() {
+      return button2([classes(append18(["masonry-btn"])((function() {
         var $34 = h === current;
         if ($34) {
           return ["active"];
@@ -23341,7 +23224,7 @@
   var foldl19 = /* @__PURE__ */ foldl(foldableArray);
   var max18 = /* @__PURE__ */ max(ordNumber);
   var mapFlipped6 = /* @__PURE__ */ mapFlipped(functorArray);
-  var append110 = /* @__PURE__ */ append(semigroupArray);
+  var append19 = /* @__PURE__ */ append(semigroupArray);
   var show17 = /* @__PURE__ */ show(showInt);
   var Initialize8 = /* @__PURE__ */ (function() {
     function Initialize16() {
@@ -23478,7 +23361,7 @@
   };
   var colButtons = function(currentCols) {
     return mapFlipped6(range2(2)(5))(function(n) {
-      return button2([classes(append110(["masonry-btn"])((function() {
+      return button2([classes(append19(["masonry-btn"])((function() {
         var $47 = n === currentCols;
         if ($47) {
           return ["active"];
@@ -23491,7 +23374,7 @@
     });
   };
   var renderControls4 = function(currentCols) {
-    return div2([class_2("masonry-controls")])(append110([span4([class_2("masonry-label")])([text5("Columns:")])])(append110(colButtons(currentCols))([button2([classes(["masonry-btn", "masonry-btn-regen"]), onClick(function(v) {
+    return div2([class_2("masonry-controls")])(append19([span4([class_2("masonry-label")])([text5("Columns:")])])(append19(colButtons(currentCols))([button2([classes(["masonry-btn", "masonry-btn-regen"]), onClick(function(v) {
       return Regenerate3.value;
     })])([text5("Regenerate")])])));
   };
@@ -25196,7 +25079,7 @@
   var map211 = /* @__PURE__ */ map(functorMaybe);
   var insert10 = /* @__PURE__ */ insert(ordSubscriptionId);
   var retractFreeAp2 = /* @__PURE__ */ retractFreeAp(applicativeParAff);
-  var $$delete5 = /* @__PURE__ */ $$delete2(ordForkId);
+  var $$delete4 = /* @__PURE__ */ $$delete2(ordForkId);
   var unlessM2 = /* @__PURE__ */ unlessM(monadEffect);
   var insert13 = /* @__PURE__ */ insert(ordForkId);
   var traverse_32 = /* @__PURE__ */ traverse_12(foldableMaybe);
@@ -25377,7 +25260,7 @@
                 return bind112(liftEffect4(read(ref2)))(function(v2) {
                   return bind112(liftEffect4($$new(false)))(function(doneRef) {
                     return bind112(fork3($$finally(liftEffect4(function __do4() {
-                      modify_($$delete5(fid))(v2.forks)();
+                      modify_($$delete4(fid))(v2.forks)();
                       return write(true)(doneRef)();
                     }))(evalM(render18)(ref2)(v1.value0))))(function(fiber) {
                       return discard1(liftEffect4(unlessM2(read(doneRef))(modify_(insert13(fid)(fiber))(v2.forks))))(function() {

@@ -13,7 +13,7 @@ package:
     - free: ">=7.1.0 <8.0.0"
     - halogen: ">=7.0.0 <8.0.0"
     - hylograph-layout: "*"
-    - hylograph-selection: ">=0.3.4 <0.4.0"
+    - hylograph-selection: ">=0.5.1 <0.6.0"
     - integers: ">=6.0.0 <7.0.0"
     - lists: ">=7.0.0 <8.0.0"
     - maybe: ">=6.0.0 <7.0.0"

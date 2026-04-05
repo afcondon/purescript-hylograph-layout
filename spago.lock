@@ -24,7 +24,7 @@
               "free": ">=7.1.0 <8.0.0"
             },
             {
-              "hylograph-graph": ">=0.2.0 <0.3.0"
+              "hylograph-graph": ">=0.3.0 <0.4.0"
             },
             {
               "integers": ">=6.0.0 <7.0.0"
@@ -109,7 +109,7 @@
               "hylograph-layout": "*"
             },
             {
-              "hylograph-selection": ">=0.3.4 <0.4.0"
+              "hylograph-selection": ">=0.5.1 <0.6.0"
             },
             {
               "integers": ">=6.0.0 <7.0.0"
@@ -762,8 +762,8 @@
     },
     "hylograph-graph": {
       "type": "registry",
-      "version": "0.2.0",
-      "integrity": "sha256-TmOOCHbF8KbOLHegvKINm635hoGI2tTgSdiYCOeqSXM=",
+      "version": "0.3.0",
+      "integrity": "sha256-/0tXvvkDmwJ9VxFprJeE8QZB0Pyv6Aon362lhUWbP/I=",
       "dependencies": [
         "arrays",
         "either",
@@ -782,8 +782,8 @@
     },
     "hylograph-selection": {
       "type": "registry",
-      "version": "0.3.4",
-      "integrity": "sha256-v6GH6EqcK24ed5BNsUB4qEefnejHJ324MSgOBMPJHRQ=",
+      "version": "0.5.1",
+      "integrity": "sha256-/cxTLlzBYBrQiL80+roo0irozdHAyf++31pd2sYUvOQ=",
       "dependencies": [
         "arrays",
         "colors",

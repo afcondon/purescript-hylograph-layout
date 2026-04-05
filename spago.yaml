@@ -18,7 +18,7 @@ package:
     - foldable-traversable: ">=6.0.0 <7.0.0"
     - foreign: ">=7.0.0 <8.0.0"
     - free: ">=7.1.0 <8.0.0"
-    - hylograph-graph: ">=0.2.0 <0.3.0"
+    - hylograph-graph: ">=0.3.0 <0.4.0"
     - integers: ">=6.0.0 <7.0.0"
     - lists: ">=7.0.0 <8.0.0"
     - maybe: ">=6.0.0 <7.0.0"

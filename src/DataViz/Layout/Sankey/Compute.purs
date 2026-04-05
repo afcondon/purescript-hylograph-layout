@@ -17,7 +17,7 @@ import Control.Monad.State (State, execState, get, modify_)
 import Data.Array (catMaybes, filter, find, foldl, length, mapWithIndex, snoc, sortBy, (!!))
 import Data.Array as Array
 import Data.Foldable (for_)
-import Data.Graph.Algorithms (hasCycle)
+import Data.Graph.Algorithms (findBackEdges)
 import Data.Graph.Weighted as WG
 import Data.Int (toNumber)
 import Data.Map as M
@@ -133,53 +133,20 @@ initialiseSankeyNodes = do
 -- ============================================================================
 
 -- | Detect cycles in the graph and partition edges into forward and back-edges.
--- | Uses DFS edge classification to find all back-edges in a single pass.
+-- | Uses findBackEdges from hylograph-graph for DFS back-edge classification.
 -- | After this step, model.graph contains only forward edges (safe for BFS),
 -- | model.sankeyLinks has forward links, and model.backEdgeLinks has back-edge links.
 detectAndRemoveBackEdges :: State SankeyGraphModel Unit
 detectAndRemoveBackEdges = do
   model <- get
-  let simpleGraph = WG.toSimpleGraph model.graph
-  if not (hasCycle simpleGraph) then pure unit -- Acyclic: no changes needed
+  let backEdgePairs = findBackEdges (WG.toSimpleGraph model.graph)
+  if Set.isEmpty backEdgePairs then pure unit -- Acyclic: no changes needed
   else do
-    -- Graph has cycles: find all back-edges via DFS edge classification
-    let backEdgePairs = findBackEdgePairs model.graph
     let isBackEdge link = Set.member (Tuple link.sourceIndex link.targetIndex) backEdgePairs
     let { yes: backLinks, no: forwardLinks } = partitionArray isBackEdge model.sankeyLinks
-    -- Rebuild graph from forward edges only
     let forwardEdges = Array.filter (\e -> not (Set.member (Tuple e.source e.target) backEdgePairs)) (WG.edges model.graph)
     let forwardGraph = WG.fromEdges forwardEdges
     modify_ _ { graph = forwardGraph, sankeyLinks = forwardLinks, backEdgeLinks = backLinks }
-
--- | Find all back-edge pairs using DFS three-color marking.
--- | An edge (u, v) is a back-edge if v is gray (in the current DFS stack) when visited from u.
-findBackEdgePairs :: WG.WeightedDigraph NodeID Number -> Set.Set (Tuple NodeID NodeID)
-findBackEdgePairs graph =
-  let
-    allNodes = WG.nodes graph
-    initial = { white: Set.fromFoldable allNodes, gray: Set.empty, black: Set.empty, backEdges: Set.empty }
-    result = foldl (\state node ->
-      if Set.member node state.white then dfsClassify state node
-      else state
-    ) initial allNodes
-  in result.backEdges
-  where
-  dfsClassify state node =
-    let
-      state' = state
-        { white = Set.delete node state.white
-        , gray = Set.insert node state.gray
-        }
-      neighbors = WG.outgoing node graph
-      state'' = foldl (\st edge ->
-        if Set.member edge.target st.gray then
-          st { backEdges = Set.insert (Tuple node edge.target) st.backEdges }
-        else if Set.member edge.target st.white then
-          dfsClassify st edge.target
-        else st
-      ) state' neighbors
-    in
-      state'' { gray = Set.delete node state''.gray, black = Set.insert node state''.black }
 
 -- | Partition an array by a predicate
 partitionArray :: forall a. (a -> Boolean) -> Array a -> { yes :: Array a, no :: Array a }
