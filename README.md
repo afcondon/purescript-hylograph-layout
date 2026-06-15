@@ -1,6 +1,6 @@
 # purescript-hylograph-layout
 
-[![Layout Gallery Demo](../../site/lib-layout/public/demo.jpeg)](/layouts/)
+[![Layout Gallery Demo](https://afcondon.github.io/purescript-hylograph-demos/thumbnails/layout.jpg)](https://afcondon.github.io/purescript-hylograph-demos/layout/)
 
 Pure PureScript implementations of layout algorithms for hierarchies and flow diagrams.
 
