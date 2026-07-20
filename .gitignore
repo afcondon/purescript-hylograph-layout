@@ -5,3 +5,4 @@ node_modules/
 .spago/
 output/
 .psc-ide-port
+.direnv/
