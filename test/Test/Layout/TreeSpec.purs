@@ -103,6 +103,31 @@ wideShallow =
   where
   node name = { name, x: 0.0, y: 0.0, depth: 0 }
 
+-- | Wide tree whose children are INTERNAL nodes, not leaves.
+-- |
+-- | `wideShallow` above is root -> 6 leaves, so every child contour has length
+-- | 1 and `spliceContours` merges a single level — the trivial path. This
+-- | fixture is root -> 12 groups -> 2 leaves each, so child contours have
+-- | length 2 and the multi-level contour merge is actually exercised. That is
+-- | the shape a supervision/fleet tree takes (many sibling groups, each with a
+-- | few members), and it had no coverage until now.
+-- |
+-- |            root
+-- |     /    /   |   \    \
+-- |    g1   g2  ...  g11  g12
+-- |   / \   / \      / \  / \
+-- |  a   b a   b    a  b a   b
+wideDeep :: Tree TreeNode
+wideDeep =
+  mkTree (node "root") $ List.fromFoldable $ map mkGroup (Array.range 1 12)
+  where
+  mkGroup g =
+    mkTree (node ("g" <> show g)) $ List.fromFoldable
+      [ mkTree (node ("g" <> show g <> "a")) List.Nil
+      , mkTree (node ("g" <> show g <> "b")) List.Nil
+      ]
+  node name = { name, x: 0.0, y: 0.0, depth: 0 }
+
 -- | Convert TreeNode to JSON for golden comparison
 -- | Round numbers to 2 decimal places for stable comparisons
 nodeToJson :: TreeNode -> Json
@@ -163,9 +188,17 @@ runTreeTests = do
   r4 <- assertGolden "tree-wide-shallow.golden.json" (stringify $ treeToJson result4)
   logResult "Wide shallow tree" r4
 
+  -- Test 5: Wide tree with internal children (multi-level contour merge)
+  log "\nTest 5: Wide deep tree (internal children)"
+  let result5 = tree defaultTreeConfig wideDeep
+  let nodes5 = Array.fromFoldable result5
+  log $ "  Nodes: " <> show (Array.length nodes5)
+  r5 <- assertGolden "tree-wide-deep.golden.json" (stringify $ treeToJson result5)
+  logResult "Wide deep tree" r5
+
   -- Count failures
-  let failures = countFailures [r1, r2, r3, r4]
-  log $ "\nTree tests: " <> show (4 - failures) <> "/4 passed"
+  let failures = countFailures [r1, r2, r3, r4, r5]
+  log $ "\nTree tests: " <> show (5 - failures) <> "/5 passed"
   pure failures
 
 logResult :: String -> GoldenResult -> Effect Unit

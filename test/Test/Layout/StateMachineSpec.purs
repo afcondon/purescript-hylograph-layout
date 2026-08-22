@@ -16,11 +16,11 @@ import Data.Tuple.Nested ((/\))
 import Effect (Effect)
 import Effect.Console (log)
 import Foreign.Object as FO
-import DataViz.Layout.StateMachine (StateMachine, State, layout, layoutWithConfig, defaultConfig, circularLayout, gridLayout)
+import DataViz.Layout.StateMachine (StateMachine, StateMachineLayout, LayoutState, LayoutTransition, layout, layoutWithConfig, defaultConfig, circularLayout, gridLayout)
 import Test.Golden.Util (GoldenResult(..), assertGolden)
 
 -- | Simple linear state machine: s0 -> s1 -> s2
-linearMachine :: StateMachine Unit
+linearMachine :: StateMachine Unit Unit
 linearMachine =
   { states:
       [ { id: "s0", label: "Idle", isInitial: true, isFinal: false, extra: unit }
@@ -28,13 +28,13 @@ linearMachine =
       , { id: "s2", label: "Done", isInitial: false, isFinal: true, extra: unit }
       ]
   , transitions:
-      [ { from: "s0", to: "s1", label: "start" }
-      , { from: "s1", to: "s2", label: "finish" }
+      [ { from: "s0", to: "s1", label: "start", extra: unit }
+      , { from: "s1", to: "s2", label: "finish", extra: unit }
       ]
   }
 
 -- | State machine with self-loop
-selfLoopMachine :: StateMachine Unit
+selfLoopMachine :: StateMachine Unit Unit
 selfLoopMachine =
   { states:
       [ { id: "s0", label: "Start", isInitial: true, isFinal: false, extra: unit }
@@ -42,14 +42,14 @@ selfLoopMachine =
       , { id: "s2", label: "End", isInitial: false, isFinal: true, extra: unit }
       ]
   , transitions:
-      [ { from: "s0", to: "s1", label: "begin" }
-      , { from: "s1", to: "s1", label: "tick" }  -- Self-loop
-      , { from: "s1", to: "s2", label: "done" }
+      [ { from: "s0", to: "s1", label: "begin", extra: unit }
+      , { from: "s1", to: "s1", label: "tick", extra: unit }  -- Self-loop
+      , { from: "s1", to: "s2", label: "done", extra: unit }
       ]
   }
 
 -- | Branching state machine with multiple paths
-branchingMachine :: StateMachine Unit
+branchingMachine :: StateMachine Unit Unit
 branchingMachine =
   { states:
       [ { id: "s0", label: "Init", isInitial: true, isFinal: false, extra: unit }
@@ -58,15 +58,15 @@ branchingMachine =
       , { id: "s3", label: "Merge", isInitial: false, isFinal: true, extra: unit }
       ]
   , transitions:
-      [ { from: "s0", to: "s1", label: "path A" }
-      , { from: "s0", to: "s2", label: "path B" }
-      , { from: "s1", to: "s3", label: "join A" }
-      , { from: "s2", to: "s3", label: "join B" }
+      [ { from: "s0", to: "s1", label: "path A", extra: unit }
+      , { from: "s0", to: "s2", label: "path B", extra: unit }
+      , { from: "s1", to: "s3", label: "join A", extra: unit }
+      , { from: "s2", to: "s3", label: "join B", extra: unit }
       ]
   }
 
 -- | Convert state position to JSON
-stateToJson :: forall e. { state :: State e, position :: { cx :: Number, cy :: Number, rx :: Number, ry :: Number } } -> Json
+stateToJson :: forall e. LayoutState e -> Json
 stateToJson { state, position } = fromObject $ FO.fromFoldable
   [ "id" /\ fromString state.id
   , "label" /\ fromString state.label
@@ -79,7 +79,7 @@ stateToJson { state, position } = fromObject $ FO.fromFoldable
   ]
 
 -- | Convert transition path to JSON
-transitionToJson :: { transition :: { from :: String, to :: String, label :: String }, path :: { startX :: Number, startY :: Number, controlX :: Number, controlY :: Number, endX :: Number, endY :: Number, labelX :: Number, labelY :: Number, angle :: Number, isSelfLoop :: Boolean } } -> Json
+transitionToJson :: forall e. LayoutTransition e -> Json
 transitionToJson { transition, path } = fromObject $ FO.fromFoldable
   [ "from" /\ fromString transition.from
   , "to" /\ fromString transition.to
@@ -94,7 +94,7 @@ transitionToJson { transition, path } = fromObject $ FO.fromFoldable
   ]
 
 -- | Convert full layout to JSON
-layoutToJson :: forall e. { states :: Array { state :: State e, position :: { cx :: Number, cy :: Number, rx :: Number, ry :: Number } }, transitions :: Array { transition :: { from :: String, to :: String, label :: String }, path :: { startX :: Number, startY :: Number, controlX :: Number, controlY :: Number, endX :: Number, endY :: Number, labelX :: Number, labelY :: Number, angle :: Number, isSelfLoop :: Boolean } }, width :: Number, height :: Number, initialArrow :: { x :: Number, y :: Number, angle :: Number } } -> Json
+layoutToJson :: forall se te. StateMachineLayout se te -> Json
 layoutToJson result = fromObject $ FO.fromFoldable
   [ "states" /\ fromArray (map stateToJson sortedStates)
   , "transitions" /\ fromArray (map transitionToJson sortedTransitions)

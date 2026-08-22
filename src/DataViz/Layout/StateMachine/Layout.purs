@@ -10,14 +10,16 @@ module DataViz.Layout.StateMachine.Layout
   , defaultConfig
   , circularLayout
   , gridLayout
+  , ParallelInfo
   ) where
 
 import Prelude
 
-import Data.Array (filter, length, mapWithIndex)
+import Data.Array (catMaybes, elemIndex, filter, length, mapWithIndex, zipWith)
+import Data.Array as Array
 import Data.Foldable (foldl)
 import Data.Int (toNumber)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Number (pi, cos, sin, sqrt, atan2)
 import DataViz.Layout.StateMachine.Types (State, Transition, StateMachine, StatePosition, TransitionPath, LayoutState, LayoutTransition, StateMachineLayout)
 
@@ -30,6 +32,16 @@ type LayoutConfig =
   , selfLoopRadius :: Number    -- Radius for self-loop curves
   , arrowOffset :: Number       -- Gap between arrow and state edge
   , initialArrowLength :: Number -- Length of arrow pointing to initial state
+  , parallelSeparation :: Number -- Gap between arcs that share a pair of states
+  , minPairedCurvature :: Number -- Floor on the bow when the reverse edge also
+                                 -- exists, so A->B and B->A cannot collapse onto
+                                 -- one line however flat the base curve is
+  , labelOffset :: Number      -- How far a label sits off its arc, perpendicular
+  , edgeCurvature :: Number    -- How far an arc bows off the straight line,
+                               -- as a fraction of its length. A ring needs a
+                               -- generous bow to keep parallel chords apart;
+                               -- a tidy tree wants its parent-child links
+                               -- nearly straight or the labels collide.
   }
 
 -- | Default layout configuration
@@ -42,34 +54,73 @@ defaultConfig =
   , selfLoopRadius: 50.0
   , arrowOffset: 3.0
   , initialArrowLength: 40.0
+  , parallelSeparation: 24.0
+  , minPairedCurvature: 20.0
+  , labelOffset: 12.0
+  , edgeCurvature: 0.15
   }
 
+-- | Where a transition sits among those sharing its endpoints.
+-- |
+-- | `index`/`count` place same-direction siblings side by side. `hasOpposite`
+-- | is the antiparallel case and needs different treatment: A->B and B->A
+-- | already bow to opposite sides of the line (the perpendicular is computed
+-- | from the travel direction, which is reversed), so they want the *same*
+-- | positive magnitude rather than opposite offsets — they just need that
+-- | magnitude floored so the gap survives a flat base curve.
+type ParallelInfo =
+  { index :: Int
+  , count :: Int
+  , hasOpposite :: Boolean
+  }
+
+parallelInfo :: forall te. Array (Transition te) -> Array ParallelInfo
+parallelInfo transitions = mapWithIndex info transitions
+  where
+  info i t =
+    let
+      mates = catMaybes $
+        mapWithIndex (\j s -> if s.from == t.from && s.to == t.to then Just j else Nothing)
+          transitions
+      opposite = Array.any (\s -> s.from == t.to && s.to == t.from) transitions
+    in
+      { index: fromMaybe 0 (elemIndex i mates)
+      , count: length mates
+      , hasOpposite: opposite && t.from /= t.to
+      }
+
 -- | Layout a state machine with default configuration using circular layout
-layout :: forall extra. StateMachine extra -> StateMachineLayout extra
+layout :: forall se te. StateMachine se te -> StateMachineLayout se te
 layout = layoutWithConfig defaultConfig circularLayout
 
 -- | Layout with custom configuration and layout strategy
-layoutWithConfig :: forall extra.
+layoutWithConfig :: forall se te.
   LayoutConfig ->
-  (LayoutConfig -> Array (State extra) -> Array (LayoutState extra)) ->
-  StateMachine extra ->
-  StateMachineLayout extra
+  (LayoutConfig -> Array (State se) -> Array (LayoutState se)) ->
+  StateMachine se te ->
+  StateMachineLayout se te
 layoutWithConfig config layoutFn machine =
   let
     -- Position states
     layoutStates = layoutFn config machine.states
 
-    -- Compute transitions
-    layoutTransitions = map (layoutTransition config layoutStates) machine.transitions
+    -- Compute transitions, each knowing who shares its endpoints
+    layoutTransitions =
+      zipWith (layoutTransition config layoutStates)
+        (parallelInfo machine.transitions)
+        machine.transitions
 
     -- Find initial state for the entry arrow
     initialArrow = computeInitialArrow config layoutStates
 
-    -- Compute bounding box
-    { width, height } = computeBounds config layoutStates
+    -- Compute bounding box over everything that will actually be drawn
+    { originX, originY, width, height } =
+      computeBounds config layoutStates layoutTransitions initialArrow
   in
     { states: layoutStates
     , transitions: layoutTransitions
+    , originX
+    , originY
     , width
     , height
     , initialArrow
@@ -126,12 +177,13 @@ gridLayout config states =
       { state, position }
 
 -- | Compute a transition path between two states
-layoutTransition :: forall extra.
+layoutTransition :: forall se te.
   LayoutConfig ->
-  Array (LayoutState extra) ->
-  Transition ->
-  LayoutTransition
-layoutTransition config states transition =
+  Array (LayoutState se) ->
+  ParallelInfo ->
+  Transition te ->
+  LayoutTransition te
+layoutTransition config states parallel transition =
   let
     fromPos = findStatePosition states transition.from
     toPos = findStatePosition states transition.to
@@ -141,7 +193,7 @@ layoutTransition config states transition =
       Just from, Just to ->
         if transition.from == transition.to
           then selfLoopPath config layoutCenter from
-          else arcPath config from to (countParallelTransitions states transition)
+          else arcPath config from to parallel
       _, _ -> defaultPath
   in
     { transition, path }
@@ -165,13 +217,9 @@ findStatePosition states id =
     [s] -> Just s.position
     _ -> Nothing
 
--- | Count parallel transitions (for offsetting multiple arrows between same states)
-countParallelTransitions :: forall extra. Array (LayoutState extra) -> Transition -> Int
-countParallelTransitions _ _ = 0  -- Simplified for now
-
 -- | Compute arc path between two different states
-arcPath :: LayoutConfig -> StatePosition -> StatePosition -> Int -> TransitionPath
-arcPath config from to _offset =
+arcPath :: LayoutConfig -> StatePosition -> StatePosition -> ParallelInfo -> TransitionPath
+arcPath config from to parallel =
   let
     -- Vector from source to target
     dx = to.cx - from.cx
@@ -193,7 +241,14 @@ arcPath config from to _offset =
     -- Control point: perpendicular offset for curve
     -- More curvature for longer distances
     -- Positive perpendicular = curve bows to the right (clockwise)
-    curveAmount = min 30.0 (dist * 0.15)
+    base = min 30.0 (dist * config.edgeCurvature)
+    -- Floor the bow when the reverse edge exists, or the two arcs and their two
+    -- labels land on top of each other.
+    floored = if parallel.hasOpposite then max base config.minPairedCurvature else base
+    -- Same-direction siblings fan out either side of that.
+    slot = toNumber parallel.index - toNumber (parallel.count - 1) / 2.0
+    curveAmount = floored + slot * config.parallelSeparation
+
     perpX = ny * curveAmount   -- Flipped sign for clockwise curve
     perpY = -nx * curveAmount  -- Flipped sign for clockwise curve
     midX = (startX + endX) / 2.0
@@ -201,9 +256,11 @@ arcPath config from to _offset =
     controlX = midX + perpX
     controlY = midY + perpY
 
-    -- Label position: near the control point
-    labelX = controlX
-    labelY = controlY - 8.0
+    -- Label sits off the arc along the same perpendicular, so it never lies on
+    -- the line it is naming.
+    labelSign = if curveAmount < 0.0 then -1.0 else 1.0
+    labelX = controlX + ny * config.labelOffset * labelSign
+    labelY = controlY - nx * config.labelOffset * labelSign
 
     -- Angle at endpoint for arrowhead
     -- Tangent of quadratic bezier at t=1 is (end - control)
@@ -245,8 +302,8 @@ selfLoopPath config layoutCenter pos =
     controlY = pos.cy + (pos.ry + loopRadius * 1.5) * sin outwardAngle
 
     -- Label at the apex of the loop
-    labelX = pos.cx + (pos.rx + loopRadius * 2.0 + 10.0) * cos outwardAngle
-    labelY = pos.cy + (pos.ry + loopRadius * 2.0 + 10.0) * sin outwardAngle
+    labelX = pos.cx + (pos.rx + loopRadius + 14.0) * cos outwardAngle
+    labelY = pos.cy + (pos.ry + loopRadius + 14.0) * sin outwardAngle
 
     -- Arrowhead angle: tangent to arc at end point, pointing into the state
     -- For clockwise arc, tangent points perpendicular to the radius
@@ -279,21 +336,57 @@ computeInitialArrow config states =
         { x, y, angle }
     _ -> { x: 0.0, y: 0.0, angle: 0.0 }
 
--- | Compute bounding box for the diagram
-computeBounds :: forall extra. LayoutConfig -> Array (LayoutState extra) -> { width :: Number, height :: Number }
-computeBounds config states =
+-- | Compute the bounding box for the diagram.
+-- |
+-- | Measures the states, but also every arc's control point, endpoints and
+-- | label anchor, and the initial arrow. A self-loop bulges outward and its
+-- | label sits further out still, so a box drawn from the state ellipses alone
+-- | clips exactly the annotations a reader most needs.
+computeBounds
+  :: forall se te
+   . LayoutConfig
+  -> Array (LayoutState se)
+  -> Array (LayoutTransition te)
+  -> { x :: Number, y :: Number, angle :: Number }
+  -> { originX :: Number, originY :: Number, width :: Number, height :: Number }
+computeBounds config states transitions initialArrow =
   let
-    initial = { minX: 0.0, minY: 0.0, maxX: 0.0, maxY: 0.0 }
-    bounds = foldl updateBounds initial states
-    updateBounds acc s =
-      { minX: min acc.minX (s.position.cx - s.position.rx)
-      , minY: min acc.minY (s.position.cy - s.position.ry)
-      , maxX: max acc.maxX (s.position.cx + s.position.rx)
-      , maxY: max acc.maxY (s.position.cy + s.position.ry)
+    seed = { minX: initialArrow.x, minY: initialArrow.y, maxX: initialArrow.x, maxY: initialArrow.y }
+
+    widen acc p =
+      { minX: min acc.minX p.x
+      , minY: min acc.minY p.y
+      , maxX: max acc.maxX p.x
+      , maxY: max acc.maxY p.y
       }
+
+    statePoints = Array.concatMap
+      (\s ->
+        [ { x: s.position.cx - s.position.rx, y: s.position.cy - s.position.ry }
+        , { x: s.position.cx + s.position.rx, y: s.position.cy + s.position.ry }
+        ]
+      )
+      states
+
+    -- A label is text, so allow for it spreading either side of its anchor.
+    labelPad = 34.0
+    transitionPoints = Array.concatMap
+      (\t ->
+        [ { x: t.path.startX, y: t.path.startY }
+        , { x: t.path.endX, y: t.path.endY }
+        , { x: t.path.controlX, y: t.path.controlY }
+        , { x: t.path.labelX - labelPad, y: t.path.labelY - 10.0 }
+        , { x: t.path.labelX + labelPad, y: t.path.labelY + 10.0 }
+        ]
+      )
+      transitions
+
+    bounds = foldl widen seed (statePoints <> transitionPoints)
   in
-    { width: bounds.maxX + config.margin
-    , height: bounds.maxY + config.margin
+    { originX: bounds.minX - config.margin
+    , originY: bounds.minY - config.margin
+    , width: bounds.maxX - bounds.minX + 2.0 * config.margin
+    , height: bounds.maxY - bounds.minY + 2.0 * config.margin
     }
 
 -- | Ceiling function for integers

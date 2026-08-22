@@ -3,6 +3,12 @@
 -- | Types for state machine visualization.
 -- | A state machine diagram shows states as circles/ovals
 -- | and transitions as labeled arrows between them.
+-- |
+-- | Both states and transitions carry an `extra` payload, and the two are
+-- | independently parameterised: a state's payload describes a state (a phase,
+-- | a liveness flag), a transition's payload describes an edge (the event that
+-- | fires it, a guard, a refusal reason). A caller that wants neither uses
+-- | `Unit` for both.
 module DataViz.Layout.StateMachine.Types
   ( State
   , Transition
@@ -25,16 +31,21 @@ type State extra =
   }
 
 -- | A transition between states
-type Transition =
+-- | The `extra` field carries whatever the caller needs to keep attached to the
+-- | edge itself — the triggering event, a guard, a refusal reason — so that a
+-- | renderer can style or annotate an arrow without a side table keyed by
+-- | `from`/`to`/`label`.
+type Transition extra =
   { from :: String         -- Source state id
   , to :: String           -- Target state id
   , label :: String        -- Transition label (e.g., operation name)
+  , extra :: extra         -- User-defined extra data
   }
 
 -- | Complete state machine definition
-type StateMachine extra =
-  { states :: Array (State extra)
-  , transitions :: Array Transition
+type StateMachine stateExtra transitionExtra =
+  { states :: Array (State stateExtra)
+  , transitions :: Array (Transition transitionExtra)
   }
 
 -- | Computed position for a state
@@ -67,15 +78,21 @@ type LayoutState extra =
   }
 
 -- | A transition with computed layout
-type LayoutTransition =
-  { transition :: Transition
+type LayoutTransition extra =
+  { transition :: Transition extra
   , path :: TransitionPath
   }
 
 -- | Complete layout output ready for rendering
-type StateMachineLayout extra =
-  { states :: Array (LayoutState extra)
-  , transitions :: Array (LayoutTransition)
+-- | `originX`/`originY` are the top-left of the drawing, which is NOT always
+-- | (0, 0): a self-loop or a transition label can sit left of or above the
+-- | leftmost state, and a viewBox pinned to the origin clips them. Renderers
+-- | should use all four as the viewBox.
+type StateMachineLayout stateExtra transitionExtra =
+  { states :: Array (LayoutState stateExtra)
+  , transitions :: Array (LayoutTransition transitionExtra)
+  , originX :: Number
+  , originY :: Number
   , width :: Number
   , height :: Number
   , initialArrow :: { x :: Number, y :: Number, angle :: Number }  -- Arrow pointing to initial state

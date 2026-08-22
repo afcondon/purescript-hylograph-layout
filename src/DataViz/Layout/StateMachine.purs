@@ -8,7 +8,7 @@
 -- | ```purescript
 -- | import DataViz.Layout.StateMachine (layout, StateMachine)
 -- |
--- | myMachine :: StateMachine Unit
+-- | myMachine :: StateMachine Unit Unit
 -- | myMachine =
 -- |   { states:
 -- |       [ { id: "s0", label: "Start", isInitial: true, isFinal: false, extra: unit }
@@ -16,9 +16,9 @@
 -- |       , { id: "s2", label: "Done", isInitial: false, isFinal: true, extra: unit }
 -- |       ]
 -- |   , transitions:
--- |       [ { from: "s0", to: "s1", label: "begin" }
--- |       , { from: "s1", to: "s1", label: "tick" }
--- |       , { from: "s1", to: "s2", label: "finish" }
+-- |       [ { from: "s0", to: "s1", label: "begin", extra: unit }
+-- |       , { from: "s1", to: "s1", label: "tick", extra: unit }
+-- |       , { from: "s1", to: "s2", label: "finish", extra: unit }
 -- |       ]
 -- |   }
 -- |
