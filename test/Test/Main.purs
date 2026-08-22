@@ -63,7 +63,7 @@ main = do
   log $ "Sankey: " <> show (4 - sankeyFailures) <> "/4 passed"
   log $ "Tree: " <> show (5 - treeFailures) <> "/5 passed"
   log $ "Cluster: " <> show (4 - clusterFailures) <> "/4 passed"
-  log $ "StateMachine: " <> show (4 - stateMachineFailures) <> "/4 passed"
+  log $ "StateMachine: " <> show (6 - stateMachineFailures) <> "/6 passed"
   log $ "Adjacency: " <> show (4 - adjacencyFailures) <> "/4 passed"
   log $ "Pack: " <> show (4 - packFailures) <> "/4 passed"
   log $ "Treemap: " <> show (4 - treemapFailures) <> "/4 passed"

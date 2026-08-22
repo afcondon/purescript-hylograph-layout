@@ -10,13 +10,16 @@ import Prelude
 
 import Data.Argonaut.Core (Json, fromArray, fromBoolean, fromNumber, fromObject, fromString, stringify)
 import Data.Array as Array
+import Data.Graph.Algorithms (mkSimpleGraph)
+import Data.Graph.InducedTree (Induced, induce)
 import Data.Maybe (Maybe(..))
+import Data.Tuple (Tuple(..))
 import Data.Number.Format (fixed, toStringWith)
 import Data.Tuple.Nested ((/\))
 import Effect (Effect)
 import Effect.Console (log)
 import Foreign.Object as FO
-import DataViz.Layout.StateMachine (StateMachine, StateMachineLayout, LayoutState, LayoutTransition, layout, layoutWithConfig, defaultConfig, circularLayout, gridLayout)
+import DataViz.Layout.StateMachine (StateMachine, StateMachineLayout, LayoutState, LayoutTransition, layout, layoutWithConfig, defaultConfig, circularLayout, gridLayout, treeStrategy)
 import Test.Golden.Util (GoldenResult(..), assertGolden)
 
 -- | Simple linear state machine: s0 -> s1 -> s2
@@ -64,6 +67,33 @@ branchingMachine =
       , { from: "s2", to: "s3", label: "join B", extra: unit }
       ]
   }
+
+-- | A machine whose initial state cannot reach everything, and whose deepest
+-- | state has a way back. Exercises the two things a ring layout hides: the
+-- | stranded state (parked in a band below the tree) and the return edge.
+strandedMachine :: StateMachine Unit Unit
+strandedMachine =
+  { states:
+      [ { id: "s0", label: "Home", isInitial: true, isFinal: false, extra: unit }
+      , { id: "s1", label: "Menu", isInitial: false, isFinal: false, extra: unit }
+      , { id: "s2", label: "Detail", isInitial: false, isFinal: false, extra: unit }
+      , { id: "s3", label: "Orphan", isInitial: false, isFinal: false, extra: unit }
+      ]
+  , transitions:
+      [ { from: "s0", to: "s1", label: "open", extra: unit }
+      , { from: "s1", to: "s2", label: "select", extra: unit }
+      , { from: "s2", to: "s0", label: "home", extra: unit }
+      , { from: "s3", to: "s0", label: "escape", extra: unit }
+      ]
+  }
+
+-- | The tree the machine induces from its initial state.
+inducedFrom :: forall se te. String -> StateMachine se te -> Induced String
+inducedFrom root machine =
+  induce root $
+    mkSimpleGraph
+      (map _.id machine.states)
+      (map (\t -> Tuple t.from t.to) machine.transitions)
 
 -- | Convert state position to JSON
 stateToJson :: forall e. LayoutState e -> Json
@@ -149,9 +179,24 @@ runStateMachineTests = do
   r4 <- assertGolden "statemachine-branching-grid.golden.json" (stringify $ layoutToJson result4)
   logResult "Branching grid" r4
 
+  -- Test 5: Branching machine with tree layout
+  log "\nTest 5: Branching machine (tree layout)"
+  let result5 = layoutWithConfig defaultConfig (treeStrategy (inducedFrom "s0" branchingMachine)) branchingMachine
+  log $ "  States: " <> show (Array.length result5.states)
+  r5 <- assertGolden "statemachine-branching-tree.golden.json" (stringify $ layoutToJson result5)
+  logResult "Branching tree" r5
+
+  -- Test 6: Tree layout parks a state the initial state cannot reach
+  log "\nTest 6: Stranded machine (tree layout)"
+  let stranded = inducedFrom "s0" strandedMachine
+  log $ "  Unreachable: " <> show stranded.unreachable
+  let result6 = layoutWithConfig defaultConfig (treeStrategy stranded) strandedMachine
+  r6 <- assertGolden "statemachine-stranded-tree.golden.json" (stringify $ layoutToJson result6)
+  logResult "Stranded tree" r6
+
   -- Count failures
-  let failures = countFailures [r1, r2, r3, r4]
-  log $ "\nState Machine tests: " <> show (4 - failures) <> "/4 passed"
+  let failures = countFailures [r1, r2, r3, r4, r5, r6]
+  log $ "\nState Machine tests: " <> show (6 - failures) <> "/6 passed"
   pure failures
 
 logResult :: String -> GoldenResult -> Effect Unit

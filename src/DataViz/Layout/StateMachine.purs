@@ -30,8 +30,10 @@ module DataViz.Layout.StateMachine
   ( module DataViz.Layout.StateMachine.Types
   , module DataViz.Layout.StateMachine.Layout
   , module DataViz.Layout.StateMachine.Path
+  , module DataViz.Layout.StateMachine.Tree
   ) where
 
 import DataViz.Layout.StateMachine.Types (LayoutState, LayoutTransition, State, StateMachine, StateMachineLayout, StatePosition, Transition, TransitionPath)
 import DataViz.Layout.StateMachine.Layout (LayoutConfig, circularLayout, defaultConfig, gridLayout, layout, layoutWithConfig)
 import DataViz.Layout.StateMachine.Path (arrowheadPathD, initialArrowPathD, selfLoopPathD, stateEllipse, stateFinalRing, transitionPathD)
+import DataViz.Layout.StateMachine.Tree (treeStrategy)

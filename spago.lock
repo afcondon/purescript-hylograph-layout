@@ -718,7 +718,11 @@
         "zipperarray": "2.0.0"
       }
     },
-    "extra_packages": {}
+    "extra_packages": {
+      "hylograph-graph": {
+        "path": "../purescript-hylograph-graph"
+      }
+    }
   },
   "packages": {
     "aff": {
@@ -1102,9 +1106,8 @@
       ]
     },
     "hylograph-graph": {
-      "type": "registry",
-      "version": "0.3.0",
-      "integrity": "sha256-/0tXvvkDmwJ9VxFprJeE8QZB0Pyv6Aon362lhUWbP/I=",
+      "type": "local",
+      "path": "../purescript-hylograph-graph",
       "dependencies": [
         "arrays",
         "either",
