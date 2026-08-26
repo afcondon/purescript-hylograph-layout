@@ -1,10 +1,11 @@
 workspace:
   packageSet:
-    registry: 77.13.1
+    registry: 80.8.0
   extraPackages:
-    # Local, because `DataViz.Layout.StateMachine.Tree` consumes
-    # `Data.Graph.InducedTree`, which is newer than the published 0.3.0.
-    # Drop this once hylograph-graph is republished.
+    # Load-bearing: `DataViz.Layout.StateMachine.Tree` consumes
+    # `Data.Graph.InducedTree`, which is NOT in the published hylograph-graph
+    # 0.3.0 that package set 80.8.0 carries — it landed in 359f6e0, after the
+    # v0.3.0 tag. Drop this pin once hylograph-graph is republished.
     hylograph-graph:
       path: ../purescript-hylograph-graph
 
