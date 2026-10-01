@@ -337,14 +337,15 @@ computeNodeLayers :: Array SankeyNode -> SankeyConfig -> Number -> Number -> Arr
 computeNodeLayers nodes config x0 x1 =
   let
     maxDepth = foldl (\acc node -> max acc node.depth) 0 nodes
-    numLayers = maxDepth + 1
+    maxNamed = foldl (\acc node -> max acc (fromMaybe 0 (config.nodeLayer node.name))) 0 nodes
+    numLayers = max maxDepth maxNamed + 1
     kx = (x1 - x0 - config.nodeWidth) / max 1.0 (toNumber (numLayers - 1))
 
     -- Apply alignment function to determine layer for each node
     nodesWithLayer = map
       ( \node ->
           let
-            layer = alignNodeToLayer config.alignment node numLayers
+            layer = fromMaybe (alignNodeToLayer config.alignment node numLayers) (config.nodeLayer node.name)
           in
             node { layer = layer }
       )
@@ -381,13 +382,13 @@ alignNodeToLayer alignment node numLayers =
 -- | Takes pre-calculated adjustedPadding from caller
 -- | D3 behavior: uses input order (no sorting) unless a custom sort is specified
 initializeNodeBreadths :: Array SankeyNode -> Array SankeyLink -> SankeyConfig -> Number -> Number -> Number -> Array SankeyNode
-initializeNodeBreadths nodes _links _config padding y0 y1 =
+initializeNodeBreadths nodes _links config padding y0 y1 =
   let
     -- Group nodes by layer (preserving input order within each layer)
     maxLayer = foldl (\acc node -> max acc node.layer) 0 nodes
     layers = map
       ( \layerIdx ->
-          filter (\node -> node.layer == layerIdx) nodes
+          maybe identity sortBy config.nodeSort $ filter (\node -> node.layer == layerIdx) nodes
       )
       (Array.range 0 maxLayer)
 
@@ -488,6 +489,10 @@ relaxation nodes links config padding y0 y1 =
         nodes
         (Array.range 0 (iterations - 1))
   where
+  -- D3's ascendingBreadth, unless the caller fixed the order within columns.
+  order :: SankeyNode -> SankeyNode -> Ordering
+  order = fromMaybe (\a b -> compare a.y0 b.y0) config.nodeSort
+
   -- Relax all nodes layer by layer, with alpha controlling adjustment strength
   -- D3 skips: layer 0 in left-to-right pass, last layer in right-to-left pass
   relaxByLayer :: Array SankeyNode -> Array SankeyLink -> Number -> Boolean -> Number -> Number -> Array SankeyNode
@@ -517,7 +522,7 @@ relaxation nodes links config padding y0 y1 =
     let
       -- Get node indices in this layer, SORTED BY Y0 (D3 processes in y0 order from previous iteration)
       layerNodes = filter (\n -> n.layer == layerIdx) currentNodes
-      sortedLayerNodes = Array.sortBy (\a b -> compare a.y0 b.y0) layerNodes
+      sortedLayerNodes = Array.sortBy order layerNodes
       layerNodeIndices = map _.index sortedLayerNodes
 
       -- Process each node one at a time, updating the array immediately (D3's approach)
@@ -549,7 +554,7 @@ relaxation nodes links config padding y0 y1 =
       layerNodesUpdated = filter (\n -> n.layer == layerIdx) nodesAfterRelax
 
       -- Sort by y0 position (D3's ascendingBreadth)
-      sorted = Array.sortBy (\a b -> compare a.y0 b.y0) layerNodesUpdated
+      sorted = Array.sortBy order layerNodesUpdated
 
       -- Wrap for collision resolution
       sortedWithTarget = map (\node -> { node, targetY: node.y0 }) sorted

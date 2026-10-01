@@ -41,7 +41,7 @@ import Data.Foldable (foldl)
 import Data.Graph.Weighted (WeightedDigraph)
 import Data.Graph.Weighted as WG
 import Data.Map (Map, empty, lookup) as Map
-import Data.Maybe (Maybe)
+import Data.Maybe (Maybe(..))
 import Data.Set as Set
 
 -- | Input format for links from CSV (user-provided flow data with named nodes)
@@ -132,6 +132,16 @@ type SankeyConfig =
   , iterations :: Int -- Number of relaxation iterations (default: 6)
   , extent :: { x0 :: Number, y0 :: Number, x1 :: Number, y1 :: Number }
   , nodeValueStrategy :: NodeValueStrategy -- How to compute node values from flows
+  -- | A node's column, by name, when the caller knows it. `Nothing` leaves
+  -- | the node to `alignment`. Columns the caller names are kept even when
+  -- | the graph's depth would put the node elsewhere (a source that feeds a
+  -- | middle column, say), and the column count grows to include them.
+  , nodeLayer :: String -> Maybe Int
+  -- | The order of nodes within a column. `Nothing` is D3's default: input
+  -- | order to start, then whatever relaxation settles on. `Just f` holds
+  -- | that order through relaxation (D3's `nodeSort`), so a chart whose
+  -- | nodes come and go keeps the rest where the reader left them.
+  , nodeSort :: Maybe (SankeyNode -> SankeyNode -> Ordering)
   }
 
 -- | Node alignment strategy
@@ -286,6 +296,8 @@ defaultSankeyConfig width height =
       , y1: height - 5.0
       }
   , nodeValueStrategy: sankeyNodeValue
+  , nodeLayer: const Nothing
+  , nodeSort: Nothing
   }
 
 -- | A captured step for debugging/visualization

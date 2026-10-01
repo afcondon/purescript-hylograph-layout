@@ -17,8 +17,9 @@ import Data.Tuple.Nested ((/\))
 import Effect (Effect)
 import Effect.Console (log)
 import Foreign.Object as FO
-import DataViz.Layout.Sankey.Compute (computeLayout)
-import DataViz.Layout.Sankey.Types (CycleTopology(..), LinkCSVRow, SankeyLayoutResult, SankeyNode, SankeyLink, NodeID(..))
+import Data.Ord (comparing)
+import DataViz.Layout.Sankey.Compute (computeLayout, computeLayoutWithConfig)
+import DataViz.Layout.Sankey.Types (CycleTopology(..), LinkCSVRow, SankeyLayoutResult, SankeyNode, SankeyLink, NodeID(..), defaultSankeyConfig)
 import Test.Golden.Util (GoldenResult(..), assertGolden)
 
 -- | Simple test data: a small flow network
@@ -220,9 +221,37 @@ runSankeyTests = do
             else GoldenMismatch "" ""
   logResult "Acyclic topology" r8
 
+  -- Test 9: A named column holds a source that feeds a middle column
+  log "\nTest 9: nodeLayer"
+  let
+    lateSource = linearChainData <> [ { s: "Late", t: "End", v: 50.0 } ]
+    unnamed = computeLayout lateSource 800.0 600.0
+    named = computeLayoutWithConfig lateSource
+      (defaultSankeyConfig 800.0 600.0) { nodeLayer = \n -> if n == "Late" then Just 1 else Nothing }
+    layerOf res n = _.layer <$> Array.find (\x -> x.name == n) res.nodes
+    xOf res n = _.x0 <$> Array.find (\x -> x.name == n) res.nodes
+    r9 = if layerOf unnamed "Late" == Just 0
+            && layerOf named "Late" == Just 1
+            && xOf named "Late" == xOf named "Middle"
+            && layerOf named "End" == Just 2
+            then GoldenMatch
+            else GoldenMismatch "" ""
+  logResult "nodeLayer" r9
+
+  -- Test 10: A fixed order within a column survives relaxation
+  log "\nTest 10: nodeSort"
+  let
+    reversed = computeLayoutWithConfig fanOutData
+      (defaultSankeyConfig 800.0 600.0) { nodeSort = Just (flip (comparing _.name)) }
+    yOf n = _.y0 <$> Array.find (\x -> x.name == n) reversed.nodes
+    r10 = if yOf "Target3" < yOf "Target2" && yOf "Target2" < yOf "Target1"
+            then GoldenMatch
+            else GoldenMismatch "" ""
+  logResult "nodeSort" r10
+
   -- Count failures
-  let failures = countFailures [r1, r2, r3, r4, r5, r6, r7, r8]
-  log $ "\nSankey tests: " <> show (8 - failures) <> "/8 passed"
+  let failures = countFailures [r1, r2, r3, r4, r5, r6, r7, r8, r9, r10]
+  log $ "\nSankey tests: " <> show (10 - failures) <> "/10 passed"
   pure failures
 
 logResult :: String -> GoldenResult -> Effect Unit
