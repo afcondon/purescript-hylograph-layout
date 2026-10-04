@@ -60,7 +60,7 @@ main = do
   log "\n================================"
   log "Summary"
   log "================================"
-  log $ "Sankey: " <> show (4 - sankeyFailures) <> "/4 passed"
+  log $ "Sankey: " <> show (11 - sankeyFailures) <> "/11 passed"
   log $ "Tree: " <> show (5 - treeFailures) <> "/5 passed"
   log $ "Cluster: " <> show (4 - clusterFailures) <> "/4 passed"
   log $ "StateMachine: " <> show (6 - stateMachineFailures) <> "/6 passed"

@@ -19,6 +19,7 @@ import Effect.Console (log)
 import Foreign.Object as FO
 import Data.Ord (comparing)
 import DataViz.Layout.Sankey.Compute (computeLayout, computeLayoutWithConfig)
+import DataViz.Layout.Sankey.Lanes (computeLayoutWithLanes, laneOf)
 import DataViz.Layout.Sankey.Types (CycleTopology(..), LinkCSVRow, SankeyLayoutResult, SankeyNode, SankeyLink, NodeID(..), defaultSankeyConfig)
 import Test.Golden.Util (GoldenResult(..), assertGolden)
 
@@ -249,9 +250,37 @@ runSankeyTests = do
             else GoldenMismatch "" ""
   logResult "nodeSort" r10
 
+  -- Test 11: A long link gets a lane, and the lane keeps clear of the
+  -- node it passes (Lanes, after Triggerfish's chart, 2026-10-04)
+  log "\nTest 11: lanes for long links"
+  let
+    longLink =
+      [ { s: "A", t: "B", v: 10.0 }
+      , { s: "B", t: "C", v: 10.0 }
+      , { s: "A", t: "C", v: 10.0 }
+      ]
+    lanes = computeLayoutWithLanes (\_ _ -> true) longLink (defaultSankeyConfig 800.0 600.0)
+    plain = computeLayoutWithLanes (\_ _ -> false) longLink (defaultSankeyConfig 800.0 600.0)
+    b = Array.find (\x -> x.name == "B") lanes.nodes
+    w = Array.head lanes.waypoints
+    clear = case b, w of
+      Just nb, Just nw -> nw.y1 <= nb.y0 || nw.y0 >= nb.y1
+      _, _ -> false
+    longRoute = Array.index lanes.routes 2
+    r11 = if Array.length lanes.waypoints == 1
+            && map (\x -> _.layer <$> laneOf x.name) w == Just (Just 1)
+            && clear
+            && map (Array.length <<< _.segments) longRoute == Just 2
+            && Array.null plain.waypoints
+            && map (Array.length <<< _.segments) (Array.index plain.routes 2) == Just 1
+            && Array.length lanes.nodes == 3
+            then GoldenMatch
+            else GoldenMismatch "" ""
+  logResult "lanes" r11
+
   -- Count failures
-  let failures = countFailures [r1, r2, r3, r4, r5, r6, r7, r8, r9, r10]
-  log $ "\nSankey tests: " <> show (10 - failures) <> "/10 passed"
+  let failures = countFailures [r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11]
+  log $ "\nSankey tests: " <> show (11 - failures) <> "/11 passed"
   pure failures
 
 logResult :: String -> GoldenResult -> Effect Unit
