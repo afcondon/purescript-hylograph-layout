@@ -21,7 +21,7 @@
               "free": ">=7.1.0 <8.0.0"
             },
             {
-              "hylograph-graph": ">=0.3.0 <0.4.0"
+              "hylograph-graph": ">=0.3.1 <0.4.0"
             },
             {
               "integers": ">=6.0.0 <7.0.0"
@@ -726,9 +726,7 @@
       }
     },
     "extra_packages": {
-      "hylograph-graph": {
-        "path": "../purescript-hylograph-graph"
-      }
+      "hylograph-graph": "0.3.1"
     }
   },
   "packages": {
@@ -1113,8 +1111,9 @@
       ]
     },
     "hylograph-graph": {
-      "type": "local",
-      "path": "../purescript-hylograph-graph",
+      "type": "registry",
+      "version": "0.3.1",
+      "integrity": "sha256-T0HDWtlXScHC4AHsMsM5VPIBlvdWRaY02w1wOYvcT54=",
       "dependencies": [
         "arrays",
         "either",
