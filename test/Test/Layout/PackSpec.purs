@@ -17,7 +17,7 @@ import Data.Tuple.Nested ((/\))
 import Effect (Effect)
 import Effect.Console (log)
 import Foreign.Object as FO
-import DataViz.Layout.Hierarchy.Pack (PackNode(..), HierarchyData(..), hierarchy, pack, defaultPackConfig)
+import DataViz.Layout.Hierarchy.Pack (PackNode(..), HierarchyData(..), hierarchy, pack, packSiblingsMap, defaultPackConfig)
 import Test.Golden.Util (GoldenResult(..), assertGolden)
 
 -- | Simple hierarchical data with values
@@ -163,10 +163,36 @@ runPackTests = do
   r4 <- assertGolden "pack-single.golden.json" (stringify $ packNodeToJson result4)
   logResult "Single node" r4
 
+  -- Test 5: Siblings with tied radii.
+  -- Four equal circles beside a larger one give front pairs whose scores tie
+  -- exactly, so the result depends on which pairs are scored and in what order.
+  -- The golden values are d3-hierarchy's packSiblings output for these radii.
+  log "\nTest 5: Tied radii (sibling packing)"
+  let result5 = packSiblingsMap (map (\r -> { x: 0.0, y: 0.0, r }) [ 3.0, 1.0, 1.0, 1.0, 1.0 ])
+  log $ "  Circles: " <> show (Array.length result5.circles)
+  r5 <- assertGolden "pack-siblings-tied.golden.json" (stringify $ siblingsToJson result5)
+  logResult "Tied radii" r5
+
   -- Count failures
-  let failures = countFailures [r1, r2, r3, r4]
-  log $ "\nPack tests: " <> show (4 - failures) <> "/4 passed"
+  let failures = countFailures [r1, r2, r3, r4, r5]
+  log $ "\nPack tests: " <> show (5 - failures) <> "/5 passed"
   pure failures
+
+-- | Packed sibling circles, in input order, with the enclosing radius
+siblingsToJson :: { circles :: Array { x :: Number, y :: Number, r :: Number }, radius :: Number } -> Json
+siblingsToJson packed = fromObject $ FO.fromFoldable
+  [ "radius" /\ fromNumber (roundTo2 packed.radius)
+  , "circles" /\ fromArray
+      ( map
+          ( \c -> fromObject $ FO.fromFoldable
+              [ "x" /\ fromNumber (roundTo2 c.x)
+              , "y" /\ fromNumber (roundTo2 c.y)
+              , "r" /\ fromNumber (roundTo2 c.r)
+              ]
+          )
+          packed.circles
+      )
+  ]
 
 logResult :: String -> GoldenResult -> Effect Unit
 logResult name GoldenMatch = log $ "  PASS: " <> name

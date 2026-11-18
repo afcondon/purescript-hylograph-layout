@@ -138,6 +138,35 @@ nodeToJson node = fromObject $ FO.fromFoldable
   , "depth" /\ fromNumber (Int.toNumber node.depth)
   ]
 
+-- | Two wide subtrees with two leaves between them.
+-- |            root
+-- |      /    |   |    \
+-- |     A     B   C     D
+-- |   / | \           / | \
+-- |  a1 a2 a3        d1 d2 d3
+-- |
+-- | D has to clear A, which is not its neighbour, at the grandchildren's level;
+-- | B and C must then be spread evenly across the gap rather than left packed
+-- | against A. Both steps are what makes the layout agree with d3.tree.
+spreadTree :: Tree TreeNode
+spreadTree =
+  mkTree (node "root") $ List.fromFoldable
+    [ mkTree (node "A") $ List.fromFoldable
+        [ mkTree (node "a1") List.Nil
+        , mkTree (node "a2") List.Nil
+        , mkTree (node "a3") List.Nil
+        ]
+    , mkTree (node "B") List.Nil
+    , mkTree (node "C") List.Nil
+    , mkTree (node "D") $ List.fromFoldable
+        [ mkTree (node "d1") List.Nil
+        , mkTree (node "d2") List.Nil
+        , mkTree (node "d3") List.Nil
+        ]
+    ]
+  where
+  node name = { name, x: 0.0, y: 0.0, depth: 0 }
+
 -- | Convert tree result to JSON array (pre-order traversal)
 treeToJson :: Tree TreeNode -> Json
 treeToJson t = fromArray $ map nodeToJson nodes
@@ -196,9 +225,17 @@ runTreeTests = do
   r5 <- assertGolden "tree-wide-deep.golden.json" (stringify $ treeToJson result5)
   logResult "Wide deep tree" r5
 
+  -- Test 6: Non-adjacent subtrees and the spreading of what lies between them
+  log "\nTest 6: Spread tree (non-adjacent subtrees)"
+  let result6 = tree defaultTreeConfig spreadTree
+  let nodes6 = Array.fromFoldable result6
+  log $ "  Nodes: " <> show (Array.length nodes6)
+  r6 <- assertGolden "tree-spread.golden.json" (stringify $ treeToJson result6)
+  logResult "Spread tree" r6
+
   -- Count failures
-  let failures = countFailures [r1, r2, r3, r4, r5]
-  log $ "\nTree tests: " <> show (5 - failures) <> "/5 passed"
+  let failures = countFailures [r1, r2, r3, r4, r5, r6]
+  log $ "\nTree tests: " <> show (6 - failures) <> "/6 passed"
   pure failures
 
 logResult :: String -> GoldenResult -> Effect Unit

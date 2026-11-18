@@ -32,7 +32,7 @@ import Node.Process as Process
 -- | Result of a golden test comparison
 data GoldenResult
   = GoldenMatch -- Output matches golden file
-  | GoldenCreated -- Golden file was created (first run)
+  | GoldenCreated -- Golden file was written (only under UPDATE_GOLDEN)
   | GoldenMismatch String String -- Expected vs actual
 
 derive instance eqGoldenResult :: Eq GoldenResult
@@ -84,17 +84,22 @@ writeGoldenFile filename content = do
   FS.writeFile path buffer
 
 -- | Assert that output matches golden file (string comparison)
--- | If golden file doesn't exist, creates it and returns GoldenCreated
--- | If UPDATE_GOLDEN env var is set, updates the golden file
+-- | A missing golden file is a failure: a test that writes its own expected
+-- | output on first run can never fail. Set UPDATE_GOLDEN=1 to write a new
+-- | golden file or to overwrite an existing one, then review the diff.
 assertGolden :: String -> String -> Effect GoldenResult
 assertGolden filename actual = do
   maybeExpected <- readGoldenFile filename
   updateMode <- isUpdateMode
   case maybeExpected of
-    Nothing -> do
-      log $ "Creating golden file: " <> filename
-      writeGoldenFile filename actual
-      pure GoldenCreated
+    Nothing ->
+      if updateMode then do
+        log $ "Creating golden file: " <> filename
+        writeGoldenFile filename actual
+        pure GoldenCreated
+      else do
+        log $ "Missing golden file: " <> filename <> " (run with UPDATE_GOLDEN=1 to create it)"
+        pure (GoldenMismatch missingGolden actual)
     Just expected ->
       if updateMode then do
         log $ "Updating golden file: " <> filename
@@ -113,10 +118,14 @@ assertGoldenJson filename actualJson = do
   maybeExpected <- readGoldenFile filename
   updateMode <- isUpdateMode
   case maybeExpected of
-    Nothing -> do
-      log $ "Creating golden file: " <> filename
-      writeGoldenFile filename actualStr
-      pure GoldenCreated
+    Nothing ->
+      if updateMode then do
+        log $ "Creating golden file: " <> filename
+        writeGoldenFile filename actualStr
+        pure GoldenCreated
+      else do
+        log $ "Missing golden file: " <> filename <> " (run with UPDATE_GOLDEN=1 to create it)"
+        pure (GoldenMismatch missingGolden actualStr)
     Just expectedStr ->
       if updateMode then do
         log $ "Updating golden file: " <> filename
@@ -130,6 +139,10 @@ assertGoldenJson filename actualJson = do
               pure GoldenMatch
             else
               pure (GoldenMismatch expectedStr actualStr)
+
+-- | What a mismatch reports as "expected" when there is no golden file
+missingGolden :: String
+missingGolden = "<no golden file>"
 
 -- | Check if UPDATE_GOLDEN environment variable is set
 isUpdateMode :: Effect Boolean

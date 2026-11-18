@@ -34,7 +34,7 @@ module DataViz.Layout.Hierarchy.Pack
 import Prelude
 
 import Data.Array as Array
-import Data.Foldable (foldl, minimumBy)
+import Data.Foldable (foldl)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -165,22 +165,58 @@ scoreNode nodeId state = do
   next <- Map.lookup nextId state.circles
   pure { nodeId, score: calculateScore node next }
 
--- | Find front pair with minimum score (D3's approach)
--- D3 scores each node (based on node + node.next pair), then returns (minNode, minNode.next)
+-- | Choose the front pair the next circle is placed against, as d3-hierarchy's
+-- | `packSiblings` does.
+-- |
+-- | The chain here runs the opposite way round to D3's (`next` here is D3's
+-- | `previous`), so a pair is returned as (node, node's next) and handed to
+-- | `place` reversed.
+-- |
+-- | D3 does not score every pair. After inserting circle c between a and b it
+-- | scores the pair (a, c), then walks on from b all the way round, taking a
+-- | later pair only if its score is strictly smaller. The pair (c, b) is never
+-- | scored on this turn. Both details change the result: the skipped pair is
+-- | sometimes the closest to the centre, and with equal radii (common in real
+-- | hierarchies) scores tie exactly, so which pair is met first decides.
+-- |
+-- | The circle just inserted is always `nextId - 1` and always on the chain.
+-- | Before anything has been inserted (three circles), D3 places against the
+-- | first two circles without scoring at all.
 findBestPair :: PackState -> Maybe (Tuple CircleId CircleId)
-findBestPair state =
-  let
-    -- Score each node in the chain
-    scored = Array.mapMaybe (\nodeId -> scoreNode nodeId state) state.frontChain
+findBestPair state
+  | state.nextId == 3 = Just (Tuple 1 0)
+  | otherwise =
+      let
+        newId = state.nextId - 1
 
-    -- Find node with minimum score
-    bestNode = minimumBy (comparing _.score) scored
-  in
-    case bestNode of
-      Nothing -> Nothing
-      Just best -> do
-        nextId <- getNextId best.nodeId state.frontChain
-        pure (Tuple best.nodeId nextId)
+        -- The chain rotated to start at the new circle: [ new, b, ..., a ].
+        -- `a` (the last) is the start of the pair D3 skips; the rest are met in
+        -- D3's order by starting at `new` and then walking the chain backwards.
+        candidates = case Array.elemIndex newId state.frontChain of
+          Just idx ->
+            let
+              rotated = Array.drop idx state.frontChain <> Array.take idx state.frontChain
+            in
+              [ newId ] <> Array.reverse (Array.drop 1 (Array.dropEnd 1 rotated))
+          Nothing -> state.frontChain
+
+        scored = Array.mapMaybe (\nodeId -> scoreNode nodeId state) candidates
+
+        -- D3 replaces its choice only on a strictly smaller score, so the
+        -- first of equal scores wins. (`minimumBy` keeps the LAST of equals.)
+        bestNode = foldl
+          ( \best candidate -> case best of
+              Just b | not (candidate.score < b.score) -> best
+              _ -> Just candidate
+          )
+          Nothing
+          scored
+      in
+        case bestNode of
+          Nothing -> Nothing
+          Just best -> do
+            nextId <- getNextId best.nodeId state.frontChain
+            pure (Tuple best.nodeId nextId)
 
 -- | Insert a circle ID between two IDs in the chain
 insertInChain :: CircleId -> CircleId -> CircleId -> Array CircleId -> Array CircleId

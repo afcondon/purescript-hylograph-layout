@@ -8,6 +8,7 @@ import Prelude
 
 import Effect (Effect)
 import Effect.Console (log)
+import Node.Process as Process
 import Test.Layout.SankeySpec (runSankeyTests)
 import Test.Layout.TreeSpec (runTreeTests)
 import Test.Layout.ClusterSpec (runClusterTests)
@@ -27,6 +28,7 @@ import Test.Layout.BinPackSpec (runBinPackTests)
 import Test.Layout.CalendarGridSpec (runCalendarGridTests)
 import Test.Layout.SwimlaneSpec (runSwimlaneTests)
 import Test.Layout.AdaptersSpec (runAdaptersTests)
+import Test.Layout.PlacedSpec (runPlacedTests)
 
 main :: Effect Unit
 main = do
@@ -54,18 +56,19 @@ main = do
   calendarFailures <- runCalendarGridTests
   swimlaneFailures <- runSwimlaneTests
   adaptersFailures <- runAdaptersTests
+  placedFailures <- runPlacedTests
 
   -- Summary
-  let totalFailures = sankeyFailures + treeFailures + clusterFailures + stateMachineFailures + adjacencyFailures + packFailures + treemapFailures + partitionFailures + edgebundleFailures + masonryFailures + shelfFailures + waffleFailures + stackedFailures + waterfallFailures + justifiedFailures + binpackFailures + calendarFailures + swimlaneFailures + adaptersFailures
+  let totalFailures = sankeyFailures + treeFailures + clusterFailures + stateMachineFailures + adjacencyFailures + packFailures + treemapFailures + partitionFailures + edgebundleFailures + masonryFailures + shelfFailures + waffleFailures + stackedFailures + waterfallFailures + justifiedFailures + binpackFailures + calendarFailures + swimlaneFailures + adaptersFailures + placedFailures
   log "\n================================"
   log "Summary"
   log "================================"
   log $ "Sankey: " <> show (11 - sankeyFailures) <> "/11 passed"
-  log $ "Tree: " <> show (5 - treeFailures) <> "/5 passed"
+  log $ "Tree: " <> show (6 - treeFailures) <> "/6 passed"
   log $ "Cluster: " <> show (4 - clusterFailures) <> "/4 passed"
   log $ "StateMachine: " <> show (6 - stateMachineFailures) <> "/6 passed"
   log $ "Adjacency: " <> show (4 - adjacencyFailures) <> "/4 passed"
-  log $ "Pack: " <> show (4 - packFailures) <> "/4 passed"
+  log $ "Pack: " <> show (5 - packFailures) <> "/5 passed"
   log $ "Treemap: " <> show (4 - treemapFailures) <> "/4 passed"
   log $ "Partition: " <> show (4 - partitionFailures) <> "/4 passed"
   log $ "EdgeBundle: " <> show (4 - edgebundleFailures) <> "/4 passed"
@@ -79,10 +82,14 @@ main = do
   log $ "CalendarGrid: " <> show (4 - calendarFailures) <> "/4 passed"
   log $ "Swimlane: " <> show (4 - swimlaneFailures) <> "/4 passed"
   log $ "Adapters: " <> show (4 - adaptersFailures) <> "/4 passed"
+  log $ "Placed: " <> show (11 - placedFailures) <> "/11 passed"
 
   if totalFailures == 0 then do
     log "\nAll tests passed!"
+    log ""
   else do
     log $ "\nFAILURES: " <> show totalFailures <> " test(s) failed"
-
-  log ""
+    log ""
+    -- A failing golden comparison must fail the run, or `spago test` reports
+    -- success whatever the layouts do.
+    Process.setExitCode 1

@@ -36,8 +36,12 @@ defaultClusterConfig =
 
 -- | Cluster layout in 4 steps:
 -- | 1. addHeight: Bottom-up pass computing height (distance from deepest leaf)
--- | 2. sortByHeight: Sort children by height to minimize crossovers (D3 pattern)
--- | 3. render: Bottom-up pass assigning sequential x to leaves, mean x to parents
+-- | 2. sortByHeight: Sort children by height to minimize crossovers (d3.cluster
+-- |    leaves the order to the caller; D3's dendrogram examples sort the same way)
+-- | 3. render: Bottom-up pass assigning sequential x to leaves; each parent is
+-- |    centred on the extent of its leaves. This differs from d3.cluster, which
+-- |    puts a parent at the mean of its children's x. Leaf x and every y agree
+-- |    with d3.cluster (given the same sort and unit separation).
 -- | 4. addY: Add y coordinates based on height (leaves at 0)
 -- | 5. scale: Scale abstract coordinates to pixel coordinates
 -- |

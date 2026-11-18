@@ -1,7 +1,12 @@
 -- | DataViz.Layout.Hierarchy.Tree
 -- |
--- | Reingold-Tilford tree layout adapted from the elegant Haskell implementation
--- | Translates binary tree algorithm to n-ary trees (Data.Tree)
+-- | Tidy tree layout: Reingold-Tilford contours, with sibling subtrees placed
+-- | by the rule of Buchheim, Jünger and Leipert ("Improving Walker's Algorithm
+-- | to Run in Linear Time", 2002), which is what d3-hierarchy's `d3.tree` uses.
+-- | With uniform separation the x coordinates agree with `d3.tree` up to the
+-- | scaling to `size` (checked against d3-hierarchy on random trees; see
+-- | `placeSiblings`). This implementation is not linear time: contours are
+-- | plain lists, merged at every level.
 module DataViz.Layout.Hierarchy.Tree
   ( TreeConfig
   , defaultTreeConfig
@@ -214,14 +219,12 @@ render minSep separationFn inputTree =
             -- Compute base separations for adjacent pairs using separation function
             baseSeparations = computeBaseSeparations minSep separationFn childRootData
 
-            -- Scan adjacent pairs to find needed separations (using base separations)
-            separations = computeSeparationsWithBase baseSeparations childContours
-
-            -- Position children: first at 0, rest offset by cumulative separations
-            -- These are absolute positions within the sibling group
-            -- NOTE: PureScript's scanl doesn't include the initial value (unlike Haskell)
-            -- So we must explicitly prepend 0.0
-            childAbsoluteOffsets = Cons 0.0 (scanl (+) 0.0 separations)
+            -- Position children: first at 0, each later one against everything
+            -- already placed to its left. These are absolute positions within
+            -- the sibling group.
+            childAbsoluteOffsets = fromFoldable $ placeSiblings
+              (Array.fromFoldable baseSeparations)
+              (Array.fromFoldable childContours)
 
             -- Parent is centered at midpoint of leftmost and rightmost child
             leftmostOffset = fromMaybe 0.0 $ Array.head $ Array.fromFoldable childAbsoluteOffsets
@@ -280,102 +283,95 @@ computeBaseSeparations minSep separationFn nodes =
   tailSafe Nil = Nil
   tailSafe (Cons _ xs) = xs
 
--- | Compute separations with per-pair base separations
--- | Uses base separation for each pair instead of uniform minSep
-computeSeparationsWithBase :: List Number -> List Contours -> List Number
-computeSeparationsWithBase baseSeps contours =
-  case Tuple baseSeps contours of
-    Tuple Nil _ -> Nil
-    Tuple _ Nil -> Nil
-    Tuple _ (Cons _ Nil) -> Nil
-    _ ->
-      -- Zip baseSeps with pairs of contours
+-- | Place sibling subtrees left to right, returning each one's position with
+-- | the first at 0.
+-- |
+-- | `baseSeps` holds the separation wanted between child `i - 1` and child `i`
+-- | (one fewer than there are children); `contours` holds each child's own
+-- | contours, relative to that child's root.
+-- |
+-- | Each child is placed against the right-hand front of ALL the subtrees
+-- | already placed, not only its left neighbour: a shallow subtree between two
+-- | deep ones does not shield them from each other. At every level the two
+-- | share, the child must clear the front by its base separation; where one of
+-- | them has no nodes at a level there is nothing to clear, so a shallow
+-- | subtree may sit above a deeper neighbour's overhang.
+-- |
+-- | When the child has to move right to clear a subtree that is not its
+-- | immediate neighbour, the subtrees in between are spread evenly across the
+-- | gap that opens, rather than left packed against the left. That is the step
+-- | Walker added to Reingold and Tilford's algorithm, and it is what makes the
+-- | result agree with `d3.tree`.
+-- |
+-- | The front records, for each level, the rightmost x reached so far and
+-- | which child reaches it. The owner of a level is always the latest child
+-- | that is deep enough to have nodes there, so a child that is spread
+-- | sideways (necessarily shallower than the level that caused the move) is
+-- | never still the owner of a level a later child will be compared with.
+placeSiblings :: Array Number -> Array Contours -> Array Number
+placeSiblings baseSeps contours =
+  case Array.uncons contours of
+    Nothing -> []
+    Just { head: Contours first, tail: rest } ->
       let
-        contourPairs = zipWith Tuple contours (tailSafe contours)
+        start =
+          { positions: [ 0.0 ]
+          , front: map (\x -> { x, owner: 0 }) (Array.fromFoldable first.right)
+          }
       in
-        zipWith applyBase baseSeps contourPairs
+        (Array.foldl place start (Array.zip baseSeps rest)).positions
   where
-  applyBase :: Number -> Tuple Contours Contours -> Number
-  applyBase base (Tuple c1 c2) = scanContoursWithBase base c1 c2
+  place
+    :: { positions :: Array Number, front :: Array { x :: Number, owner :: Int } }
+    -> Tuple Number Contours
+    -> { positions :: Array Number, front :: Array { x :: Number, owner :: Int } }
+  place placed (Tuple baseSep (Contours child)) =
+    let
+      index = Array.length placed.positions
+      childLeft = Array.fromFoldable child.left
+      childRight = Array.fromFoldable child.right
+      leftNeighbour = fromMaybe 0.0 (Array.last placed.positions)
 
-  tailSafe :: forall a. List a -> List a
-  tailSafe Nil = Nil
-  tailSafe (Cons _ xs) = xs
+      -- Level 0 is the row of sibling roots: start one base separation to the
+      -- right of the left neighbour, then check each deeper shared level.
+      cleared = Array.foldl (clearLevel baseSep index)
+        { position: leftNeighbour + baseSep, positions: placed.positions }
+        (Array.drop 1 (Array.zip placed.front childLeft))
 
--- | Scan two contours with a specific base separation
--- | When one contour is shorter, continue comparing against the last known position
--- | This prevents deep subtrees from overlapping with shallow ones
-scanContoursWithBase :: Number -> Contours -> Contours -> Number
-scanContoursWithBase baseSep (Contours left) (Contours right) =
-  go baseSep 0.0 0.0 left.right right.left
-  where
-  -- Track lastLr and lastRl to continue comparing when one contour ends
-  go :: Number -> Number -> Number -> Contour -> Contour -> Number
-  go currentSep _ _ Nil Nil = currentSep
-  -- Left contour ended but right continues - compare against last known left position
-  go currentSep lastLr _ Nil (Cons rl rest2) =
-    let
-      actualSep = currentSep + rl - lastLr
-      neededSep =
-        if actualSep < baseSep then currentSep + (baseSep - actualSep)
-        else currentSep
+      -- The new child owns every level it reaches; deeper levels keep their
+      -- earlier owners.
+      front =
+        map (\x -> { x: x + cleared.position, owner: index }) childRight
+          <> Array.drop (Array.length childRight) placed.front
     in
-      go neededSep lastLr rl Nil rest2
-  -- Right contour ended but left continues - compare against last known right position
-  go currentSep _ lastRl (Cons lr rest1) Nil =
-    let
-      actualSep = currentSep + lastRl - lr
-      neededSep =
-        if actualSep < baseSep then currentSep + (baseSep - actualSep)
-        else currentSep
-    in
-      go neededSep lr lastRl rest1 Nil
-  -- Both contours have values at this level
-  go currentSep _ _ (Cons lr rest1) (Cons rl rest2) =
-    let
-      actualSep = currentSep + rl - lr
-      neededSep =
-        if actualSep < baseSep then currentSep + (baseSep - actualSep)
-        else currentSep
-    in
-      go neededSep lr rl rest1 rest2
+      { positions: Array.snoc cleared.positions cleared.position, front }
 
--- | Scan two contours to find minimum separation needed
--- | Walks down both contours level by level, ensuring minSep at each level
--- | Continues comparing when one contour ends to prevent overlap
-scanContours :: Number -> Contours -> Contours -> Number
-scanContours minSep (Contours left) (Contours right) =
-  go minSep 0.0 0.0 left.right right.left
-  where
-  -- Current separation starts at minSep
-  -- Walk down right contour of left subtree and left contour of right subtree
-  -- Track lastLr and lastRl to continue comparing when one contour ends
-  go :: Number -> Number -> Number -> Contour -> Contour -> Number
-  go currentSep _ _ Nil Nil = currentSep
-  go currentSep lastLr _ Nil (Cons rl rest2) =
+  clearLevel
+    :: Number
+    -> Int
+    -> { position :: Number, positions :: Array Number }
+    -> Tuple { x :: Number, owner :: Int } Number
+    -> { position :: Number, positions :: Array Number }
+  clearLevel baseSep index state (Tuple frontHere childLeftHere) =
     let
-      actualSep = currentSep + rl - lastLr
-      neededSep =
-        if actualSep < minSep then currentSep + (minSep - actualSep)
-        else currentSep
+      shift = frontHere.x + baseSep - (state.position + childLeftHere)
     in
-      go neededSep lastLr rl Nil rest2
-  go currentSep _ lastRl (Cons lr rest1) Nil =
-    let
-      actualSep = currentSep + lastRl - lr
-      neededSep =
-        if actualSep < minSep then currentSep + (minSep - actualSep)
-        else currentSep
-    in
-      go neededSep lr lastRl rest1 Nil
-  go currentSep _ _ (Cons lr rest1) (Cons rl rest2) =
-    let
-      actualSep = currentSep + rl - lr
-      neededSep =
-        if actualSep < minSep then currentSep + (minSep - actualSep)
-        else currentSep
-    in
-      go neededSep lr rl rest1 rest2
+      if shift > 0.0 then
+        { position: state.position + shift
+        , positions: spreadBetween frontHere.owner index shift state.positions
+        }
+      else state
+
+  -- Children strictly between `owner` and `index` take an even share of the
+  -- shift: the k-th of them moves by k / (index - owner) of it.
+  spreadBetween :: Int -> Int -> Number -> Array Number -> Array Number
+  spreadBetween owner index shift positions =
+    Array.mapWithIndex
+      ( \k position ->
+          if k > owner then position + shift * toNumber (k - owner) / toNumber (index - owner)
+          else position
+      )
+      positions
 
 -- | Combine child contours into parent contours
 -- | Given n children at positions offsets[0..n-1], build the parent's contours

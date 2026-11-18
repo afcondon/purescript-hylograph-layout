@@ -462,6 +462,17 @@ initializeNodeBreadths nodes _links config padding y0 y1 =
 
 -- | Step 6c: Relaxation - iteratively adjust node positions to minimize crossings
 -- Uses exponential decay of alpha to dampen adjustments over iterations (like D3)
+--
+-- Known difference from d3-sankey 0.12.3. D3 keeps each node's link order
+-- (`sourceLinks`, `targetLinks`) as state and re-sorts it only when a
+-- neighbouring node is relaxed, not after collision resolution; `sourceTop` and
+-- `targetTop` therefore often read an order that is stale for the current
+-- positions. Here the order is derived from current positions every time it is
+-- needed. Layering, node heights and the initial stacking are identical to
+-- D3's; from the first relaxation pass on the y positions differ (up to 37px
+-- in 600 on the energy dataset after 6 iterations). A copy of d3-sankey
+-- changed to read a fresh order agrees with this module to 1e-12 at every
+-- iteration count, which is what shows this is the only difference.
 relaxation :: Array SankeyNode -> Array SankeyLink -> SankeyConfig -> Number -> Number -> Number -> Array SankeyNode
 relaxation nodes links config padding y0 y1 =
   let

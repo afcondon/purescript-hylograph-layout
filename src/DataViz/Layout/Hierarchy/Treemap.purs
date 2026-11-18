@@ -243,15 +243,17 @@ slice (TNode parent) x0 y0 x1 y1 =
   in
     TNode (parent { children = positioned.children })
 
--- | Slice-dice tiling: alternates between slice and dice at each depth level
--- | Provides a simple alternating pattern
+-- | Slice-dice tiling: alternates between dice and slice at each depth level.
+-- | Same parity as d3-hierarchy's `treemapSliceDice`: a node at even depth
+-- | (the root included) is diced, laying its children out left to right, and
+-- | a node at odd depth is sliced, laying them out top to bottom.
 sliceDice :: forall a. TileFunction a
 sliceDice parent x0 y0 x1 y1 =
   let
     TNode p = parent
   in
-    if (p.depth `mod` 2) == 0 then slice parent x0 y0 x1 y1
-    else dice parent x0 y0 x1 y1
+    if (p.depth `mod` 2) == 0 then dice parent x0 y0 x1 y1
+    else slice parent x0 y0 x1 y1
 
 -- | Binary tiling: divides space based on splitting the value sum
 -- | Simpler approach: split children into two groups, position each group with slice/dice

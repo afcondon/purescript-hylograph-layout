@@ -25,7 +25,7 @@ import Data.Array as Array
 import Data.Int as Int
 import Data.Int (toNumber)
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Number (ceil, floor, pi, cos, sin)
+import Data.Number (cos, pi, round, sin)
 
 -- | Partition node with rectangular coordinates
 data PartitionNode a = PartNode
@@ -141,6 +141,8 @@ partition config root =
     n = rootData.height + 1 -- Total number of layers
 
     -- Initialize root coordinates
+    -- (Only x0 and y0 are inset here; `positionNode` insets x1 and y1, for
+    -- the root as for every node. This is d3's partition.js, line for line.)
     initialRoot = PartNode $ rootData
       { x0 = padding
       , y0 = padding
@@ -246,14 +248,18 @@ positionChild k y0 y1 acc (PartNode node) =
     , currentX: x1'
     }
 
--- | Round all coordinates to integers (for pixel-perfect rendering)
+-- | Round all coordinates to integers (for pixel-perfect rendering).
+-- | Each edge goes to the nearest integer, as d3's `treemap/round.js` does
+-- | (`Math.round`), so that two rectangles sharing an edge still share it.
+-- | (Until 2026-11-18 this took the floor of x0, y0 and the ceiling of x1,
+-- | y1, which made neighbours overlap by a pixel and disagreed with d3.)
 roundNode :: forall a. PartitionNode a -> PartitionNode a
 roundNode (PartNode node) =
   PartNode $ node
-    { x0 = floor node.x0
-    , y0 = floor node.y0
-    , x1 = ceil node.x1
-    , y1 = ceil node.y1
+    { x0 = round node.x0
+    , y0 = round node.y0
+    , x1 = round node.x1
+    , y1 = round node.y1
     , children = map roundNode node.children
     }
 
