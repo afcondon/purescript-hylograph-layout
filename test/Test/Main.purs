@@ -10,6 +10,7 @@ import Effect (Effect)
 import Effect.Console (log)
 import Node.Process as Process
 import Test.Layout.SankeySpec (runSankeyTests)
+import Test.Layout.SankeyWholeSpec (runSankeyWholeTests, sankeyWholeTestCount)
 import Test.Layout.TreeSpec (runTreeTests)
 import Test.Layout.ClusterSpec (runClusterTests)
 import Test.Layout.StateMachineSpec (runStateMachineTests)
@@ -38,6 +39,7 @@ main = do
 
   -- Run all test suites
   sankeyFailures <- runSankeyTests
+  sankeyWholeFailures <- runSankeyWholeTests
   treeFailures <- runTreeTests
   clusterFailures <- runClusterTests
   stateMachineFailures <- runStateMachineTests
@@ -59,11 +61,12 @@ main = do
   placedFailures <- runPlacedTests
 
   -- Summary
-  let totalFailures = sankeyFailures + treeFailures + clusterFailures + stateMachineFailures + adjacencyFailures + packFailures + treemapFailures + partitionFailures + edgebundleFailures + masonryFailures + shelfFailures + waffleFailures + stackedFailures + waterfallFailures + justifiedFailures + binpackFailures + calendarFailures + swimlaneFailures + adaptersFailures + placedFailures
+  let totalFailures = sankeyFailures + sankeyWholeFailures + treeFailures + clusterFailures + stateMachineFailures + adjacencyFailures + packFailures + treemapFailures + partitionFailures + edgebundleFailures + masonryFailures + shelfFailures + waffleFailures + stackedFailures + waterfallFailures + justifiedFailures + binpackFailures + calendarFailures + swimlaneFailures + adaptersFailures + placedFailures
   log "\n================================"
   log "Summary"
   log "================================"
   log $ "Sankey: " <> show (11 - sankeyFailures) <> "/11 passed"
+  log $ "Sankey whole: " <> show (sankeyWholeTestCount - sankeyWholeFailures) <> "/" <> show sankeyWholeTestCount <> " passed"
   log $ "Tree: " <> show (6 - treeFailures) <> "/6 passed"
   log $ "Cluster: " <> show (4 - clusterFailures) <> "/4 passed"
   log $ "StateMachine: " <> show (6 - stateMachineFailures) <> "/6 passed"

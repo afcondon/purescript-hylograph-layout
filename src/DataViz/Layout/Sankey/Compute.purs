@@ -9,6 +9,8 @@ module DataViz.Layout.Sankey.Compute
   ( epsilon
   , computeLayout
   , computeLayoutWithConfig
+  , Scale
+  , configAtScale
   ) where
 
 import Prelude
@@ -74,8 +76,51 @@ computeLayoutWithConfig linkInputs config =
     computeNodeHeights
     computeNodeBreadths
     computeLinkBreadths
-    computeBackEdgeWidths
+    computeBackEdgeBreadths
     assignColors
+
+-- | A scale fixed by the caller, where `extent` would otherwise fit the
+-- | chart to a box: `pixelsPerUnit` is the height of one unit of value, and
+-- | `columnPitch` the distance from the left of one column to the left of
+-- | the next.
+type Scale = { pixelsPerUnit :: Number, columnPitch :: Number }
+
+-- | The configuration whose extent gives the chart that scale: it keeps
+-- | `extent.x0` and `extent.y0` and sets `extent.x1` and `extent.y1`, so
+-- | that the fullest column is exactly full and the columns are
+-- | `columnPitch` apart. Lay out with the result:
+-- |
+-- | ```purescript
+-- | computeLayoutWithConfig rows (configAtScale scale rows config)
+-- | ```
+-- |
+-- | It runs the layout as far as the columns (no relaxation), which is all
+-- | the extent depends on. The scale comes out to within rounding: the
+-- | layout still divides the height it is given by the fullest column.
+configAtScale :: Scale -> Array LinkCSVRow -> SankeyConfig -> SankeyConfig
+configAtScale scale linkInputs config =
+  config
+    { extent =
+        { x0: config.extent.x0
+        , y0: config.extent.y0
+        , x1: config.extent.x0 + config.nodeWidth + scale.columnPitch * toNumber (max 0 (columnCount - 1))
+        , y1: config.extent.y0 + foldl max 0.0 (map columnHeight columns)
+        }
+    }
+  where
+  model = flip execState (initialSankeyGraphModel config) do
+    for_ linkInputs processCSVLink
+    detectAndRemoveBackEdges
+    initialiseSankeyNodes
+    computeNodeValues
+    computeNodeDepths
+    computeNodeHeights
+  nodes = computeNodeLayers model.sankeyNodes config config.extent.x0 config.extent.x1
+  columnCount = if Array.null nodes then 0 else countLayers model.sankeyNodes config
+  columns = map (\layer -> filter (\node -> node.layer == layer) nodes) (Array.range 0 (columnCount - 1))
+  columnHeight column =
+    scale.pixelsPerUnit * foldl (\acc node -> acc + node.value) 0.0 column
+      + config.nodePadding * toNumber (max 0 (length column - 1))
 
 -- ============================================================================
 -- Step 1: Build Graph from Link Inputs
@@ -88,7 +133,8 @@ processCSVLink link = do
   model <- get
 
   let
-    -- assume no cycles, s != t. We could drop cyclic links or error out but not checking at this time.
+    -- A row may close a cycle, and may run from a node to itself: those are
+    -- set aside as back-edges by `detectAndRemoveBackEdges`.
     s = M.lookup link.s model.nodeNameToID
     t = M.lookup link.t model.nodeNameToID
 
@@ -103,8 +149,12 @@ processCSVLink link = do
         Nothing, (Just tid) ->
           { nodeCount: model.nodeCount + 1, sid: NodeID model.nodeCount, tid: tid, newNodes: [ NodeID model.nodeCount ] }
         -- both new, count increments by two (source added first, then target - matches D3's Set.add order)
-        Nothing, Nothing ->
-          { nodeCount: model.nodeCount + 2, sid: NodeID model.nodeCount, tid: NodeID (model.nodeCount + 1), newNodes: [ NodeID model.nodeCount, NodeID (model.nodeCount + 1) ] }
+        Nothing, Nothing
+          -- a link from a new node to itself introduces one node, not two
+          | link.s == link.t ->
+              { nodeCount: model.nodeCount + 1, sid: NodeID model.nodeCount, tid: NodeID model.nodeCount, newNodes: [ NodeID model.nodeCount ] }
+          | otherwise ->
+              { nodeCount: model.nodeCount + 2, sid: NodeID model.nodeCount, tid: NodeID (model.nodeCount + 1), newNodes: [ NodeID model.nodeCount, NodeID (model.nodeCount + 1) ] }
 
   modify_ _
     { linkCount = model.linkCount + 1
@@ -136,6 +186,14 @@ initialiseSankeyNodes = do
 -- | Uses findBackEdges from hylograph-graph for DFS back-edge classification.
 -- | After this step, model.graph contains only forward edges (safe for BFS),
 -- | model.sankeyLinks has forward links, and model.backEdgeLinks has back-edge links.
+-- |
+-- | **A link from a node to itself is a back-edge**, always: the depth-first
+-- | search meets its target while that node is still open. So it gives its
+-- | node no column and moves no other node. Like every back-edge it does
+-- | count towards its node's value, once as flow in and once as flow out
+-- | (`computeNodeValues`), so the node is tall enough for it to stand on
+-- | both sides beside the links that go forward, and the widths on each side
+-- | of a node still sum to no more than the node's height.
 detectAndRemoveBackEdges :: State SankeyGraphModel Unit
 detectAndRemoveBackEdges = do
   model <- get
@@ -336,9 +394,7 @@ computeNodeBreadths = do
 computeNodeLayers :: Array SankeyNode -> SankeyConfig -> Number -> Number -> Array SankeyNode
 computeNodeLayers nodes config x0 x1 =
   let
-    maxDepth = foldl (\acc node -> max acc node.depth) 0 nodes
-    maxNamed = foldl (\acc node -> max acc (fromMaybe 0 (config.nodeLayer node.name))) 0 nodes
-    numLayers = max maxDepth maxNamed + 1
+    numLayers = countLayers nodes config
     kx = (x1 - x0 - config.nodeWidth) / max 1.0 (toNumber (numLayers - 1))
 
     -- Apply alignment function to determine layer for each node
@@ -362,6 +418,16 @@ computeNodeLayers nodes config x0 x1 =
       nodesWithLayer
   in
     nodesWithX
+
+-- | How many columns the chart has: one more than the deepest node's depth,
+-- | or than the furthest column the caller names, whichever is more.
+countLayers :: Array SankeyNode -> SankeyConfig -> Int
+countLayers nodes config =
+  let
+    maxDepth = foldl (\acc node -> max acc node.depth) 0 nodes
+    maxNamed = foldl (\acc node -> max acc (fromMaybe 0 (config.nodeLayer node.name))) 0 nodes
+  in
+    max maxDepth maxNamed + 1
 
 -- | Helper: Apply alignment strategy to determine which layer a node belongs to
 alignNodeToLayer :: Alignment -> SankeyNode -> Int -> Int
@@ -1000,15 +1066,43 @@ computeLinkBreadths = do
 -- Step 7.5: Compute back-edge link widths
 -- ============================================================================
 
--- | Set widths on back-edge links using the same scale factor as forward links.
--- | y0/y1 remain at 0.0 — the renderer positions back-edges differently.
-computeBackEdgeWidths :: State SankeyGraphModel Unit
-computeBackEdgeWidths = do
+-- | Set widths on back-edge links using the same scale factor as forward
+-- | links, and where each stands on its two nodes: `y0` is its centre on the
+-- | right side of its source, `y1` its centre on the left side of its target.
+-- | On each side the back-edges stand below the links that go forward, in
+-- | input order. A node's value counts its back-edges, so under
+-- | `sankeyNodeValue` there is room for them inside the node.
+-- |
+-- | (Through 0.5.0 both were left at 0.0.)
+computeBackEdgeBreadths :: State SankeyGraphModel Unit
+computeBackEdgeBreadths = do
   model <- get
   let config = model.config
   let ky = calculateGlobalKy model.sankeyNodes config.extent.y0 config.extent.y1 config.nodePadding
-  let backLinksWithWidth = map (\link -> link { width = link.value * ky }) model.backEdgeLinks
-  modify_ _ { backEdgeLinks = backLinksWithWidth }
+  let widened = sortBy (\a b -> compare a.index b.index) (map (\link -> link { width = link.value * ky }) model.backEdgeLinks)
+  let
+    forwardOut node = foldl (\acc link -> if link.sourceIndex == node then acc + link.width else acc) 0.0 model.sankeyLinks
+    forwardIn node = foldl (\acc link -> if link.targetIndex == node then acc + link.width else acc) 0.0 model.sankeyLinks
+    top node = maybe 0.0 _.y0 (find (\n -> n.index == node) model.sankeyNodes)
+    stood = foldl
+      ( \acc link ->
+          let
+            leftBefore = fromMaybe 0.0 (Map.lookup link.sourceIndex acc.out)
+            enteredBefore = fromMaybe 0.0 (Map.lookup link.targetIndex acc.into)
+          in
+            { links: snoc acc.links link
+                { y0 = top link.sourceIndex + forwardOut link.sourceIndex + leftBefore + link.width / 2.0
+                , y1 = top link.targetIndex + forwardIn link.targetIndex + enteredBefore + link.width / 2.0
+                }
+            , out: Map.insertWith (+) link.sourceIndex link.width acc.out
+            , into: Map.insertWith (+) link.targetIndex link.width acc.into
+            }
+      )
+      { links: [], out: Map.empty, into: Map.empty }
+      widened
+  -- in the order they were set aside in, as before
+  let placed = map (\link -> fromMaybe link (find (\l -> l.index == link.index) stood.links)) model.backEdgeLinks
+  modify_ _ { backEdgeLinks = placed }
 
 -- ============================================================================
 -- Cycle classification

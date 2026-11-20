@@ -8,7 +8,12 @@
 -- | `computeLayoutWithLanes` does this for the links the caller chooses. It
 -- | lays the graph out once to learn each node's column, adds the waypoints,
 -- | and lays it out again with every column held, so the chart keeps the
--- | columns it would have had. Back-edges get no lane.
+-- | columns it would have had. Back-edges get no lane; they are returned in
+-- | `backEdges`, by the caller's names, with where each stands on its nodes
+-- | (see `DataViz.Layout.Sankey.BackEdge` for drawing them).
+-- |
+-- | `computeLayoutWithLanesAtScale` is the same layout at a scale the caller
+-- | fixes, where `config.extent` would otherwise fit it to a box.
 -- |
 -- | A waypoint's name is private (`laneOf` reads it). A caller with its own
 -- | `nodeSort` sees waypoints in the comparisons and can place a lane, for
@@ -21,20 +26,22 @@ module DataViz.Layout.Sankey.Lanes
   ( Route
   , LaneLayout
   , computeLayoutWithLanes
+  , computeLayoutWithLanesAtScale
   , laneOf
   , generateRoutePath
   ) where
 
 import Prelude
 
-import Data.Array (catMaybes, concat, drop, filter, findIndex, foldl, head, index, last, length, mapWithIndex, range, reverse, zipWith)
+import Data.Array (catMaybes, concat, drop, filter, findIndex, foldl, head, index, last, length, mapMaybe, mapWithIndex, range, reverse, zipWith)
 import Data.Int as Int
 import Data.Map as Map
 import Data.Maybe (Maybe(..), isNothing)
 import Data.Number.Format (toString)
 import Data.Tuple (Tuple(..))
 import Data.String (Pattern(..), split, stripPrefix)
-import DataViz.Layout.Sankey.Compute (computeLayoutWithConfig)
+import DataViz.Layout.Sankey.BackEdge (BackEdge, backEdgesAmong)
+import DataViz.Layout.Sankey.Compute (Scale, computeLayoutWithConfig, configAtScale)
 import DataViz.Layout.Sankey.Path (findNode)
 import DataViz.Layout.Sankey.Types (CycleAnalysis, LinkCSVRow, LinkID(..), SankeyConfig, SankeyLink, SankeyNode)
 
@@ -44,12 +51,16 @@ type Route = { index :: Int, segments :: Array SankeyLink }
 
 -- | `nodes`: the graph's own nodes, without waypoints. `waypoints`: the lane
 -- | nodes, for drawing routes (pass `nodes <> waypoints` to
--- | `generateRoutePath`). `routes`: one per input link, in input order.
+-- | `generateRoutePath`). `routes`: one per input link, in input order; a
+-- | back-edge's route has no segments. `backEdges`: the links set aside, in
+-- | input order, `index` being the link's place in the input and `source`
+-- | and `target` its row's names.
 type LaneLayout =
   { nodes :: Array SankeyNode
   , waypoints :: Array SankeyNode
   , routes :: Array Route
   , cycleAnalysis :: CycleAnalysis
+  , backEdges :: Array BackEdge
   }
 
 prefix :: String
@@ -74,11 +85,33 @@ computeLayoutWithLanes
   -> Array LinkCSVRow
   -> SankeyConfig
   -> LaneLayout
-computeLayoutWithLanes wants rows config =
+computeLayoutWithLanes = lanesFitting (\_ config -> config)
+
+-- | The same, at a scale the caller fixes: `config.extent` gives only the
+-- | top left corner, and the chart is as wide and as tall as the scale makes
+-- | it (see `configAtScale`).
+computeLayoutWithLanesAtScale
+  :: Scale
+  -> (Int -> LinkCSVRow -> Boolean)
+  -> Array LinkCSVRow
+  -> SankeyConfig
+  -> LaneLayout
+computeLayoutWithLanesAtScale scale = lanesFitting (configAtScale scale)
+
+-- | `fit` settles the extent of the second pass, given its rows (with the
+-- | waypoints in) and its configuration (with every column held).
+lanesFitting
+  :: (Array LinkCSVRow -> SankeyConfig -> SankeyConfig)
+  -> (Int -> LinkCSVRow -> Boolean)
+  -> Array LinkCSVRow
+  -> SankeyConfig
+  -> LaneLayout
+lanesFitting fit wants rows config =
   { nodes: filter (isNothing <<< laneOf <<< _.name) laid.nodes
   , waypoints: filter (not <<< isNothing <<< laneOf <<< _.name) laid.nodes
   , routes
   , cycleAnalysis: laid.cycleAnalysis
+  , backEdges
   }
   where
   first = computeLayoutWithConfig rows config
@@ -91,12 +124,20 @@ computeLayoutWithLanes wants rows config =
     _, _ -> [ { s: row.s, t: row.t, v: row.v, origin: i } ]
   segs = concat (mapWithIndex split' rows)
 
-  laid = computeLayoutWithConfig (map (\x -> { s: x.s, t: x.t, v: x.v }) segs)
-    config
-      { nodeLayer = \name -> case laneOf name of
-          Just w -> Just w.layer
-          Nothing -> Map.lookup name layers
-      }
+  segRows = map (\x -> { s: x.s, t: x.t, v: x.v }) segs
+  held = config
+    { nodeLayer = \name -> case laneOf name of
+        Just w -> Just w.layer
+        Nothing -> Map.lookup name layers
+    }
+  laid = computeLayoutWithConfig segRows (fit segRows held)
+
+  -- a link set aside in the second pass is numbered as a segment; say
+  -- which of the caller's rows it is, and by that row's names
+  backEdges = backEdgesAmong laid.nodes laid.cycleAnalysis # mapMaybe \backEdge -> do
+    seg <- index segs backEdge.index
+    row <- index rows seg.origin
+    pure backEdge { index = seg.origin, source = row.s, target = row.t }
 
   -- segment k of the input to the second pass is the link with index k
   routes = mapWithIndex route rows

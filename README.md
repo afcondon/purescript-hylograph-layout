@@ -54,6 +54,9 @@ positioned = tree config myTree
 - `DataViz.Layout.Hierarchy.Cluster` - Dendrogram
 - `DataViz.Layout.Hierarchy.EdgeBundle` - Edge bundling
 - `DataViz.Layout.Sankey.Compute` - Sankey diagrams
+- `DataViz.Layout.Sankey.Lanes` - lanes for links that span more than one column
+- `DataViz.Layout.Sankey.BackEdge` - the links that close a cycle (a link from a node to itself among them): which they are, where they stand on their nodes, a route under the chart
+- `DataViz.Layout.Sankey.Whole` - the chart with its back-edges routed and the nodes no link mentions on a shelf; optionally at a fixed scale
 - `DataViz.Layout.Chord` - Chord diagrams
 - `DataViz.Layout.Adjacency` - Adjacency matrix
 
